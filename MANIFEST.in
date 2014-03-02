@@ -1,0 +1,5 @@
+recursive-include reportapi *
+recursive-exclude reportapi *.pyc
+include LICENSE
+include AUTHORS
+include README.md

@@ -1,0 +1,381 @@
+# QUICKAPI LOCALIZATION.
+# Copyright (C) 2013 Grigoriy Kramarenko
+# This file is distributed under the same license as the QUICKAPI package.
+# Grigoriy Kramarenko <root@rosix.ru>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: QUICKAPI\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-22 13:40+1100\n"
+"PO-Revision-Date: 2013-01-23 11:43+1100\n"
+"Last-Translator: Grigoriy Kramarenko <root@rosix.ru>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: http.py:77
+msgid "Continue"
+msgstr ""
+
+#: http.py:78
+msgid "Switching Protocols"
+msgstr ""
+
+#: http.py:79
+msgid "Processing"
+msgstr ""
+
+#: http.py:81
+msgid "OK"
+msgstr ""
+
+#: http.py:82
+msgid "Created"
+msgstr ""
+
+#: http.py:83
+msgid "Accepted"
+msgstr ""
+
+#: http.py:84
+msgid "Non-Authoritative Information"
+msgstr ""
+
+#: http.py:85
+msgid "No Content"
+msgstr ""
+
+#: http.py:86
+msgid "Reset Content"
+msgstr ""
+
+#: http.py:87
+msgid "Partial Content"
+msgstr ""
+
+#: http.py:88
+msgid "Multi-Status"
+msgstr ""
+
+#: http.py:89
+msgid "IM Used"
+msgstr ""
+
+#: http.py:91
+msgid "Multiple Choices"
+msgstr ""
+
+#: http.py:92
+msgid "Moved Permanently"
+msgstr ""
+
+#: http.py:93
+msgid "Found"
+msgstr ""
+
+#: http.py:94
+msgid "See Other"
+msgstr ""
+
+#: http.py:95
+msgid "Not Modified"
+msgstr ""
+
+#: http.py:96
+msgid "Use Proxy"
+msgstr ""
+
+#: http.py:97
+msgid "Temporary Redirect"
+msgstr ""
+
+#: http.py:99
+msgid "Bad Request"
+msgstr ""
+
+#: http.py:100
+msgid "Unauthorized"
+msgstr ""
+
+#: http.py:101
+msgid "Payment Required"
+msgstr ""
+
+#: http.py:102
+msgid "Forbidden"
+msgstr ""
+
+#: http.py:103
+msgid "Not Found"
+msgstr ""
+
+#: http.py:104
+msgid "Method Not Allowed"
+msgstr ""
+
+#: http.py:105
+msgid "Not Acceptable"
+msgstr ""
+
+#: http.py:106
+msgid "Proxy Authentication Required"
+msgstr ""
+
+#: http.py:107
+msgid "Request Timeout"
+msgstr ""
+
+#: http.py:108
+msgid "Conflict"
+msgstr ""
+
+#: http.py:109
+msgid "Gone"
+msgstr ""
+
+#: http.py:110
+msgid "Length Required"
+msgstr ""
+
+#: http.py:111
+msgid "Precondition Failed"
+msgstr ""
+
+#: http.py:112
+msgid "Request Entity Too Large"
+msgstr ""
+
+#: http.py:113
+msgid "Request-URI Too Large"
+msgstr ""
+
+#: http.py:114
+msgid "Unsupported Media Type"
+msgstr ""
+
+#: http.py:115
+msgid "Requested Range Not Satisfiable"
+msgstr ""
+
+#: http.py:116
+msgid "Expectation Failed"
+msgstr ""
+
+#: http.py:117
+msgid "Unprocessable Entity"
+msgstr ""
+
+#: http.py:118
+msgid "Locked"
+msgstr ""
+
+#: http.py:119
+msgid "Failed Dependency"
+msgstr ""
+
+#: http.py:120
+msgid "Unordered Collection"
+msgstr ""
+
+#: http.py:121
+msgid "Upgrade Required"
+msgstr ""
+
+#: http.py:122
+msgid "Retry With"
+msgstr ""
+
+#: http.py:123
+msgid "Unrecoverable Error"
+msgstr ""
+
+#: http.py:125
+msgid "Internal Server Error"
+msgstr ""
+
+#: http.py:126
+msgid "Not Implemented"
+msgstr ""
+
+#: http.py:127
+msgid "Bad Gateway"
+msgstr ""
+
+#: http.py:128
+msgid "Service Unavailable"
+msgstr ""
+
+#: http.py:129
+msgid "Gateway Timeout"
+msgstr ""
+
+#: http.py:130
+msgid "HTTP Version Not Supported"
+msgstr ""
+
+#: http.py:131
+msgid "Variant Also Negotiates"
+msgstr ""
+
+#: http.py:132
+msgid "Insufficient Storage"
+msgstr ""
+
+#: http.py:133
+msgid "Loop Detected"
+msgstr ""
+
+#: http.py:134
+msgid "Bandwidth Limit Exceeded"
+msgstr ""
+
+#: http.py:135
+msgid "Not Extended"
+msgstr ""
+
+#: http.py:195
+msgid "Undefined message"
+msgstr ""
+
+#: views.py:114
+msgid "String in your localization"
+msgstr ""
+
+#: views.py:121
+msgid ""
+" *Test response*\n"
+"\n"
+"    #### Request parameters\n"
+"    Nothing\n"
+"\n"
+"    #### Returned object\n"
+"    `{\n"
+"        'REMOTE_ADDR': '127.0.0.1' || null,\n"
+"        'REMOTE_HOST': 'example.org' || null,\n"
+"        'default language': 'en',\n"
+"        'request language': 'ru',\n"
+"        'string': 'String in your localization',\n"
+"        'datetime': '2013-01-01T00:00:00.000Z',\n"
+"        'is_authenticate': true,\n"
+"    }`\n"
+msgstr ""
+
+#: views.py:343
+#, python-format
+msgid "Method `%s` does not exist"
+msgstr ""
+
+#: templates/quickapi/_docs.html:3
+msgid "This template \"quickapi/_docs.html\" is deprecated!"
+msgstr ""
+
+#: templates/quickapi/_methods.html:4 templates/quickapi/base.html:56
+msgid "Methods"
+msgstr ""
+
+#: templates/quickapi/_methods.html:7
+msgid "Method name"
+msgstr ""
+
+#: templates/quickapi/_methods.html:8
+msgid "Description for use"
+msgstr ""
+
+#: templates/quickapi/_requests.html:4 templates/quickapi/base.html:52
+msgid "Requests"
+msgstr ""
+
+#: templates/quickapi/_requests.html:5
+msgid "Query parameters can be transmitted in a single JSON object via POST"
+msgstr ""
+
+#: templates/quickapi/_requests.html:18
+msgid "Authorization settings everywhere are optional."
+msgstr ""
+
+#: templates/quickapi/_requests.html:19
+msgid ""
+"For example, if the request object stores a user session, then "
+"authentication occurs on these data."
+msgstr ""
+
+#: templates/quickapi/_requests.html:23 templates/quickapi/_requests.html:37
+#: templates/quickapi/_requests.html:53 templates/quickapi/_requests.html:68
+msgid "Example"
+msgstr ""
+
+#: templates/quickapi/_requests.html:23 templates/quickapi/_requests.html:37
+#: templates/quickapi/_requests.html:53 templates/quickapi/_requests.html:68
+msgid "for"
+msgstr ""
+
+#: templates/quickapi/_requests.html:24
+msgid "Parameters, you can pass directly into the POST-query."
+msgstr ""
+
+#: templates/quickapi/_requests.html:33
+msgid "In this variant, you can only pass lists and simple values."
+msgstr ""
+
+#: templates/quickapi/_requests.html:34
+msgid ""
+"Key \"key3\" in this case, jQuery will automatically change to \"key3[]\"."
+msgstr ""
+
+#: templates/quickapi/_requests.html:49
+msgid "In this variant, you can transfer any serializable objects."
+msgstr ""
+
+#: templates/quickapi/_requests.html:50
+msgid ""
+"To properly serialize dates in JSON is better to use special <a href="
+"\"http://code.google.com/p/jquery-json/\">jQuery plugin</a>."
+msgstr ""
+
+#: templates/quickapi/_requests.html:53
+msgid "with HTTP Basic authorization"
+msgstr ""
+
+#: templates/quickapi/_requests.html:68
+msgid "without HTTP Basic authorization"
+msgstr ""
+
+#: templates/quickapi/_responses.html:3 templates/quickapi/base.html:53
+msgid "Responses"
+msgstr ""
+
+#: templates/quickapi/_responses.html:6
+msgid "HTTP codes, with the meaning."
+msgstr ""
+
+#: templates/quickapi/_responses.html:7
+msgid "The string message to the user (localization support)"
+msgstr ""
+
+#: templates/quickapi/_responses.html:8
+msgid "Nested object JSON"
+msgstr ""
+
+#: templates/quickapi/_responses.html:11
+msgid ""
+"The type and structure of nested object depend on the method to call (see "
+"documentation below)."
+msgstr ""
+
+#: templates/quickapi/base.html:4 templates/quickapi/base.html.py:47
+msgid "API documentation"
+msgstr ""
+
+#: templates/quickapi/base.html:40
+msgid "Toggle navigation"
+msgstr ""
+
+#: templates/quickapi/base.html:59
+msgid "All methods"
+msgstr ""
+
+#: templates/quickapi/base.html:72
+msgid "Project"
+msgstr ""
