@@ -1,0 +1,16 @@
+{% extends 'reportapi/base.html' %}
+{% load i18n l10n %}
+{% block navbar %}{% endblock %}
+{% block header %}{% endblock %}
+{% block sidebar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+    <div class="inner cover">
+        <h1 class="cover-heading">500</h1>
+        <p class="lead">{% trans "Internal error of the server." %}</p>
+        <p class="lead">{% trans "Project administrator will consider in the near future this a bug." %}</p>
+    </div>
+{% endblock %}
+
+

@@ -11,6 +11,7 @@
 ^media/.*\.sql$
 ^media/.*\.log$
 ^media/.*\.txt$
+^example/media/.*$
 ^build/.*$
 ^dist/.*$
 ^django_quickapi.egg-info/.*$

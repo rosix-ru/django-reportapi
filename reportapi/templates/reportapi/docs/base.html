@@ -1,0 +1,134 @@
+{% load i18n l10n %}<!DOCTYPE HTML>
+<html lang="{{ LANGUAGE_CODE|default:"ru" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>{% block title %}{{ DOCUMENT }}{% endblock %}</title>
+    <meta name="generator" content="ReportAPI">
+    <meta name="author" content="{{ user }}">
+    <meta name="created" content="{% now 'Ymd;His00' %}">
+
+    <style>
+        {% block defaultstyle %}
+        body,div,table,thead,tbody,tfoot,tr,th,td,p {
+            font-family:"Arial";
+            font-size:x-small;
+        }
+        .bordered {
+            border: 1px solid #000;
+            padding: 0;
+        }
+        .bordered-bg-gray {
+            border: 1px solid #000;
+            padding: 0;
+            background: #eee;
+        }
+        .bordered-fg-gray {
+            border: 1px solid #000;
+            padding: 0;
+            color: #777;
+        }
+        .bordered-bg-red {
+            border: 1px solid #000;
+            padding: 0;
+            background: #FF8080;
+        }
+        .bordered-fg-red {
+            border: 1px solid #000;
+            padding: 0;
+            color: red;
+        }
+        .bg-gray {
+            background: #eee;
+        }
+        .fg-gray {
+            color: #777;
+        }
+        .bg-red {
+            background: #FF8080;
+        }
+        .fg-red {
+            color: red;
+        }
+        {% endblock %}
+
+        {% block extrastyle %}
+            @page { size: 21cm 29.7cm;
+                    margin-left: 2cm;
+                    margin-right: 1cm;
+                    margin-top: 0.5cm;
+                    margin-bottom: 0.5cm
+            }
+        {% endblock %}
+    </style>
+</head>
+
+<body>
+{% block body %}
+
+{% block header %}
+    <h1>{% block header_title %}{{ DOCUMENT }}{% endblock %}</h1>
+    {% block header_title_after %}{% endblock %}
+    <div align="right">{% trans "formed" %}: {% now "DATETIME_FORMAT" %}</div>
+{% if not filters %}
+    <br>
+    <hr>
+{% endif %}
+{% endblock %}
+
+{% block filters %}
+{% if filters %}
+    <h4>{% trans 'Filters' %}</h4>
+    <table width="100%" cellspacing="0" border="0">
+        <thead>
+            <tr class="bg-gray">
+                <th class="bordered">{% trans "field" %}</th>
+                <th class="bordered">{% trans "condition" %}</th>
+                <th class="bordered">{% trans "value" %}</th>
+                <th class="bordered">{% trans "inverse" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+    {% for filter in filters %}
+        <tr>
+            <td class="bordered">{{ filter.field_title|lower }}</td>
+            <td class="bordered">{{ filter.type_title|lower }}</td>
+        {% if filter.values|join:", " == 'on' %}
+            <td class="bordered">{% trans 'yes' %}</td>
+        {% else %}
+            <td class="bordered">{{ filter.values|join:", " }}</td>
+        {% endif %}
+        {% if filter.inverse %}
+            <td class="bordered">{% trans 'yes' %}</td>
+        {% else %}
+            <td class="bordered"></td>
+        {% endif %}
+        </tr>
+    {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <hr>
+{% endif %}
+{% endblock %}
+
+{% block main_table %}
+    <table width="100%" cellspacing="0" border="0">
+        {% block main_table_colls %}{% endblock %}
+        <thead>
+    {% block main_table_thead %}{% endblock %}
+        </thead>
+        <tbody>
+    {% block main_table_tbody %}{% endblock %}
+        </tbody>
+        <tfoot>
+    {% block main_table_tfoot %}{% endblock %}
+        </tfoot>
+    </table>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% endblock %}
+</body>
+</html>

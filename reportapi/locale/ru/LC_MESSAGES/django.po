@@ -1,14 +1,14 @@
-# QUICKAPI LOCALIZATION.
-# Copyright (C) 2013 Grigoriy Kramarenko
-# This file is distributed under the same license as the QUICKAPI package.
-# Grigoriy Kramarenko <root@rosix.ru>, 2013.
+# ReportAPI LOCALIZATION.
+# Copyright (C) 2014 Grigoriy Kramarenko
+# This file is distributed under the same license as the ReportAPI package.
+# Grigoriy Kramarenko <root@rosix.ru>, 2014.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: QUICKAPI\n"
+"Project-Id-Version: ReportAPI\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-11 03:13+1100\n"
-"PO-Revision-Date: 2013-01-23 11:43+1100\n"
+"POT-Creation-Date: 2014-03-08 00:16+1100\n"
+"PO-Revision-Date: 2014-03-07 00:00+1100\n"
 "Last-Translator: Grigoriy Kramarenko <root@rosix.ru>\n"
 "Language-Team: \n"
 "Language: ru\n"
@@ -18,398 +18,290 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)\n"
 
-#: http.py:77
-msgid "Continue"
-msgstr "Продолжить"
+#: __init__.py:43 sites.py:137 templates/reportapi/base.html:4
+#: templates/reportapi/base.html.py:51
+msgid "Reporting"
+msgstr "Отчётность"
 
-#: http.py:78
-msgid "Switching Protocols"
-msgstr "Переключение протоколов"
+#: filters.py:58
+msgid "isnull"
+msgstr "пусто"
 
-#: http.py:79
-msgid "Processing"
-msgstr "Идёт обработка"
+#: filters.py:58
+msgid "empty"
+msgstr "пусто"
 
-#: http.py:81
-msgid "OK"
-msgstr "Хорошо"
+#: filters.py:59
+msgid "exact"
+msgstr "равно"
 
-#: http.py:82
-msgid "Created"
-msgstr "Создано"
+#: filters.py:59
+msgid "iexact"
+msgstr "равно (без регистра)"
 
-#: http.py:83
-msgid "Accepted"
-msgstr "Принято"
+#: filters.py:60
+msgid "gt"
+msgstr "больше чем"
 
-#: http.py:84
-msgid "Non-Authoritative Information"
-msgstr "Информация не авторитетна"
+#: filters.py:60
+msgid "gte"
+msgstr "больше или равно"
 
-#: http.py:85
-msgid "No Content"
-msgstr "Нет содержимого"
+#: filters.py:60
+msgid "lt"
+msgstr "меньше чем"
 
-#: http.py:86
-msgid "Reset Content"
-msgstr "Сбросить содержимое"
+#: filters.py:60
+msgid "lte"
+msgstr "меньше или равно"
 
-#: http.py:87
-msgid "Partial Content"
-msgstr "Частичное содержимое"
+#: filters.py:61
+msgid "range"
+msgstr "диапазон"
 
-#: http.py:88
-msgid "Multi-Status"
-msgstr "Многостатусный"
+#: filters.py:61
+msgid "in"
+msgstr "в списке"
 
-#: http.py:89
-msgid "IM Used"
-msgstr "Использовано IM"
+#: filters.py:62
+msgid "contains"
+msgstr "содержит (с регистром)"
 
-#: http.py:91
-msgid "Multiple Choices"
-msgstr "Множество выборов"
+#: filters.py:62
+msgid "icontains"
+msgstr "содержит"
 
-#: http.py:92
-msgid "Moved Permanently"
-msgstr "Перемещено навсегда"
+#: filters.py:63
+msgid "startswith"
+msgstr "начало (с регистром)"
 
-#: http.py:93
-msgid "Found"
-msgstr "Найдено"
+#: filters.py:63
+msgid "istartswith"
+msgstr "начало"
 
-#: http.py:94
-msgid "See Other"
-msgstr "Смотреть другое"
+#: filters.py:63
+msgid "endswith"
+msgstr "конец (с регистром)"
 
-#: http.py:95
-msgid "Not Modified"
-msgstr "Не изменялось"
+#: filters.py:63
+msgid "iendswith"
+msgstr "конец"
 
-#: http.py:96
-msgid "Use Proxy"
-msgstr "Использовать прокси"
+#: filters.py:286 templates/reportapi/docs/base.html:97
+#: templates/reportapi/docs/base.html:102
+msgid "yes"
+msgstr "да"
 
-#: http.py:97
-msgid "Temporary Redirect"
-msgstr "Временное перенаправление"
+#: filters.py:286
+msgid "no"
+msgstr "нет"
 
-#: http.py:99
-msgid "Bad Request"
-msgstr "Плохой запрос"
+#: models.py:227
+msgid "section"
+msgstr "раздел"
 
-#: http.py:100
-msgid "Unauthorized"
-msgstr "Не авторизован"
+#: models.py:228
+msgid "name"
+msgstr "имя"
 
-#: http.py:101
-msgid "Payment Required"
-msgstr "Требуется оплата"
+#: models.py:229
+msgid "title without translation"
+msgstr "название без перевода"
 
-#: http.py:102
-msgid "Forbidden"
-msgstr "Запрещено"
+#: models.py:230
+msgid "allow all users"
+msgstr "доступно всем пользователям"
 
-#: http.py:103
-msgid "Not Found"
-msgstr "Не найдено"
+#: models.py:232
+msgid "allow list users"
+msgstr "доступно списку пользователей"
 
-#: http.py:104
-msgid "Method Not Allowed"
-msgstr "Метод не доступен"
+#: models.py:234
+msgid "allow list groups"
+msgstr "доступно списку групп"
 
-#: http.py:105
-msgid "Not Acceptable"
-msgstr "Не приемлемо"
+#: models.py:240 models.py:280
+msgid "registered report"
+msgstr "зарегистрированный отчёт"
 
-#: http.py:106
-msgid "Proxy Authentication Required"
-msgstr "Необходима аутентификация прокси"
+#: models.py:241
+msgid "registered reports"
+msgstr "зарегистрированные отчёты"
 
-#: http.py:107
-msgid "Request Timeout"
-msgstr "Истекло время ожидания"
+#: models.py:282
+msgid "user"
+msgstr "пользователь"
 
-#: http.py:108
-msgid "Conflict"
-msgstr "Конфликт"
+#: models.py:283
+msgid "process key"
+msgstr "ключ процесса"
 
-#: http.py:109
-msgid "Gone"
-msgstr "Удалён"
+#: models.py:285
+msgid "error message"
+msgstr "сообщение об ошибке"
 
-#: http.py:110
-msgid "Length Required"
-msgstr "Необходима длина"
+#: models.py:286
+msgid "start create"
+msgstr "начало создания"
 
-#: http.py:111
-msgid "Precondition Failed"
-msgstr "Условие ложно"
+#: models.py:287
+msgid "end create"
+msgstr "конец создания"
 
-#: http.py:112
-msgid "Request Entity Too Large"
-msgstr "Размер запроса слишком велик"
+#: models.py:288
+msgid "report file"
+msgstr "файл отчёта"
 
-#: http.py:113
-msgid "Request-URI Too Large"
-msgstr "Запрашиваемый URI слишком длинный"
+#: models.py:298
+msgid "generated report"
+msgstr "сгенерированный отчет"
 
-#: http.py:114
-msgid "Unsupported Media Type"
-msgstr "Неподдерживаемый тип данных"
+#: models.py:299
+msgid "generated reports"
+msgstr "сгенерированные отчеты"
 
-#: http.py:115
-msgid "Requested Range Not Satisfiable"
-msgstr "Запрашиваемый диапазон не достижим"
+#: sites.py:52
+msgid "Administration"
+msgstr "Админка"
 
-#: http.py:116
-msgid "Expectation Failed"
-msgstr "Ожидаемое неприемлемо"
+#: sites.py:53
+msgid "Users"
+msgstr "Пользователи"
 
-#: http.py:117
-msgid "Unprocessable Entity"
-msgstr "Необрабатываемый экземпляр"
+#: sites.py:54
+msgid "Sites"
+msgstr "Сайты"
 
-#: http.py:118
-msgid "Locked"
-msgstr "Заблокировано"
+#: sites.py:55
+msgid "Content types"
+msgstr "Тип содержимого"
 
-#: http.py:119
-msgid "Failed Dependency"
-msgstr "Невыполненная зависимость"
+#: views.py:64
+msgid "Access denied"
+msgstr "Доступ запрещён"
 
-#: http.py:120
-msgid "Unordered Collection"
-msgstr "Неупорядоченный набор"
+#: templates/reportapi/404.html:7
+msgid "Excuse, the page isn't found."
+msgstr "Извините, страница не найдена."
 
-#: http.py:121
-msgid "Upgrade Required"
-msgstr "Необходимо обновление"
-
-#: http.py:122
-msgid "Retry With"
-msgstr "Повторить с"
-
-#: http.py:123
-msgid "Unrecoverable Error"
-msgstr "Некорректируемая ошибка"
-
-#: http.py:125
-msgid "Internal Server Error"
+#: templates/reportapi/500.html:11
+msgid "Internal error of the server."
 msgstr "Внутренняя ошибка сервера"
 
-#: http.py:126
-msgid "Not Implemented"
-msgstr "Не реализовано"
+#: templates/reportapi/500.html:12
+msgid "Project administrator will consider in the near future this a bug."
+msgstr "Администратор проекта рассмотрит ошибку в ближайшее время."
 
-#: http.py:127
-msgid "Bad Gateway"
-msgstr "Плохой, ошибочный шлюз"
-
-#: http.py:128
-msgid "Service Unavailable"
-msgstr "Сервис недоступен"
-
-#: http.py:129
-msgid "Gateway Timeout"
-msgstr "Шлюз не отвечает"
-
-#: http.py:130
-msgid "HTTP Version Not Supported"
-msgstr "Версия HTTP не поддерживается"
-
-#: http.py:131
-msgid "Variant Also Negotiates"
-msgstr "Вариант тоже проводит согласование"
-
-#: http.py:132
-msgid "Insufficient Storage"
-msgstr "Переполнение хранилища"
-
-#: http.py:133
-msgid "Loop Detected"
-msgstr "Обнаружена петля"
-
-#: http.py:134
-msgid "Bandwidth Limit Exceeded"
-msgstr "Исчерпана пропускная ширина канала"
-
-#: http.py:135
-msgid "Not Extended"
-msgstr "не расширено"
-
-#: http.py:195
-msgid "Undefined message"
-msgstr "Неопределённое сообщение"
-
-#: views.py:104
-msgid "String in your localization"
-msgstr "Строка в вашей локализации"
-
-#: views.py:110
-msgid ""
-"\n"
-"*Test response*\n"
-"\n"
-"#### Request parameters\n"
-"Nothing\n"
-"\n"
-"#### Returned object\n"
-"\n"
-"```\n"
-"#!javascript\n"
-"\n"
-"{\n"
-"    'REMOTE_ADDR': '127.0.0.1' || null,\n"
-"    'REMOTE_HOST': 'example.org' || null,\n"
-"    'default language': 'en',\n"
-"    'request language': 'ru',\n"
-"    'string': 'String in your localization',\n"
-"    'datetime': '2013-01-01T00:00:00.000Z',\n"
-"    'is_authenticated': true,\n"
-"}\n"
-"```\n"
-msgstr ""
-"\n"
-"*Тестовый ответ*\n"
-"\n"
-"#### Параметры запроса\n"
-"Пусто\n"
-"\n"
-"#### Возвращаемый объект\n"
-"\n"
-"```\n"
-"#!javascript\n"
-"\n"
-"{\n"
-"    'REMOTE_ADDR': '127.0.0.1' || null,\n"
-"    'REMOTE_HOST': 'example.org' || null,\n"
-"    'default language': 'en',\n"
-"    'request language': 'ru',\n"
-"    'string': 'Строка в вашей локализации',\n"
-"    'datetime': '2013-01-01T00:00:00.000Z',\n"
-"    'is_authenticated': true,\n"
-"}\n"
-"```\n"
-
-#: views.py:372
-#, python-format
-msgid "Method `%s` does not exist"
-msgstr "Метод `%s` не существует"
-
-#: templates/quickapi/_docs.html:3
-msgid "This template \"quickapi/_docs.html\" is deprecated!"
-msgstr "Этот шаблон \"quickapi/_docs.html\" устарел!"
-
-#: templates/quickapi/_methods.html:4 templates/quickapi/base.html:65
-msgid "Methods"
-msgstr "Методы"
-
-#: templates/quickapi/_methods.html:7
-msgid "Method name"
-msgstr "Имя метода"
-
-#: templates/quickapi/_methods.html:8
-msgid "Description for use"
-msgstr "Описание использования"
-
-#: templates/quickapi/_requests.html:4 templates/quickapi/base.html:61
-msgid "Requests"
-msgstr "Запросы"
-
-#: templates/quickapi/_requests.html:5
-msgid "Query parameters can be transmitted in a single JSON object via POST"
-msgstr "Параметры запроса можно передать в одном JSON-объекте через POST"
-
-#: templates/quickapi/_requests.html:18
-msgid "Authorization settings everywhere are optional."
-msgstr "Параметры авторизации везде являются необязательными."
-
-#: templates/quickapi/_requests.html:19
-msgid ""
-"For example, if the request object stores a user session, then "
-"authentication occurs on these data."
-msgstr ""
-"Так, например, если объект запроса хранит сессию пользователя, то "
-"авторизация происходит по этим данным."
-
-#: templates/quickapi/_requests.html:23 templates/quickapi/_requests.html:37
-#: templates/quickapi/_requests.html:54 templates/quickapi/_requests.html:68
-msgid "Example"
-msgstr "Пример"
-
-#: templates/quickapi/_requests.html:23 templates/quickapi/_requests.html:37
-#: templates/quickapi/_requests.html:54 templates/quickapi/_requests.html:68
-msgid "for"
-msgstr "для"
-
-#: templates/quickapi/_requests.html:24
-msgid "Parameters, you can pass directly into the POST-query."
-msgstr "Параметры можно передавать непосредственно в POST-запросе."
-
-#: templates/quickapi/_requests.html:33
-msgid "In this variant, you can only pass lists and simple values."
-msgstr "В этом варианте можно передавать только простые списки и значения."
-
-#: templates/quickapi/_requests.html:34
-msgid ""
-"Key \"key3\" in this case, jQuery will automatically change to \"key3[]\"."
-msgstr ""
-"Ключ \"key3\" в этом случае, jQuery автоматически заменит на \"key3[]\"."
-
-#: templates/quickapi/_requests.html:50
-msgid "In this variant, you can transfer any serializable objects."
-msgstr "В этом варианте можно передавать любые сериализуемые объекты."
-
-#: templates/quickapi/_requests.html:51
-msgid ""
-"To properly serialize dates in JSON is better to use special <a href="
-"\"http://code.google.com/p/jquery-json/\">jQuery plugin</a>."
-msgstr ""
-"Для правильной сериализации дат в JSON лучше использовать специальный <a "
-"href=\"http://code.google.com/p/jquery-json/\">плагин jQuery</a>."
-
-#: templates/quickapi/_requests.html:54
-msgid "with HTTP Basic authorization"
-msgstr "с HTTP Basic авторизацией"
-
-#: templates/quickapi/_requests.html:68
-msgid "without HTTP Basic authorization"
-msgstr "без HTTP Basic авторизации"
-
-#: templates/quickapi/_responses.html:3 templates/quickapi/base.html:62
-msgid "Responses"
-msgstr "Ответы"
-
-#: templates/quickapi/_responses.html:12
-msgid ""
-"The type and structure of nested object depend on the method to call (see "
-"documentation below)."
-msgstr ""
-"Тип и структура вложенного объекта зависят от вызываемого метода (см. "
-"документацию ниже)."
-
-#: templates/quickapi/base.html:4 templates/quickapi/base.html.py:56
-msgid "API documentation"
-msgstr "Документация API"
-
-#: templates/quickapi/base.html:49
+#: templates/reportapi/base.html:44
 msgid "Toggle navigation"
 msgstr "Переключение навигации"
 
-#: templates/quickapi/base.html:68
-msgid "All methods"
-msgstr "Все методы"
+#: templates/reportapi/base.html:62
+msgid "List reports"
+msgstr "Список отчётов"
 
-#: templates/quickapi/base.html:81
-msgid "Project"
-msgstr "Проект"
+#: templates/reportapi/base.html:74
+msgid "Home"
+msgstr "Главная"
 
-#~ msgid "HTTP codes, with the meaning."
-#~ msgstr "Коды HTTP, имеющие смысл."
+#: templates/reportapi/index.html:6 templates/reportapi/report_list.html:6
+msgid "Last documents of user"
+msgstr "Последние документы пользователя"
 
-#~ msgid "The string message to the user (localization support)"
-#~ msgstr "Строка сообщения для пользователя (с поддержкой локализации)"
+#: templates/reportapi/index.html:12 templates/reportapi/report_list.html:12
+msgid "Last documents"
+msgstr "Последние документы"
 
-#~ msgid "Nested object JSON"
-#~ msgstr "Вложенный объект JSON"
+#: templates/reportapi/report.html:37
+msgid "no condition"
+msgstr "нет условия"
+
+#: templates/reportapi/report.html:45
+#: templates/reportapi/underscore/filter.html:6
+msgid "Filter required"
+msgstr "Фильтр обязателен"
+
+#: templates/reportapi/report.html:59
+msgid "Show additional"
+msgstr "Показать дополнительные"
+
+#: templates/reportapi/report.html:62
+msgid "Hide additional"
+msgstr "Скрыть дополнительные"
+
+#: templates/reportapi/report.html:67
+msgid "Create document"
+msgstr "Создать документ"
+
+#: templates/reportapi/docs/base.html:72
+msgid "formed"
+msgstr "сформировано"
+
+#: templates/reportapi/docs/base.html:81
+msgid "Filters"
+msgstr "Фильтры"
+
+#: templates/reportapi/docs/base.html:85
+msgid "field"
+msgstr "поле"
+
+#: templates/reportapi/docs/base.html:86
+msgid "condition"
+msgstr "условие"
+
+#: templates/reportapi/docs/base.html:87
+msgid "value"
+msgstr "значение"
+
+#: templates/reportapi/docs/base.html:88
+msgid "inverse"
+msgstr "инверсия"
+
+#: templates/reportapi/underscore/alert.html:4
+msgid "Bug!"
+msgstr "Ошибка!"
+
+#: templates/reportapi/underscore/alert.html:4
+msgid "Attention!"
+msgstr "Внимание!"
+
+#: templates/reportapi/underscore/alert.html:4
+msgid "Message."
+msgstr "Сообщение."
+
+#: templates/reportapi/underscore/alert.html:6
+msgid "see the log in the JavaScript console"
+msgstr "смотрите лог в консоли JavaScript"
+
+#: templates/reportapi/underscore/filter.html:19
+msgid "Object search"
+msgstr "Поиск объекта"
+
+#: templates/reportapi/underscore/filter.html:34
+#: templates/reportapi/underscore/filter.html:37
+msgid "yyyy-mm-dd HH:MM:SS"
+msgstr "гггг-мм-дд ЧЧ:ММ:СС"
+
+#: templates/reportapi/underscore/filter.html:43
+#: templates/reportapi/underscore/filter.html:46
+msgid "yyyy-mm-dd HH:MM"
+msgstr "гггг-мм-дд ЧЧ:ММ"
+
+#: templates/reportapi/underscore/filter.html:52
+#: templates/reportapi/underscore/filter.html:55
+msgid "yyyy-mm-dd"
+msgstr "гггг-мм-дд"
+
+#: templates/reportapi/underscore/filter.html:61
+#: templates/reportapi/underscore/filter.html:64
+msgid "HH:MM:SS"
+msgstr "ЧЧ:ММ:СС"
+
+#: templates/reportapi/underscore/filter.html:70
+#: templates/reportapi/underscore/filter.html:73
+msgid "HH:MM"
+msgstr "ЧЧ:ММ"
+
+#: templatetags/reportapi_base.py:99 templatetags/reportapi_base.py:107
+msgid "Anonymous"
+msgstr "Аноним"

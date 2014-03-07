@@ -1,0 +1,7 @@
+{# Шаблон Underscore #}{% load i18n l10n %}
+<div class="alert <%= type %> fade in">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+    <h4><% if (type=="alert-danger") { %>{% trans 'Bug!' %}<% } else if (type=="alert-warning") { %>{% trans 'Attention!' %}<% } else { %>{% trans 'Message.' %}<% } %></h4>
+    <span class="alert-text"><%= msg %></span>
+    <% if ((type=="alert-error") && (DEBUG)) { %><h6><i>{% trans 'see the log in the JavaScript console' %}</i></h6><% } %>
+</div>

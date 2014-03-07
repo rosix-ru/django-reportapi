@@ -287,6 +287,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'reportapi',
     'quickapi',
+    'project.test',
 )
 
 

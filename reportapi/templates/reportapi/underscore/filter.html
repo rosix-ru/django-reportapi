@@ -1,0 +1,86 @@
+{# Шаблон Underscore #}{% load i18n l10n %}
+
+<% if (!data.condition && data.type != 'boolean') { %>
+    <!-- not condition -->
+    <% if (data.required) { %>
+        <label class="text-danger">{% trans 'Filter required' %}</label>
+    <% } %>
+<% } else if (data.condition in {'isnull':0, 'empty':0}) { %>
+    <label>
+        <input class="ace ace-switch ace-switch-4" data-type="<%= data.type %>" type="checkbox"
+            id="value-<%= data.name %>"
+            name="<%= data.name %>" />
+        <span class="lbl"></span>
+    </label>
+<% } else { %>
+    <% if (data.type == 'object') { %>
+        <select
+        <% if (data.condition in {'in':0, 'range':0}) { %>multiple<% } %>
+        placeholder="{% trans 'Object search' %}"
+    <% } else { %>
+        <input
+    <% } %>
+
+    id="value-<%= data.name %>"
+    type="text"
+    name="<%= data.name %>"
+    value="<%= data.value %>"
+    class="form-control"
+    data-type="<%= data.type %>"
+
+    <% if (data.type == 'datetime' && data.withseconds) { %>
+        <% if (data.condition == 'range') { %>
+            data-mask="9999-19-39 29:59:59<%= RANGE_SPLIT %>9999-19-39 29:59:59"
+            placeholder="{% trans 'yyyy-mm-dd HH:MM:SS' %}<%= RANGE_SPLIT %>{% trans 'yyyy-mm-dd HH:MM:SS' %}"
+        <% } else { %>
+            data-mask="9999-19-39 29:59:59"
+            placeholder="{% trans 'yyyy-mm-dd HH:MM:SS' %}"
+        <% } %>
+
+    <% } else if (data.type == 'datetime') { %>
+        <% if (data.condition == 'range') { %>
+            data-mask="9999-19-39 29:59<%= RANGE_SPLIT %>9999-19-39 29:59"
+            placeholder="{% trans 'yyyy-mm-dd HH:MM' %}<%= RANGE_SPLIT %>{% trans 'yyyy-mm-dd HH:MM' %}"
+        <% } else { %>
+            data-mask="9999-19-39 29:59"
+            placeholder="{% trans 'yyyy-mm-dd HH:MM' %}"
+        <% } %>
+
+    <% } else if (data.type == 'date') { %>
+        <% if (data.condition == 'range') { %>
+            data-mask="9999-19-39<%= RANGE_SPLIT %>9999-19-39"
+            placeholder="{% trans 'yyyy-mm-dd' %}<%= RANGE_SPLIT %>{% trans 'yyyy-mm-dd' %}"
+        <% } else { %>
+            data-mask="9999-19-39"
+            placeholder="{% trans 'yyyy-mm-dd' %}"
+        <% } %>
+
+    <% } else if (data.type == 'time' && data.withseconds) { %>
+        <% if (data.condition == 'range') { %>
+            data-mask="29:59:59<%= RANGE_SPLIT %>29:59:59"
+            placeholder="{% trans 'HH:MM:SS' %}<%= RANGE_SPLIT %>{% trans 'HH:MM:SS' %}"
+        <% } else { %>
+            data-mask="29:59:59"
+            placeholder="{% trans 'HH:MM:SS' %}"
+        <% } %>
+
+    <% } else if (data.type == 'time') { %>
+        <% if (data.condition == 'range') { %>
+            data-mask="29:59<%= RANGE_SPLIT %>29:59"
+            placeholder="{% trans 'HH:MM' %}<%= RANGE_SPLIT %>{% trans 'HH:MM' %}"
+        <% } else { %>
+            data-mask="29:59"
+            placeholder="{% trans 'HH:MM' %}"
+        <% } %>
+
+    <% } else if (data.type == 'number') { %>
+        data-validate="number"
+    <% } %>
+
+    <% if (data.type == 'object') { %>
+        ></select>
+    <% } else { %>
+        />
+    <% } %>
+
+<% } %>

@@ -37,9 +37,16 @@
 ###############################################################################
 """
 from django.conf import settings
+from django import VERSION as django_version
+from reportapi import __version__ as reportapi_version
+from quickapi import __version__ as quickapi_version
 
 SITE_ID = settings.SITE_ID
 DEBUG   = settings.DEBUG
+
+DJANGO_VERSION          = '.'.join([str(x) for x in django_version[:2]])
+REPORTAPI_VERSION       = reportapi_version
+QUICKAPI_VERSION        = quickapi_version
 
 REPORTAPI_ROOT = getattr(settings, 'REPORTAPI_ROOT', '%s/reports/' % settings.MEDIA_ROOT.rstrip('/'))
 REPORTAPI_URL  = getattr(settings, 'REPORTAPI_URL',  '%s/reports/' % settings.MEDIA_URL.rstrip('/'))

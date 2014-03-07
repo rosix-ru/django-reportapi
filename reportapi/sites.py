@@ -64,6 +64,7 @@ class NotRegistered(Exception):
 
 class Section(object):
     """ Класс раздела для регистрации экземпляров Report """
+    icon = None
 
     def __init__(self, site, section_name, section_label):
         self.site = site
@@ -72,53 +73,61 @@ class Section(object):
         self.reports_list = []
         self.reports = {}
 
-    def get_registered(self):
-        return Register.objects.filter(name__startswith=self.name+'.')
+    def get_registered(self, request):
+        manager = Register.objects
+        if request:
+            manager = manager.permitted(request)
+        return manager.filter(section=self.name)
 
     def has_permission(self, request):
         """
         Возвращает True, если данный HttpRequest имеет разрешение по
         крайней мере в одном экземпляре Report
         """
-        return bool(self.get_registered().permitted(request).count())
+        return bool(self.get_registered(request).count())
 
     def get_available_names(self, request):
         """
         Возвращает список имён отчётов, доступных для пользователя
         """
-        return self.get_registered().permitted(request).values_list(name, flat=True)
+        return self.get_registered(request).values_list('name', flat=True)
 
     def get_available_reports(self, request):
         """ Возвращает отчёты, доступные для пользователя """
         reports = {}
         names = self.get_available_names(request)
-        return self.reports.fromkeys(names)
+        for name in names:
+            reports[name] = self.reports[name]
+        return reports
 
     def get_scheme(self, request):
-        """ Возвращает схему приложения для пользователя """
+        """ Возвращает схему раздела для пользователя """
+        reports = self.get_reports(request)
         SECTION = {
+            'icon': self.icon,
             'label': self.label,
-            'reports_list': [],
+            'reports_list': [ r.name for r in reports ],
             'reports': {},
         }
-        reports_list = []
+        for report in reports:
+            scheme = report.get_scheme(request)
+            if scheme:
+                SECTION['reports'][report.name] = scheme
+
+        return SECTION
+
+    def get_reports(self, request):
+        """ Возвращает список отчётов, доступных для пользователя """
         unsorted = self.get_available_names(request)
         # По умолчанию сортировка по очереди регистрации
         names = [ x for x in self.reports_list if x in unsorted ]
-        for name in names:
-            report = self.reports[name]
-            scheme = report.get_scheme(request)
-            if scheme:
-                reports_list.append((name, unicode(report.label)))
-                SECTION['reports'][name] = scheme
+        REPORTS = [ self.reports[name] for name in names ]
 
         if SORTING_REPORTS:
             # Сортировка по локализованному названию
-            reports_list = sorted(reports_list, key=lambda x: x[1])
+            REPORTS = sorted(REPORTS, key=lambda x: unicode(x.label))
 
-        SECTION['reports_list'] = [ x[0] for x in reports_list ]
-
-        return SECTION
+        return REPORTS
 
 class SiteReportAPI(object):
     """
@@ -150,7 +159,8 @@ class SiteReportAPI(object):
 
         for report_class in iterclass:
             validate(report_class)
-            report = report_class(**kwargs)
+            report = report_class(site=self, **kwargs)
+            report.create_register()
 
             section_name = report.section
             report_name = report.name
@@ -199,7 +209,7 @@ class SiteReportAPI(object):
         крайней мере в одном экземпляре Report
         """
         return request.user.is_active and request.user.is_staff and \
-            bool(self.get_registered().permitted(request).count())
+            bool(self.get_registered(request).count())
 
     def get_scheme(self, request):
         """ Возвращает схему приложения, доступную для пользователя и 
@@ -231,18 +241,35 @@ class SiteReportAPI(object):
 
         return SCHEME
 
-    def get_report(self, request, name):
-        section_name = name.split('.')[0]
-        section = self.sections.get(section_name, None)
+    def get_sections(self, request):
+        """ Возвращает список разделов, доступных для пользователя
+        """
+
+        SECTIONS = []
+
+        # По умолчанию сортировка по очереди регистрации
+        for section_name in self.sections_list:
+            section = self.sections[section_name]
+            reports = section.get_reports(request)
+            if reports:
+                SECTIONS.append((section, section.get_reports(request)))
+
+        if SORTING_SECTIONS:
+            # Сортировка по локализованному названию
+            SECTIONS = sorted(SECTIONS, key=lambda x: unicode(x[0].label))
+
+        return SECTIONS
+
+    def get_report(self, request, section, name):
+        section = self.sections.get(section, None)
         if section:
             report = section.reports.get(name, None)
             if report and report.has_permission(request):
                 return report
         return None
 
-    def get_report_and_register(self, request, name):
-        section_name = name.split('.')[0]
-        section = self.sections.get(section_name, None)
+    def get_report_and_register(self, request, section, name):
+        section = self.sections.get(section, None)
         if section:
             report = section.reports.get(name, None)
             if report:

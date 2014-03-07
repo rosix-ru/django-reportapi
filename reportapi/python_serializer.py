@@ -83,7 +83,7 @@ class SerializerWrapper(object):
         if isinstance(value, models.Model):
             app, model = smart_unicode(value._meta).split('.')
             value = {
-                '__unicode__': smart_unicode(value),
+                self.unicode_key: smart_unicode(value),
                 'pk': value.pk,
                 'app': app,
                 'model': model,
@@ -128,6 +128,7 @@ class SerializerWrapper(object):
 
         self.stream = options.pop("stream", StringIO())
         self.attrs = options.pop("attrs", [])
+        self.unicode_key = options.pop("unicode_key", '__unicode__')
         # Простой список для <select> в HTML: ключ и сроковое представление
         self.simple_select_list = options.pop("simple_select_list", False)
         if self.simple_select_list:
@@ -213,7 +214,7 @@ class SerializerWrapper(object):
         if self.simple_select_list:
             self._current = (pk, _unicode)
         else:
-            self._current["__unicode__"] = _unicode
+            self._current[self.unicode_key] = _unicode
             self._current["pk"] = pk
         self.objects.append(self._current)
         self._current = None

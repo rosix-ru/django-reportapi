@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ###############################################################################
-# Copyright 2012 Grigoriy Kramarenko.
+# Copyright 2014 Grigoriy Kramarenko.
 ###############################################################################
 # This file is part of ReportAPI.
 #
@@ -38,13 +38,12 @@
 """
 from django.db import models
 from django.db.models import Q
-from django.utils.translation import ugettext_noop, ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.template import Context
 from django.template.loader import get_template
 from django.core.files.base import ContentFile
 
-from reportapi.filters import FilterObject, FilterDateTime, FilterText, FilterDigit
 from reportapi.conf import (settings, REPORTAPI_CODE_HASHLIB,
     REPORTAPI_UPLOAD_HASHLIB, REPORTAPI_FILES_UNIDECODE,
     AUTH_USER_MODEL, AUTH_GROUP_MODEL)
@@ -65,48 +64,70 @@ class Report(object):
     expiration_time = 86400 # 1 day
     name_ending     = 'html'
     icon            = None
+    template_name   = 'reportapi/docs/base.html'
+    filters         = None
 
     def __init__(self, site=None, section=None, section_label=None, \
-        filters=None, title=None, **kwargs):
+        filters=None, title=None, name=None, **kwargs):
         """
         Установка значений по-умолчанию
         """
         class_name = self.__class__.__name__
 
         self.site = site or getattr(self, 'site', None) or raise_set_site(class_name)
-        self.section = section or getattr(self, 'section', None) or raise_set_section(class_name)
-        if not isinstance(self.section, (str, unicode)) or not validate_section(self.section):
+
+        self.section = section or getattr(self, 'section', 'main')
+        if not isinstance(self.section, (str, unicode)) or not validate_name(self.section):
             raise ValueError('Attribute `section` most be string in '
                 'English without digits, spaces and hyphens.')
         self.section_label = section_label or getattr(self, 'section_label', _(self.section))
-        filters = filters or getattr(self, 'filters', None)
-        if filters:
-            self.set_filters(filters)
+
+        self.name = name or getattr(self, 'name', class_name.lower())
+        if not isinstance(self.name, (str, unicode)) or not validate_name(self.name):
+            raise ValueError('Attribute `name` most be string in '
+                'English without digits, spaces and hyphens.')
+
+        if self.filters is None:
+            self.filters = filters or ()
+
+        if not isinstance(self.filters, (list, tuple)):
+            raise ValueError('Attribute `filters` most be list or tuple.')
+
+        self._filters = dict([ (f.name, f) for f in self.filters ])
+        # unique
+        self.filters = [ f for f in self.filters if f in self._filters.values() ]
+
         self.title = title or getattr(self, 'title')
         if not isinstance(self.title, (str, unicode)) or not validate_title(self.title):
             raise ValueError('Attribute `title` most be string in '
                 'English without translation.')
         self.verbose_name = _(self.title)
 
-        self.name = '.'.join([self.section, class_name.lower()])
-
     @property
     def label(self):
         return self.verbose_name
+
+    def create_register(self):
+        """
+        Создаёт в базе данных объект регистрации отчёта
+        """
+        registers = Register.objects.filter(section=self.section, name=self.name)
+        if registers:
+            return registers[0]
+        # Если данный отчёт не зарегистрирован, то создаём его
+        return Register.objects.create(
+            section=self.section, name=self.name, title=self.title)
 
     def permitted_register(self, request):
         """
         Возвращает объект зарегистрированного отчёта согласно прав
         доступа. Все отчёты доступны суперпользователю.
         """
-        registers = Register.objects.filter(name=self.name)
         user = request.user
         if user.is_superuser:
-            if registers:
-                return registers[0]
-            # Если данный отчёт не зарегистрирован, то создаём его
-            return Register.objects.create(name=self.name)
+            return self.create_register()
 
+        registers = Register.objects.filter(section=self.section, name=self.name)
         registers = registers.permitted(request)
         if registers:
             return registers[0]
@@ -143,6 +164,9 @@ class Report(object):
     def get_context(self, request, document, filters):
         """
         Этот метод должен быть переопределён в наследуемых классах.
+        Возвращать контекст нужно в виде словаря.
+        Параметр context['DOCUMENT'] будет установлен автоматически в
+        методе self.render(...)
         """
         raise NotImplementedError()
 
@@ -158,13 +182,27 @@ class Report(object):
         document.report_file.save(self.get_filename(), _file, save=save)
         return document
 
-    def get_scheme(self, request):
-        
-        return {}
+    def filters_list(self):
+        return [ x.serialize() for x in self.filters ]
+
+    def get_scheme(self, request=None):
+        SCHEME = {
+            'name': self.name,
+            'section': self.section,
+            'label': self.label,
+            'icon': self.icon,
+            'enable_threads': self.enable_threads,
+            'create_force': self.create_force,
+            'expiration_time': self.expiration_time,
+        }
+        filters_list = self.filters_list()
+        SCHEME['filters'] = dict(filters_list)
+        SCHEME['filters_list'] = [ x[0] for x in filters_list ]
+
+        return SCHEME
 
     def get_filter(self, filter_name):
-        
-        return None
+        return self._filters.get(filter_name, None)
 
 class RegisterManager(models.Manager):
     use_for_related_fields = True
@@ -186,7 +224,8 @@ class Register(models.Model):
     Зарегистрированные отчёты.
     Модель служит для определения прав доступа к отчётам.
     """
-    name = models.CharField(_('name'), max_length=255)
+    section = models.CharField(_('section'), max_length=255)
+    name    = models.CharField(_('name'), max_length=255)
     title = models.CharField(_('title without translation'), max_length=255)
     all_users = models.BooleanField(_('allow all users'), default=False)
     users = models.ManyToManyField(AUTH_USER_MODEL, null=True, blank=True,
@@ -197,15 +236,20 @@ class Register(models.Model):
     objects = RegisterManager()
 
     class Meta:
-        ordering = ['name']
+        ordering = ['title']
         verbose_name = _('registered report')
         verbose_name_plural = _('registered reports')
+        unique_together = ('section', 'name')
 
     def __unicode__(self):
         try:
-            return _(self.title)
+            return unicode(_(self.title))
         except:
             return self.title
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('reportapi:report', [self.section, self.name])
 
 class DocumentManager(models.Manager):
     use_for_related_fields = True
@@ -317,9 +361,9 @@ def raise_set_site(class_name):
 def raise_set_section(class_name):
     raise NotImplementedError('Set the "section" in %s.' % class_name)
 
-pattern_section = re.compile('^[a-z,A-Z]+$')
-def validate_section(s):
-    return bool(pattern_section.match(s))
+pattern_name = re.compile('^[a-z,A-Z]+$')
+def validate_name(s):
+    return bool(pattern_name.match(s))
 
 pattern_title = re.compile('^[ ,\-,\w]+$')
 def validate_title(s):

@@ -39,6 +39,7 @@
 from django.contrib.auth import authenticate, login
 from django.core.mail import mail_admins
 from django.shortcuts import render_to_response
+from django.http import HttpResponseRedirect
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
@@ -48,6 +49,7 @@ from django.utils.translation import ugettext_lazy as _
 from datetime import timedelta
 import os, datetime, hashlib
 
+from quickapi.http import JSONResponse, tojson
 from quickapi.views import api as quickapi_index, get_methods
 from quickapi.decorators import login_required, api_required
 
@@ -55,6 +57,8 @@ from reportapi.sites import site
 from reportapi.conf import (settings, REPORTAPI_FILES_UNIDECODE,
     REPORTAPI_ENABLE_THREADS)
 from reportapi.models import Report, Register, Document
+
+DOCS_PER_PAGE = 25
 
 class PermissionError(Exception):
     message = _('Access denied')
@@ -65,35 +69,83 @@ class PermissionError(Exception):
 
 @login_required
 def index(request):
-    ctx = {}
-    
+    ctx = _default_context(request)
     return render_to_response('reportapi/index.html', ctx,
                             context_instance=RequestContext(request,))
 
 @login_required
 def report_list(request, section):
-    ctx = {}
-    
+    ctx = _default_context(request)
+    if not section in site.sections:
+        return render_to_response('reportapi/404.html', ctx,
+                            context_instance=RequestContext(request,))
+
+    docs = Document.objects.permitted(request).all()
+    docs = docs.filter(register__name__startswith=section+'.')
+    ctx['docs'] = docs[:DOCS_PER_PAGE]
+
+    ctx['reports'] = site.sections[section].get_reports(request)
+
     return render_to_response('reportapi/report_list.html', ctx,
                             context_instance=RequestContext(request,))
 
 @login_required
 def documents(request, section=None, name=None):
-    ctx = {}
-    
+    """
+    """
+    ctx = _default_context(request)
+    docs = Document.objects.permitted(request).all()
+    if section:
+        docs = docs.filter(register__section=section)
+    if section and name:
+        docs = docs.filter(register__name=name)
+    ctx['docs'] = docs[:DOCS_PER_PAGE]
+
     return render_to_response('reportapi/documents.html', ctx,
                             context_instance=RequestContext(request,))
 
 @login_required
-def report(request, name):
-    ctx = {}
-    
+def report(request, section, name):
+    ctx = _default_context(request)
+    report, register = site.get_report_and_register(request, section, name)
+    if not report or not register:
+        return render_to_response('reportapi/404.html', ctx,
+                            context_instance=RequestContext(request,))
+
+    ctx['report_as_json'] = tojson(report.get_scheme(request) or dict())
+    ctx['report'] = report
+
     return render_to_response('reportapi/report.html', ctx,
+                            context_instance=RequestContext(request,))
+
+@login_required
+def show_document(request, pk):
+    ctx = _default_context(request)
+    try:
+        doc = Document.objects.permitted(request).get(pk=pk)
+    except:
+        return render_to_response('reportapi/404.html', ctx,
+                            context_instance=RequestContext(request,))
+
+    url = doc.url
+    if url:
+        return HttpResponseRedirect(url)
+
+    return render_to_response('reportapi/404.html', ctx,
                             context_instance=RequestContext(request,))
 
 ########################################################################
 # Additional functions
 ########################################################################
+
+def _default_context(request):
+    ctx = {}
+    ctx['sections'] = site.get_sections(request)
+    docs = Document.objects.permitted(request).all()
+    docs_user = docs.filter(user=request.user)
+    ctx['last_docs'] = docs[:DOCS_PER_PAGE]
+    ctx['last_docs_user'] = docs_user[:DOCS_PER_PAGE]
+    return ctx
 
 def create_document(request, report, document, filters):
     """ Создание отчёта """
@@ -110,7 +162,7 @@ def result(document, old=False):
         'id': document.id,
         'start': document.start,
         'end': document.end,
-        'user': document.user,
+        'user': document.user.get_full_name() or document.user.username,
         'error': document.error or None,
     }
     if old:
@@ -125,15 +177,29 @@ def result(document, old=False):
 
 @api_required
 @login_required
-def API_create_document(request, name, filters=None, force=False, **kwargs):
+def API_get_scheme(request, **kwargs):
+    """ *Возвращает схему ReportAPI для пользователя.*
+
+        ####ЗАПРОС. Без параметров.
+
+        ####ОТВЕТ. Формат ключа "data":
+        Схема
+    """
+    data = site.get_scheme(request)
+    return JSONResponse(data=data)
+
+@api_required
+@login_required
+def API_create_document(request, section, name, filters=None, force=False, **kwargs):
     """ *Запускает процесс создания отчёта и/или возвращает информацию
         об уже запущенном процессе.*
 
         ####ЗАПРОС. Параметры:
 
-        1. "name"    - идентификационное название отчёта;
-        2. "filters" - фильтры для обработки результата (необязательно);
-        3. "force"   - принудительное создание отчёта (необязательно).
+        1. "section" - идентификационное название раздела;
+        2. "name"    - идентификационное название отчёта;
+        3. "filters" - фильтры для обработки результата (необязательно);
+        4. "force"   - принудительное создание отчёта (необязательно).
 
         ####ОТВЕТ. Формат ключа "data":
         Информация о процессе
@@ -152,10 +218,11 @@ def API_create_document(request, name, filters=None, force=False, **kwargs):
         ```
 
     """
+    print 11111
     user = request.user
     session = request.session
 
-    report, register = site.get_report_and_register(request, name)
+    report, register = site.get_report_and_register(request, section, name)
     if not report or not register:
         raise PermissionError()
 
@@ -174,10 +241,11 @@ def API_create_document(request, name, filters=None, force=False, **kwargs):
         return result(last_documents[0], old=True)
     else:
         # Новый отчёт
-        document = Document(user=user, code=code)
+        document = Document(user=user, code=code, register=register)
         document.save()
 
         func_kwargs = {
+            'request': request,
             'filters': filters,
             'document': document,
             'report': report
@@ -231,16 +299,17 @@ def API_document_info(request, id, **kwargs):
 
 @api_required
 @login_required
-def API_search(request, name, filter_name, query=None, page=1, **kwargs):
-    """ *Производит поиск для заполнения фильтра экземпляром связанной
-        модели.*
+def API_object_search(request, section, name, filter_name, query=None, page=1, **kwargs):
+    """ *Производит поиск для заполнения объектного фильтра экземпляром
+        связанной модели.*
 
         ####ЗАПРОС. Параметры:
 
-        1. "name" - идентификационное название отчёта;
-        2. "filter_name" - имя фильтра для связанной модели;
-        3. "query" - поисковый запрос;
-        4. "page" - номер страницы;
+        1. "section" - идентификационное название раздела;
+        2. "name"    - идентификационное название отчёта;
+        3. "filter_name" - имя фильтра для связанной модели;
+        4. "query" - поисковый запрос (необязательно);
+        5. "page" - номер страницы (необязательно);
 
         ####ОТВЕТ. Формат ключа "data":
         Сериализованный объект страницы паджинатора
@@ -248,7 +317,10 @@ def API_search(request, name, filter_name, query=None, page=1, **kwargs):
         ```
         #!javascript
         {
-            "object_list": [[1, "First object"], [1, "Second object"]],
+            "object_list": [
+                {"pk": 1, "__unicode__": "First object"},
+                {"pk": 2, "__unicode__": "Second object"}
+            ],
             "number": 2,
             "count": 99,
             "per_page": 10
@@ -268,7 +340,9 @@ def API_search(request, name, filter_name, query=None, page=1, **kwargs):
 
     """
     user = request.user
-    report = site.get_report(request, name)
+    report = site.get_report(request, section, name)
+    if not report:
+        return JSONResponse(status=404)
     _filter = report.get_filter(filter_name)
     if not hasattr(_filter, 'search'):
         return JSONResponse(status=400)
@@ -277,9 +351,10 @@ def API_search(request, name, filter_name, query=None, page=1, **kwargs):
 
 
 _methods = [
-    ('create_document', API_create_document),
-    ('document_info', API_document_info),
-    ('search', API_search),
+    ('reportapi.get_scheme', API_get_scheme),
+    ('reportapi.create_document', API_create_document),
+    ('reportapi.document_info', API_document_info),
+    ('reportapi.object_search', API_object_search),
 ]
 
 # store prepared methods

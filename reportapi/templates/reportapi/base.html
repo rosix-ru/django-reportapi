@@ -1,4 +1,4 @@
-{% load i18n l10n %}{% load url from future %}<!DOCTYPE html>
+{% load i18n l10n reportapi_base %}{% load url from future %}<!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE|default:"ru" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
 <head>
     <title>{% block title %}{% trans 'Reporting' %}{% endblock %}</title>
@@ -8,19 +8,22 @@
 
     <!-- START: block style -->
     {% block style %}
-    <link rel="stylesheet" href="{{ STATIC_URL}}css/bootstrap/3.1.1/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ STATIC_URL}}css/bootstrap/3.1.1/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome/4.0.3/css/font-awesome.min.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/pygments/1.5/pygments.css">
+    <link rel="stylesheet" href="{{ STATIC_URL}}css/bootstrap/3.1.1/bootstrap{% mini_library %}.css">
+    
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome/4.0.3/css/font-awesome{% mini_library %}.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/pygments/1.5/pygments{% mini_library %}.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/selectize/0.8.5/selectize.bootstrap3.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/reportapi/{% SETTINGS 'REPORTAPI_VERSION' %}/reportapi{% mini_library %}.css">
 
     <style type="text/css">
-        #requests, #responses, #methods {
+        #container {
             margin-top: 60px;
         }
         code {
             display: block;
             white-space: pre-wrap;
         }
+
     </style>
     {% endblock %}
     <!-- END: block style -->
@@ -50,7 +53,7 @@
         </div>
         <div class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
-            {% for sect in sections %}
+            {% for sect, reports in sections %}
                 <li class="dropdown">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                         {{ sect.label }} <span class="caret"></span>
@@ -58,20 +61,22 @@
                     <ul class="dropdown-menu">
                         <li><a href="{% url 'reportapi:report_list' sect.name %}">{% trans 'List reports' %}</a></li>
                         <li class="divider"></li>
-                    {% for rep in sect.reports %}
-                        <li><a href="{% url 'reportapi:report' rep.name|slugify %}">{{ rep.label }}</a></li>
+                    {% for rep in reports %}
+                        <li><a href="{% url 'reportapi:report' rep.section rep.name %}">{{ rep.label }}</a></li>
                     {% endfor %}
                     </ul>
                 </li>
             {% endfor %}
-            {% block navbar_project %}<li>
-                <a href="{% block navbar_project_url %}/{% endblock %}">
-                    {% block navbar_project_label %}
-                    <i class="fa fa-home"></i> {% trans 'Home' %}
-                    {% endblock %}
-                </a>
-            </li>{% endblock %}
-          </ul>
+            {% block navbar_project %}
+                <li>
+                    <a href="{% block navbar_project_url %}/{% endblock %}">
+                        {% block navbar_project_label %}
+                        <i class="fa fa-home"></i> {% trans 'Home' %}
+                        {% endblock %}
+                    </a>
+                </li>
+            {% endblock %}
+            </ul>
         </div><!--/.nav-collapse -->
       </div>
     </div>
@@ -80,7 +85,13 @@
 
     <!-- START: block container -->
     {% block container %}
-    <div class="container">
+    <div id="container" class="container">
+        <!-- START: block alert_place -->
+        {% block alert_place %}
+        <div id="alert-place" class="container"></div>
+        {% endblock %}
+        <!-- END: block alert_place -->
+
         <!-- START: block content -->
         {% block content %}{% endblock %}
         <!-- END: block content -->
@@ -88,13 +99,50 @@
     {% endblock %}
     <!-- END: block container -->
 
+<!-- START: block jstemplates -->
+    {% block jstemplates %}
+    <!-- underscore -->
+    <script type="text/x-underscore" id="underscore-alert">
+        {% include "reportapi/underscore/alert.html" %}
+    </script>
+    <script type="text/x-underscore" id="underscore-filter">
+        {% include "reportapi/underscore/filter.html" %}
+    </script>
+    {% endblock %}
+<!-- END: block jstemplates -->
+
+    <!-- START: block jsglobalvars -->
+    {% block jsglobalvars %}
+        <script type="text/javascript">
+            /* GLOBAL VARS */
+            window.AJAX_TIMEOUT = 3000;
+            window.REPORTAPI_API_URL = "{% filter escapejs %}{% url "reportapi:api" %}{% endfilter %}";
+            window.USER_ID = "{{ user.id|default:0 }}";
+            window.USER_NAME = "{{ user.username }}";
+            window.USER_LAST_NAME = "{{ user.last_name }}";
+            window.USER_FIRST_NAME = "{{ user.first_name }}";
+            window.USER = "{{ user }}";
+            window.DEBUG = {% filter lower %}{% SETTINGS 'DEBUG' %}{% endfilter %};
+            window.LANGUAGE_CODE = "{{ LANGUAGE_CODE }}" || undefined;
+            window.RANGE_SPLIT = " - ";
+        </script>
+    {% endblock %}
+    <!-- END: block jsglobalvars -->
+
     <!-- START: block js -->
     {% block js %}
     <!-- Bootstrap -->
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="{{ STATIC_URL}}js/jquery/2.1.0/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="{{ STATIC_URL}}js/bootstrap/3.1.1/bootstrap.min.js"></script>
+    <script src="{{ STATIC_URL}}js/jquery/2.1.0/jquery{% mini_library %}.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery/json/2.4/jquery.json{% mini_library %}.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery/maskedinput/1.3.1/jquery.maskedinput{% mini_library %}.js"></script>
+    <script src="{{ STATIC_URL }}js/underscore/1.4.4/underscore{% mini_library %}.js"></script>
+    <script src="{{ STATIC_URL }}js/underscore/string/2.3.0/underscore.string{% mini_library %}.js"></script>
+    <script src="{{ STATIC_URL }}js/django/{% SETTINGS 'DJANGO_VERSION' %}/django-ajax-csrf{% mini_library %}.js"></script>
+    <script src="{{ STATIC_URL}}js/bootstrap/3.1.1/bootstrap{% mini_library %}.js"></script>
+    <script src="{{ STATIC_URL}}js/moment/2.5.1/moment-with-langs{% mini_library %}.js"></script>
+    <script src="{{ STATIC_URL}}js/selectize/0.8.5/standalone/selectize{% mini_library %}.js"></script>
+    <script src="{{ STATIC_URL}}js/reportapi/{% SETTINGS 'REPORTAPI_VERSION' %}/reportapi{% mini_library %}.js"></script>
     {% endblock %}
 
     <!-- START: block extrajs -->

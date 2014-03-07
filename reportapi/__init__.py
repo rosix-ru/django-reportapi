@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ###############################################################################
-# Copyright 2014 Grigoriy Kramarenko.
+# Copyright 2010-2014 Grigoriy Kramarenko.
 ###############################################################################
 # This file is part of ReportAPI.
 #
@@ -38,7 +38,18 @@
 """
 
 from django.utils.translation import ugettext_lazy as _
+from reportapi.utils.version import auto_create_version_links
+
 __label__ = _('Reporting')
 
 VERSION = (0, 1)
 __version__ = '.'.join([ str(x) for x in VERSION ])
+
+
+# При сборке пакета и установке через pip код не выполнится
+# из-за отсутствия путей.
+try:
+    auto_create_version_links(__file__, VERSION)
+except:
+    pass
+    auto_create_version_links(__file__, VERSION)

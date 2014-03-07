@@ -45,8 +45,8 @@ from django.contrib import admin
 admin.autodiscover()
 
 _urlpatterns = patterns('',
-    url(r'^', include('reportapi.urls', namespace="reportapi"), name='reportapi'),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^', include('reportapi.urls', namespace="reportapi"), name='reportapi'),
 )
 
 urlpatterns = i18n_patterns('',
