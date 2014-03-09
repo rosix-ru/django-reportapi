@@ -6,7 +6,8 @@
     {% for name, filter in report.filters_list %}
         <div class="col-xs-12 col-lg-6">
         {% if filter.type == 'boolean' %}
-            <table class="table table-bordered{% if not filter.required %} additional-filter{% endif %}">
+            <table class="table table-bordered{% if not filter.required %} additional-filter{% endif %}"
+                {% if not filter.required %}style="display: none;"{% endif %}>
                 <tbody>
                     <tr class="bg-warning">
                         <td style="vertical-align: middle;">
@@ -21,7 +22,8 @@
                 </tbody>
             </table>
         {% else %}
-            <table class="table table-bordered table-striped{% if not filter.required %} additional-filter{% endif %}">
+            <table class="table table-bordered table-striped{% if not filter.required %} additional-filter{% endif %}"
+                {% if not filter.required %}style="display: none;"{% endif %}>
                 <thead>
                     <tr class="{% if filter.required %}bg-primary{% else %}bg-info{% endif %}">
                         <th colspan="2">{{ filter.label|title }}</th>
@@ -58,7 +60,8 @@
         <button type="button" class="btn btn-default btn-block btn-lg action-show-additional">
             {% trans 'Show additional' %}
         </button>
-        <button type="button" class="btn btn-default btn-block btn-lg action-hide-additional">
+        <button type="button" class="btn btn-default btn-block btn-lg action-hide-additional"
+            style="display: none;">
             {% trans 'Hide additional' %}
         </button>
     </p>

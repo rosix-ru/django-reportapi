@@ -1,18 +1,25 @@
-{% extends 'reportapi/base.html' %}
-{% load i18n l10n %}
+{% extends 'reportapi/index.html' %}
+{% load i18n l10n reportapi_base %}{% load url from future %}
 
-{% block content %}
-{% if last_docs_user %}
-    <legend>{% trans 'Last documents of user' %}</legend>
-    {% for doc in last_docs_user %}
-        <div>{{ doc }} {{ doc.register.get_absolute_url }}</div>
-    {% endfor %}
-{% endif %}
-{% if last_docs %}
-    <legend>{% trans 'Last documents' %}</legend>
-    {% for doc in last_docs %}
-        <div>{{ doc }} {{ doc.register.get_absolute_url }}</div>
-    {% endfor %}
-{% endif %}
+{% block report_list %}
+<legend>{% trans 'List of reports in section' %} &laquo;{{ section.label }}&raquo;</legend>
+<div class="row">
+{% for report in reports %}
+    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="thumbnail">
+            <div class="caption bg-warning">
+                <h3 class="text-center">{{ report.label }}</h3>
+                <p class="text-center">
+                    <a href="{% url 'reportapi:report' report.section report.name %}"
+                        class="btn btn-danger btn-block" role="button">
+                        <span class="fa fa-gears"></span>
+                        {% trans 'Create new' %}
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+</div>
 
 {% endblock %}

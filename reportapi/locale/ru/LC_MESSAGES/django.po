@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReportAPI\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-03-08 00:16+1100\n"
+"POT-Creation-Date: 2014-03-08 19:25+1100\n"
 "PO-Revision-Date: 2014-03-07 00:00+1100\n"
 "Last-Translator: Grigoriy Kramarenko <root@rosix.ru>\n"
 "Language-Team: \n"
@@ -96,67 +96,67 @@ msgstr "да"
 msgid "no"
 msgstr "нет"
 
-#: models.py:227
+#: models.py:240
 msgid "section"
 msgstr "раздел"
 
-#: models.py:228
+#: models.py:241
 msgid "name"
 msgstr "имя"
 
-#: models.py:229
+#: models.py:242
 msgid "title without translation"
 msgstr "название без перевода"
 
-#: models.py:230
+#: models.py:243
 msgid "allow all users"
 msgstr "доступно всем пользователям"
 
-#: models.py:232
+#: models.py:245
 msgid "allow list users"
 msgstr "доступно списку пользователей"
 
-#: models.py:234
+#: models.py:247
 msgid "allow list groups"
 msgstr "доступно списку групп"
 
-#: models.py:240 models.py:280
+#: models.py:253 models.py:293
 msgid "registered report"
 msgstr "зарегистрированный отчёт"
 
-#: models.py:241
+#: models.py:254
 msgid "registered reports"
 msgstr "зарегистрированные отчёты"
 
-#: models.py:282
+#: models.py:295
 msgid "user"
 msgstr "пользователь"
 
-#: models.py:283
+#: models.py:296
 msgid "process key"
 msgstr "ключ процесса"
 
-#: models.py:285
+#: models.py:298
 msgid "error message"
 msgstr "сообщение об ошибке"
 
-#: models.py:286
+#: models.py:299
 msgid "start create"
 msgstr "начало создания"
 
-#: models.py:287
+#: models.py:300
 msgid "end create"
 msgstr "конец создания"
 
-#: models.py:288
+#: models.py:301
 msgid "report file"
 msgstr "файл отчёта"
 
-#: models.py:298
+#: models.py:311
 msgid "generated report"
 msgstr "сгенерированный отчет"
 
-#: models.py:299
+#: models.py:312
 msgid "generated reports"
 msgstr "сгенерированные отчеты"
 
@@ -204,34 +204,50 @@ msgstr "Список отчётов"
 msgid "Home"
 msgstr "Главная"
 
-#: templates/reportapi/index.html:6 templates/reportapi/report_list.html:6
-msgid "Last documents of user"
-msgstr "Последние документы пользователя"
+#: templates/reportapi/index.html:9
+msgid "Last formed documents"
+msgstr "Последние сформированные документы"
 
-#: templates/reportapi/index.html:12 templates/reportapi/report_list.html:12
-msgid "Last documents"
-msgstr "Последние документы"
+#: templates/reportapi/index.html:25
+msgid "in the making"
+msgstr "создаётся"
 
-#: templates/reportapi/report.html:37
+#: templates/reportapi/index.html:36
+msgid "View"
+msgstr "Просмотр"
+
+#: templates/reportapi/index.html:40
+msgid "Download"
+msgstr "Скачать"
+
+#: templates/reportapi/index.html:44 templates/reportapi/report_list.html:16
+msgid "Create new"
+msgstr "Создать новый"
+
+#: templates/reportapi/report.html:39
 msgid "no condition"
 msgstr "нет условия"
 
-#: templates/reportapi/report.html:45
+#: templates/reportapi/report.html:47
 #: templates/reportapi/underscore/filter.html:6
 msgid "Filter required"
 msgstr "Фильтр обязателен"
 
-#: templates/reportapi/report.html:59
+#: templates/reportapi/report.html:61
 msgid "Show additional"
 msgstr "Показать дополнительные"
 
-#: templates/reportapi/report.html:62
+#: templates/reportapi/report.html:65
 msgid "Hide additional"
 msgstr "Скрыть дополнительные"
 
-#: templates/reportapi/report.html:67
+#: templates/reportapi/report.html:70
 msgid "Create document"
 msgstr "Создать документ"
+
+#: templates/reportapi/report_list.html:5
+msgid "List of reports in section"
+msgstr "Список отчётов в разделе"
 
 #: templates/reportapi/docs/base.html:72
 msgid "formed"
@@ -305,3 +321,6 @@ msgstr "ЧЧ:ММ"
 #: templatetags/reportapi_base.py:99 templatetags/reportapi_base.py:107
 msgid "Anonymous"
 msgstr "Аноним"
+
+#~ msgid "Last documents of user"
+#~ msgstr "Последние документы пользователя"

@@ -46,7 +46,8 @@ from django.core.files.base import ContentFile
 
 from reportapi.conf import (settings, REPORTAPI_CODE_HASHLIB,
     REPORTAPI_UPLOAD_HASHLIB, REPORTAPI_FILES_UNIDECODE,
-    AUTH_USER_MODEL, AUTH_GROUP_MODEL)
+    AUTH_USER_MODEL, AUTH_GROUP_MODEL, REPORTAPI_CONVERTOR_BACKEND,
+    REPORTAPI_PDFCONVERT_ARGS1, REPORTAPI_PDFCONVERT_ARGS2)
 
 if REPORTAPI_FILES_UNIDECODE:
     from unidecode import unidecode
@@ -54,15 +55,27 @@ if REPORTAPI_FILES_UNIDECODE:
 else:
     prep_filename = lambda x: x
 
-import os, re, hashlib
+import os, re, hashlib, subprocess
 
 REPORTAPI_CODE_LENGTH = len(hashlib.new(REPORTAPI_CODE_HASHLIB).hexdigest())
+
+if REPORTAPI_CONVERTOR_BACKEND:
+    from django.utils.importlib import import_module
+    backend = REPORTAPI_CONVERTOR_BACKEND.split('.')
+    mod  = '.'.join(backend[:-1])
+    func = backend[-1]
+    try:
+        CONVERTOR_BACKEND = getattr(import_module(mod), func)
+    except:
+        CONVERTOR_BACKEND = None
+else:
+    CONVERTOR_BACKEND = None
 
 class Report(object):
     enable_threads  = True
     create_force    = True
     expiration_time = 86400 # 1 day
-    name_ending     = 'html'
+    report_format   = ('pdf', 'application/pdf') # ending and content type
     icon            = None
     template_name   = 'reportapi/docs/base.html'
     filters         = None
@@ -157,7 +170,7 @@ class Report(object):
         return code.hexdigest()
 
     def get_filename(self):
-        filename = self.verbose_name + '.' + self.name_ending
+        filename = self.verbose_name + '.html'
         filename = prep_filename(filename)
         return filename
 
@@ -317,9 +330,69 @@ class Document(models.Model):
             return self.report_file.url
         return None
 
+    def format_url(self, format):
+        format = format.lower()
+        if self.report_file:
+            if self.convert_to(format):
+                return self.report_file.url[:-4] + format # cut 'html' and append format file
+        return None
+
+    def convert_to(self, format):
+        """
+        Конвертирует из HTML в заданный формат. Поддерживаются:
+            1. ODT, ODS (фиктивная конвертация простым изменением
+                        окончания файла)
+            2. PDF (натуральная конвертация с использованием 
+                    настроек REPORTAPI_PDFCONVERT_ARGS[1,2])
+
+        Может использовать внешнюю функцию конвертации, заданную в
+        параметре REPORTAPI_CONVERTOR_BACKEND как строка для импорта.
+        Такая функция должна принимать 2 параметра и возвращать строку
+        пути к файлу, либо `None`:
+
+        def myconvertor(document, format):
+            return path_to_file or None
+        """
+        if CONVERTOR_BACKEND:
+            return CONVERTOR_BACKEND(document=self, format=format)
+
+        format = format.lower()
+        path = self.report_file.path
+        newpath = path[:-4] + format # cut 'html' and append format file
+        if format in ('odt', 'ods'):
+            if not exists(newpath):
+                cwd = os.getcwd()
+                os.chdir(os.path.dirname(path))
+                os.symlink(os.path.basename(path), os.path.basename(newpath))
+                os.chdir(cwd)
+
+        elif format == 'pdf':
+            if not os.path.exists(newpath):
+                cwd = os.getcwd()
+
+                proc = REPORTAPI_PDFCONVERT_ARGS1 + [
+                    os.path.basename(path)
+                ] + REPORTAPI_PDFCONVERT_ARGS2
+
+                out = "/dev/null"
+                err = "/dev/null"
+                p = subprocess.Popen(proc, shell=False,
+                        stdout=open(out, 'w+b'), 
+                        stderr=open(err, 'w+b'),
+                        cwd=os.path.dirname(path))
+                a = p.wait()
+
+                os.chdir(cwd)
+
+                if not os.path.exists(newpath):
+                    return None
+        else:
+            return path
+
+        return newpath
+
     def delete(self):
-        remove_file(self.report_file.path)
-        remove_dirs(os.path.dirname(self.report_file.path))
+        remove_dirs(os.path.dirname(self.report_file.path), withfiles=True)
         super(Document, self).delete()
 
     def save(self):
@@ -339,8 +412,11 @@ class Document(models.Model):
         super(Document, self).delete()
 
 
-def remove_dirs(dirname):
+def remove_dirs(dirname, withfiles=False):
     """ Замалчивание ошибки удаления каталога """
+    if withfiles:
+        for f in os.listdir(dirname):
+            remove_file(os.path.join(dirname, f))
     try:
         os.removedirs(dirname)
         return True

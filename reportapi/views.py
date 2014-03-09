@@ -55,7 +55,7 @@ from quickapi.decorators import login_required, api_required
 
 from reportapi.sites import site
 from reportapi.conf import (settings, REPORTAPI_FILES_UNIDECODE,
-    REPORTAPI_ENABLE_THREADS)
+    REPORTAPI_ENABLE_THREADS, REPORTAPI_DEFAULT_FORMAT)
 from reportapi.models import Report, Register, Document
 
 DOCS_PER_PAGE = 25
@@ -79,10 +79,11 @@ def report_list(request, section):
     if not section in site.sections:
         return render_to_response('reportapi/404.html', ctx,
                             context_instance=RequestContext(request,))
+    ctx['section'] = site.sections[section]
 
     docs = Document.objects.permitted(request).all()
-    docs = docs.filter(register__name__startswith=section+'.')
-    ctx['docs'] = docs[:DOCS_PER_PAGE]
+    docs = docs.filter(register__section=section)
+    ctx['last_docs'] = docs[:DOCS_PER_PAGE]
 
     ctx['reports'] = site.sections[section].get_reports(request)
 
@@ -119,7 +120,7 @@ def report(request, section, name):
                             context_instance=RequestContext(request,))
 
 @login_required
-def show_document(request, pk):
+def get_document(request, pk, format=None):
     ctx = _default_context(request)
     try:
         doc = Document.objects.permitted(request).get(pk=pk)
@@ -127,7 +128,10 @@ def show_document(request, pk):
         return render_to_response('reportapi/404.html', ctx,
                             context_instance=RequestContext(request,))
 
-    url = doc.url
+    if format:
+        url = doc.format_url(format)
+    else:
+        url = doc.url
     if url:
         return HttpResponseRedirect(url)
 
@@ -142,9 +146,10 @@ def _default_context(request):
     ctx = {}
     ctx['sections'] = site.get_sections(request)
     docs = Document.objects.permitted(request).all()
-    docs_user = docs.filter(user=request.user)
+    #~ docs_user = docs.filter(user=request.user)
     ctx['last_docs'] = docs[:DOCS_PER_PAGE]
-    ctx['last_docs_user'] = docs_user[:DOCS_PER_PAGE]
+    #~ ctx['last_docs_user'] = docs_user[:DOCS_PER_PAGE]
+    ctx['DEFAULT_FORMAT'] = REPORTAPI_DEFAULT_FORMAT
     return ctx
 
 def create_document(request, report, document, filters):
@@ -218,7 +223,6 @@ def API_create_document(request, section, name, filters=None, force=False, **kwa
         ```
 
     """
-    print 11111
     user = request.user
     session = request.session
 
@@ -248,7 +252,7 @@ def API_create_document(request, section, name, filters=None, force=False, **kwa
             'request': request,
             'filters': filters,
             'document': document,
-            'report': report
+            'report': report,
         }
 
         if report.enable_threads and REPORTAPI_ENABLE_THREADS:

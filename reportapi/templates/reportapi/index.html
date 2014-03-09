@@ -1,18 +1,56 @@
 {% extends 'reportapi/base.html' %}
-{% load i18n l10n %}
+{% load i18n l10n reportapi_base %}{% load url from future %}
 
 {% block content %}
-{% if last_docs_user %}
-    <legend>{% trans 'Last documents of user' %}</legend>
-    {% for doc in last_docs_user %}
-        <div>{{ doc }} {{ doc.register.get_absolute_url }}</div>
-    {% endfor %}
-{% endif %}
+
+{% block report_list %}{% endblock %}
+
 {% if last_docs %}
-    <legend>{% trans 'Last documents' %}</legend>
+    <legend>{% block page_legend %}{% trans 'Last formed documents' %}{% endblock %}</legend>
+    <div class="row">
     {% for doc in last_docs %}
-        <div>{{ doc }} {{ doc.register.get_absolute_url }}</div>
+        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="thumbnail">
+                <div class="caption{% if doc.end %} bg-info{% else %} bg-danger{% endif %}">
+                    <h3 class="text-center">{{ doc }}</h3>
+                    <p class="text-center">
+                        {{ doc.user.get_full_name|default:doc.user }}
+                    </p>
+                    <p class="text-center">
+                    {% if not doc.end %}
+                        <span class="label label-danger">
+                        {% if doc.error %}
+                            {{ doc.error }}
+                        {% else %}
+                            {% trans 'in the making' %}
+                        {% endif %}
+                        </span>
+                    {% else %}
+                        <span class="label label-default">{{ doc.end|default:'' }}</span>
+                    {% endif %}
+                    </p>
+                    
+                    <p>
+                        <button onClick="handlerShowDocument('{% url 'reportapi:get_document' doc.pk %}', 'document-{{ doc.register.name }}-{{ doc.pk }}')" 
+                            class="btn btn-default btn-block" role="button"
+                            {% if not doc.end %} disabled{% endif %}>
+                            <span class="fa fa-search"></span>
+                            {% trans 'View' %}
+                        </button>
+                        <a href="{% url 'reportapi:get_document_format' doc.pk DEFAULT_FORMAT %}" class="btn btn-primary btn-block" role="button"{% if not doc.end %} disabled{% endif %}>
+                            <span class="fa fa-cloud-download"></span>
+                            {% trans 'Download' %} {{ DEFAULT_FORMAT|upper }}
+                        </a>
+                        <a href="{{ doc.register.get_absolute_url }}" class="btn btn-danger btn-block" role="button"{% if not doc.end %} disabled{% endif %}>
+                            <span class="fa fa-gears"></span>
+                            {% trans 'Create new' %}
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
     {% endfor %}
+    </div>
 {% endif %}
 
 {% endblock %}
