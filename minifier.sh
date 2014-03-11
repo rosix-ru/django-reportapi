@@ -15,6 +15,6 @@ minify() {
     fi;
 }
 
-#~ minify "css" "reportapi";
+minify "css" "reportapi";
 minify "js" "reportapi";
 
