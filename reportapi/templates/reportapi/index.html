@@ -5,52 +5,52 @@
 
 {% block report_list %}{% endblock %}
 
-{% if last_docs %}
-    <legend>{% block page_legend %}{% trans 'Last formed documents' %}{% endblock %}</legend>
-    <div class="row">
-    {% for doc in last_docs %}
-        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
-            <div class="thumbnail">
-                <div class="caption{% if doc.end %} bg-info{% else %} bg-danger{% endif %}">
-                    <h3 class="text-center">{{ doc }}</h3>
-                    <p class="text-center">
-                        {{ doc.user.get_full_name|default:doc.user }}
-                    </p>
-                    <p class="text-center">
-                    {% if not doc.end %}
-                        <span class="label label-danger">
-                        {% if doc.error %}
-                            {{ doc.error }}
-                        {% else %}
-                            {% trans 'in the making' %}
-                        {% endif %}
-                        </span>
+<legend>{% block page_legend %}{% trans 'Last formed documents' %}{% endblock %}</legend>
+<div class="row">
+{% for doc in last_docs %}
+    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="thumbnail">
+            <div class="caption{% if doc.end %} bg-info{% else %} bg-danger{% endif %}">
+                <h3 class="text-center">{{ doc }}</h3>
+                <p class="text-center">
+                    {{ doc.user.get_full_name|default:doc.user }}
+                </p>
+                <p class="text-center">
+                {% if not doc.end %}
+                    <span class="label label-danger">
+                    {% if doc.error %}
+                        {{ doc.error }}
                     {% else %}
-                        <span class="label label-default">{{ doc.end|default:'' }}</span>
+                        {% trans 'in the making' %}
                     {% endif %}
-                    </p>
-                    
-                    <p>
-                        <button onClick="handlerShowDocument('{% url 'reportapi:get_document' doc.pk %}', 'document-{{ doc.register.name }}-{{ doc.pk }}')" 
-                            class="btn btn-default btn-block" role="button"
-                            {% if not doc.end %} disabled{% endif %}>
-                            <span class="fa fa-search"></span>
-                            {% trans 'View' %}
-                        </button>
-                        <a href="{% url 'reportapi:get_document_format' doc.pk DEFAULT_FORMAT %}" class="btn btn-primary btn-block" role="button"{% if not doc.end %} disabled{% endif %}>
-                            <span class="fa fa-cloud-download"></span>
-                            {% trans 'Download' %} {{ DEFAULT_FORMAT|upper }}
-                        </a>
-                        <a href="{{ doc.register.get_absolute_url }}" class="btn btn-danger btn-block" role="button"{% if not doc.end %} disabled{% endif %}>
-                            <span class="fa fa-gears"></span>
-                            {% trans 'Create new' %}
-                        </a>
-                    </p>
-                </div>
+                    </span>
+                {% else %}
+                    <span class="label label-default">{{ doc.end|default:'' }}</span>
+                {% endif %}
+                </p>
+            
+                <p>
+                    <button onClick="handlerShowDocument('{% url 'reportapi:get_document' doc.pk %}', 'document-{{ doc.pk }}')" 
+                        class="btn btn-default btn-block" role="button"
+                        {% if not doc.end %} disabled{% endif %}>
+                        <i class="fa fa-search"></i>
+                        {% trans 'View' %}
+                    </button>
+                    <a href="{% url 'reportapi:get_document_format' doc.pk DEFAULT_FORMAT %}" class="btn btn-primary btn-block" role="button"{% if not doc.end %} disabled{% endif %}>
+                        <i class="fa fa-cloud-download"></i>
+                        {% trans 'Download' %} {{ DEFAULT_FORMAT|upper }}
+                    </a>
+                    <a href="{{ doc.register.get_absolute_url }}" class="btn btn-danger btn-block" role="button"{% if not doc.end %} disabled{% endif %}>
+                        <i class="fa fa-gears"></i>
+                        {% trans 'Create new' %}
+                    </a>
+                </p>
             </div>
         </div>
-    {% endfor %}
     </div>
-{% endif %}
+{% empty %}
+    <h1 class="col-xs-12">{% trans 'Empty' %}</h1>
+{% endfor %}
+</div>
 
 {% endblock %}

@@ -39,7 +39,7 @@
 ////////////////////////////////////////////////////////////////////////
 //                   КОНСТАНТЫ И ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ                //
 ////////////////////////////////////////////////////////////////////////
-//~ var NEWOBJECTKEY = 'newObject';
+var TIMEOUT_PROGRESS = 1000;
 
 // Глобальные хранилища-регистраторы
 window.TEMPLATES = {}; // Шаблоны
@@ -223,7 +223,7 @@ function handlerCreateReport(force) {
         'force': force,
     };
     cb = function(json, status, xhr) {
-        //handlerStartProgress(json.data);
+        handlerStartProgress(json.data);
     };
     
     var jqxhr = jsonAPI(args, cb);
@@ -233,8 +233,83 @@ function handlerCreateReport(force) {
 /* Обработчик события создания отчёта */
 function eventCreateReport(event) {
     if (DEBUG) {console.log('function:'+'eventCreateReport')};
-    handlerCreateReport()
+    handlerCreateReport();
 };
+
+/* Обработчик события пересоздания отчёта */
+function eventRecreateReport(event) {
+    if (DEBUG) {console.log('function:'+'eventRecreateReport')};
+    handlerCreateReport(true);
+};
+
+/* Обработчик запуска ожидания создания отчёта */
+function handlerCheckProcess() {
+    if (DEBUG) {console.log('function:'+'handlerCheckProcess')};
+    args = {
+        'method': 'reportapi.document_info',
+        'id': window.REPORT.id,
+    };
+    cb = function(json, status, xhr) {
+        $obj = $('.progress .progress-bar');
+        max = Number($obj.attr('aria-valuemax'));
+        now = Number($obj.attr('aria-valuetransitiongoal'));
+        if (json.data.end) {
+            clearInterval(window.REPORT.process);
+            window.REPORT.process = undefined;
+            $obj.attr('aria-valuetransitiongoal', max).progressbar();
+            
+            url = json.data.url + window.REPORT.format.toLowerCase() + '/';
+            $('.action-download')
+                .attr('href', url)
+                .prop('disabled', false).show();
+            $('.action-preview')
+                .attr('onClick', "handlerShowDocument('"+json.data.url+"', 'document-"+json.data.id+"')")
+                .prop('disabled', false).show();
+            $('.progress')
+                .removeClass('progress-striped')
+                .removeClass('active')
+                .hide();
+            $obj.attr('aria-valuetransitiongoal', 0).progressbar();
+
+            if (window.REPORT.create_force) {
+                $('.action-create-report:visible').hide();
+                $('.action-recreate-report:hidden').show();
+            } else {
+                $('.action-create-report').prop("disabled", true);
+            };
+            //~ $('.progress').hide(500);
+        } else if (now >= max){
+            //~ $obj.attr('aria-valuetransitiongoal', (max/100)*99).progressbar();
+            $('.progress')
+                .addClass('progress-striped')
+                .addClass('active');
+        } else {
+            $obj.attr('aria-valuetransitiongoal', TIMEOUT_PROGRESS + now).progressbar();
+        };
+    };
+    
+    var jqxhr = jsonAPI(args, cb);
+    return jqxhr;
+};
+
+
+/* Обработчик запуска ожидания создания отчёта */
+function handlerStartProgress(data) {
+    if (DEBUG) {console.log('function:'+'handlerStartProgress')};
+    $('.action-create-report').prop("disabled", true);
+    $('.progress .progress-bar')
+        .attr('aria-valuemax', data.timeout || 5000)
+        .attr('aria-valuetransitiongoal', 0)
+        .progressbar();
+    $('.progress').show();
+    
+    window.REPORT.id = data.id;
+    window.REPORT.timeout = data.timeout;
+    window.REPORT.process = setInterval(function () {
+        handlerCheckProcess();
+    }, window.TIMEOUT_PROGRESS);
+};
+
 
 ////////////////////////////////////////////////////////////////////////
 //                    Обработчики типов фильтров                      //
@@ -334,6 +409,7 @@ function handlerMaskInputs($box) {
 /* Обработчик проверки обязательных фильтров */
 function handlerCheckRequiredValue() {
     if (DEBUG) {console.log('function:'+'handlerCheckRequiredValue')};//, event)};
+
     completed = true;
     $.each(REPORT.filters, function(key, item) {
         if ((item.required) && (item.value === null || item.value === undefined)) {
@@ -360,6 +436,13 @@ function eventChangeValue(event) {
     } else {
         report.value = value || null;
     };
+    $('.progress:visible').hide();
+    $('.progress:visible .progress-bar').attr('aria-valuetransitiongoal', 0)
+        .progressbar();
+    $('.action-preview:visible').hide();
+    $('.action-download:visible').hide();
+    $('.action-recreate-report:visible').hide();
+    $('.action-create-report:hidden').show();
     handlerCheckRequiredValue();
 };
 
@@ -382,7 +465,14 @@ function eventConditionChange(event) {
     $('#valuebox-'+filter_name).html(html);
     handlerSetSelectizers($('#valuebox-'+filter_name));
     handlerMaskInputs($('#valuebox-'+filter_name));
-    //~ console.log(filter_name, filter, html);
+
+    $('.progress:visible').hide();
+    $('.progress:visible .progress-bar').attr('aria-valuetransitiongoal', 0)
+        .progressbar();
+    $('.action-preview:visible').hide();
+    $('.action-download:visible').hide();
+    $('.action-recreate-report:visible').hide();
+    $('.action-create-report:hidden').show();
     handlerCheckRequiredValue();
 
     return true;
@@ -462,13 +552,20 @@ function handlerShowDocument(href, name) {
     win.focus();
 };
 
+/* Обработчик просмотра отчёта */
+function handlerShowDocument(href, name) {
+    if (DEBUG) {console.log('function:'+'handlerShowDocument')};
+    var win = window.open(href, name, 'height=500,width=800,resizable=yes,scrollbars=yes');
+    win.focus();
+};
+
 /* Обработчик отображения дополнительных фильтров */
 function handlerShowAdditionalFilters() {
     if (DEBUG) {console.log('function:'+'handlerShowAdditionalFilters')};
     $('.additional-filter').show();
     $('button.action-hide-additional').show();
     $('button.action-show-additional').hide();
-    
+
     return true;
 };
 
@@ -506,6 +603,7 @@ function handlerBindinds() {
     $('body').on('click', '.action-hide-additional', handlerHideAdditionalFilters);
     $('body').on('click', '.action-show-additional', handlerShowAdditionalFilters);
     $('body').on('click', '.action-create-report', eventCreateReport);
+    $('body').on('click', '.action-recreate-report', eventRecreateReport);
 
     // Биндинги на отчёты
     //~ $('body').on('click', '[data-action=object_print]',   eventObjectPrint);

@@ -49,6 +49,7 @@ from reportapi.conf import settings
 @site.register
 class TestReport(Report):
     title = 'Test report'
+    create_force = False
     filters = (
         FilterObject('user', manager='auth.User.objects', required=True),
         FilterText('filter for text'),
@@ -74,6 +75,8 @@ class TestReport(Report):
         Параметр context['DOCUMENT'] будет установлен автоматически в
         методе self.render(...)
         """
+        import time
+        time.sleep(120)
 
         return {}
 

@@ -12,7 +12,6 @@ td.align-middle, th.align-middle {
 .lbl b, .lbl strong, .lbl span {
     vertical-align: middle;
 }
-
 td label, th label {
     margin-bottom: 0px;
 }

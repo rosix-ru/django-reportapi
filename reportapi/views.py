@@ -160,6 +160,14 @@ def create_document(request, report, document, filters):
         document.error = unicode(e)
     document.end = timezone.now()
     document.save()
+    if not document.error:
+        delta = document.end - document.start
+        ms = int(delta.total_seconds() *1000)
+        register = document.register
+        if register.timeout < ms:
+            register.timeout = ms
+            register.save()
+
     return document
 
 def result(document, old=False):
@@ -169,11 +177,12 @@ def result(document, old=False):
         'end': document.end,
         'user': document.user.get_full_name() or document.user.username,
         'error': document.error or None,
+        'timeout': document.register.timeout,
     }
     if old:
         result['old'] = True
     if document.end:
-        document.url
+        result['url'] = document.get_absolute_url()
     return JSONResponse(data=result)
 
 ########################################################################
@@ -219,6 +228,7 @@ def API_create_document(request, section, name, filters=None, force=False, **kwa
             "url": "",
             "old": null, // true, когда взят уже существующий старый отчёт
             "error": null, // или описание ошибки
+            "timeout": 5000, // расчётное время ожидания результата в милисекундах 
         }
         ```
 

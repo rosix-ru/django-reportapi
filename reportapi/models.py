@@ -120,6 +120,10 @@ class Report(object):
     def label(self):
         return self.verbose_name
 
+    @property
+    def format(self):
+        return self.report_format[0]
+
     def create_register(self):
         """
         Создаёт в базе данных объект регистрации отчёта
@@ -164,9 +168,10 @@ class Report(object):
         уникальный код следует генерировать иначе.
         """
         if not filters:
-            return ''
+            return request.LANGUAGE_CODE
         code = hashlib.new(REPORTAPI_CODE_HASHLIB)
         code.update(self.filters_to_string(filters))
+        code.update(request.LANGUAGE_CODE)
         return code.hexdigest()
 
     def get_filename(self):
@@ -204,6 +209,7 @@ class Report(object):
             'section': self.section,
             'label': self.label,
             'icon': self.icon,
+            'format': self.report_format[0],
             'enable_threads': self.enable_threads,
             'create_force': self.create_force,
             'expiration_time': self.expiration_time,
@@ -216,6 +222,10 @@ class Report(object):
 
     def get_filter(self, filter_name):
         return self._filters.get(filter_name, None)
+
+    @property
+    def timeout():
+        return self.create_register().timeout
 
 class RegisterManager(models.Manager):
     use_for_related_fields = True
@@ -245,6 +255,7 @@ class Register(models.Model):
         verbose_name=_('allow list users'))
     groups = models.ManyToManyField(AUTH_GROUP_MODEL, null=True, blank=True,
         verbose_name=_('allow list groups'))
+    timeout = models.IntegerField(_('max of timeout'), default=5000, editable=False)
 
     objects = RegisterManager()
 
@@ -323,6 +334,10 @@ class Document(models.Model):
         code.update('reportapi'+settings.SECRET_KEY)
         dic['code'] = code.hexdigest()
         return u'reports/%(date)s/%(code)s/%(filename)s' % dic
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('reportapi:get_document', [self.pk])
 
     @property
     def url(self):
