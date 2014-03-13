@@ -321,18 +321,16 @@ function handlerSetSelectizers($box) {
     $box = $box || $('body');
 
     $.each($box.find('select[data-type="object"]'), function(index, select) {
-        data = $(select).data() || {};
-        type = data.type;
-        filter_name = select.name;
 
-        if (filter_name) {
-            filter = window.REPORT.filters[filter_name];
-            unicode_key = filter.unicode_key || '__unicode__';
+        if (select.name) {
+            var filter = window.REPORT.filters[select.name],
+                unicode_key = filter.unicode_key || '__unicode__';
             $(select).selectize({
                 valueField: 'pk',
                 labelField: unicode_key,
                 searchField: unicode_key,
                 create: false,
+                options: filter.options,
                 maxItems: (filter.condition == 'range') ? 2 : undefined,
                 render: {
                     option: function(item, escape) {
@@ -367,7 +365,38 @@ function handlerSetSelectizers($box) {
                     });
                 },
                 onChange: function(value) {
-                    filter.value = value || null;
+                    if (filter.condition == 'range' && value.length != 2) {
+                        filter.value = null;
+                    } else {
+                        filter.value = (value == '') ? null : value;
+                    };
+                    handlerCheckRequiredValue();
+                },
+                onClear: function() {
+                    filter.value = null;
+                    handlerCheckRequiredValue();
+                }
+            });
+        }
+    });
+
+    other = $box.find('select[data-type="choice"], select[data-type="month"], select[data-type="weekday"]');
+    $.each(other, function(index, select) {
+
+        if (select.name) {
+            var filter = window.REPORT.filters[select.name];
+            $(select).selectize({
+                options: filter.options,
+                valueField: 'value',
+                labelField: 'label',
+                searchField: 'label',
+                maxItems: (filter.condition == 'range') ? 2 : undefined,
+                onChange: function(value) {
+                    if (filter.condition == 'range' && value.length != 2) {
+                        filter.value = null;
+                    } else {
+                        filter.value = (value == '') ? null : value;
+                    };
                     handlerCheckRequiredValue();
                 },
                 onClear: function() {
@@ -394,10 +423,10 @@ function handlerMaskInputs($box) {
         data = $(item).data();
         $item.mask(data.mask, {
             completed: function() {
-                report = REPORT.filters[this.context.name];
-                report.value = this.val();
-                if (report.condition == 'range') {
-                    report.value = report.value.split(RANGE_SPLIT);
+                filter = REPORT.filters[this.context.name];
+                filter.value = this.val();
+                if (filter.condition == 'range') {
+                    filter.value = filter.value.split(RANGE_SPLIT);
                 };
             }
         });
@@ -426,15 +455,17 @@ function handlerCheckRequiredValue() {
 
 // События
 
-/* Обработчик события сброса значения фильтра с маской */
+/* Обработчик события изменения значения фильтра */
 function eventChangeValue(event) {
     if (DEBUG) {console.log('function:'+'eventChangeValue')};//, event)};
     value = $(event.target).val();
-    report = REPORT.filters[event.target.name];
+    filter = REPORT.filters[event.target.name];
     if (event.target.type == 'checkbox') {
-        report.value = event.target.checked;
+        filter.value = event.target.checked;
+    } else if ($(event.target).attr('data-mask') !== undefined) {
+        filter.value = value ? filter.value : null;
     } else {
-        report.value = value || null;
+        filter.value = value || null;
     };
     $('.progress:visible').hide();
     $('.progress:visible .progress-bar').attr('aria-valuetransitiongoal', 0)
@@ -456,7 +487,7 @@ function eventConditionChange(event) {
     console.log(filter.condition);
     if (filter.condition in {'isnull':0, 'empty':0}) {
         filter.value = false;
-    } else if (!filter.condition || filter.type == 'object') {
+    } else if (!filter.condition || filter.condition in {'range':0,'in':0} || filter.type == 'object') {
         filter.value = null;
     } else {
         filter.value = $('#value-'+filter_name).val() || null;

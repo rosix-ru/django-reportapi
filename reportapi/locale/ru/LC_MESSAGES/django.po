@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReportAPI\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-03-08 19:25+1100\n"
+"POT-Creation-Date: 2014-03-13 15:20+1100\n"
 "PO-Revision-Date: 2014-03-07 00:00+1100\n"
 "Last-Translator: Grigoriy Kramarenko <root@rosix.ru>\n"
 "Language-Team: \n"
@@ -47,116 +47,139 @@ msgstr "больше чем"
 msgid "gte"
 msgstr "больше или равно"
 
-#: filters.py:60
+#: filters.py:61
 msgid "lt"
 msgstr "меньше чем"
 
-#: filters.py:60
+#: filters.py:61
 msgid "lte"
 msgstr "меньше или равно"
 
-#: filters.py:61
+#: filters.py:62
 msgid "range"
 msgstr "диапазон"
 
-#: filters.py:61
+#: filters.py:62
 msgid "in"
 msgstr "в списке"
 
-#: filters.py:62
+#: filters.py:63
 msgid "contains"
 msgstr "содержит (с регистром)"
 
-#: filters.py:62
+#: filters.py:63
 msgid "icontains"
 msgstr "содержит"
 
-#: filters.py:63
+#: filters.py:64
 msgid "startswith"
 msgstr "начало (с регистром)"
 
-#: filters.py:63
+#: filters.py:64
 msgid "istartswith"
 msgstr "начало"
 
-#: filters.py:63
+#: filters.py:65
 msgid "endswith"
 msgstr "конец (с регистром)"
 
-#: filters.py:63
+#: filters.py:65
 msgid "iendswith"
 msgstr "конец"
 
-#: filters.py:286 templates/reportapi/docs/base.html:97
-#: templates/reportapi/docs/base.html:102
+#: filters.py:131
+msgid "Object search"
+msgstr "Поиск объекта"
+
+#: filters.py:276 templates/reportapi/docs/base.html:96
 msgid "yes"
 msgstr "да"
 
-#: filters.py:286
+#: filters.py:276 templates/reportapi/docs/base.html:96
 msgid "no"
 msgstr "нет"
 
-#: models.py:240
+#: filters.py:282
+msgid "Choice"
+msgstr "Выберите"
+
+#: filters.py:309
+msgid "Select weekday"
+msgstr "Выберите день недели"
+
+#: filters.py:314
+msgid "Select month"
+msgstr "Выберите месяц"
+
+#: models.py:85
+msgid "main"
+msgstr "основные"
+
+#: models.py:264
 msgid "section"
 msgstr "раздел"
 
-#: models.py:241
+#: models.py:265 templates/reportapi/docs/base.html:85
 msgid "name"
 msgstr "имя"
 
-#: models.py:242
+#: models.py:266
 msgid "title without translation"
 msgstr "название без перевода"
 
-#: models.py:243
+#: models.py:267
 msgid "allow all users"
 msgstr "доступно всем пользователям"
 
-#: models.py:245
+#: models.py:269
 msgid "allow list users"
 msgstr "доступно списку пользователей"
 
-#: models.py:247
+#: models.py:271
 msgid "allow list groups"
 msgstr "доступно списку групп"
 
-#: models.py:253 models.py:293
+#: models.py:272
+msgid "max of timeout"
+msgstr "максимальное время ожидания"
+
+#: models.py:278 models.py:318
 msgid "registered report"
 msgstr "зарегистрированный отчёт"
 
-#: models.py:254
+#: models.py:279
 msgid "registered reports"
 msgstr "зарегистрированные отчёты"
 
-#: models.py:295
+#: models.py:320
 msgid "user"
 msgstr "пользователь"
 
-#: models.py:296
+#: models.py:321
 msgid "process key"
 msgstr "ключ процесса"
 
-#: models.py:298
+#: models.py:323
 msgid "error message"
 msgstr "сообщение об ошибке"
 
-#: models.py:299
+#: models.py:324
 msgid "start create"
 msgstr "начало создания"
 
-#: models.py:300
+#: models.py:325
 msgid "end create"
 msgstr "конец создания"
 
-#: models.py:301
+#: models.py:326
 msgid "report file"
 msgstr "файл отчёта"
 
-#: models.py:311
+#: models.py:336
 msgid "generated report"
 msgstr "сгенерированный отчет"
 
-#: models.py:312
+#: models.py:337
 msgid "generated reports"
 msgstr "сгенерированные отчеты"
 
@@ -200,50 +223,58 @@ msgstr "Переключение навигации"
 msgid "List reports"
 msgstr "Список отчётов"
 
-#: templates/reportapi/base.html:74
+#: templates/reportapi/base.html:76
 msgid "Home"
 msgstr "Главная"
 
-#: templates/reportapi/index.html:9
+#: templates/reportapi/index.html:8
 msgid "Last formed documents"
 msgstr "Последние сформированные документы"
 
-#: templates/reportapi/index.html:25
+#: templates/reportapi/index.html:24
 msgid "in the making"
 msgstr "создаётся"
 
-#: templates/reportapi/index.html:36
+#: templates/reportapi/index.html:37 templates/reportapi/report.html:92
 msgid "View"
 msgstr "Просмотр"
 
-#: templates/reportapi/index.html:40
+#: templates/reportapi/index.html:41 templates/reportapi/report.html:99
 msgid "Download"
 msgstr "Скачать"
 
-#: templates/reportapi/index.html:44 templates/reportapi/report_list.html:16
+#: templates/reportapi/index.html:45 templates/reportapi/report_list.html:16
 msgid "Create new"
 msgstr "Создать новый"
 
-#: templates/reportapi/report.html:39
+#: templates/reportapi/index.html:52
+msgid "Empty"
+msgstr "Пусто"
+
+#: templates/reportapi/report.html:40
 msgid "no condition"
 msgstr "нет условия"
 
-#: templates/reportapi/report.html:47
+#: templates/reportapi/report.html:48
 #: templates/reportapi/underscore/filter.html:6
 msgid "Filter required"
 msgstr "Фильтр обязателен"
 
-#: templates/reportapi/report.html:61
+#: templates/reportapi/report.html:62
 msgid "Show additional"
 msgstr "Показать дополнительные"
 
-#: templates/reportapi/report.html:65
+#: templates/reportapi/report.html:66
 msgid "Hide additional"
 msgstr "Скрыть дополнительные"
 
-#: templates/reportapi/report.html:70
+#: templates/reportapi/report.html:71
 msgid "Create document"
 msgstr "Создать документ"
+
+#: templates/reportapi/report.html:75
+msgid "Recreate document"
+msgstr "Пересоздать документ"
 
 #: templates/reportapi/report_list.html:5
 msgid "List of reports in section"
@@ -257,10 +288,6 @@ msgstr "сформировано"
 msgid "Filters"
 msgstr "Фильтры"
 
-#: templates/reportapi/docs/base.html:85
-msgid "field"
-msgstr "поле"
-
 #: templates/reportapi/docs/base.html:86
 msgid "condition"
 msgstr "условие"
@@ -268,10 +295,6 @@ msgstr "условие"
 #: templates/reportapi/docs/base.html:87
 msgid "value"
 msgstr "значение"
-
-#: templates/reportapi/docs/base.html:88
-msgid "inverse"
-msgstr "инверсия"
 
 #: templates/reportapi/underscore/alert.html:4
 msgid "Bug!"
@@ -288,10 +311,6 @@ msgstr "Сообщение."
 #: templates/reportapi/underscore/alert.html:6
 msgid "see the log in the JavaScript console"
 msgstr "смотрите лог в консоли JavaScript"
-
-#: templates/reportapi/underscore/filter.html:19
-msgid "Object search"
-msgstr "Поиск объекта"
 
 #: templates/reportapi/underscore/filter.html:34
 #: templates/reportapi/underscore/filter.html:37
@@ -321,6 +340,12 @@ msgstr "ЧЧ:ММ"
 #: templatetags/reportapi_base.py:99 templatetags/reportapi_base.py:107
 msgid "Anonymous"
 msgstr "Аноним"
+
+#~ msgid "field"
+#~ msgstr "поле"
+
+#~ msgid "inverse"
+#~ msgstr "инверсия"
 
 #~ msgid "Last documents of user"
 #~ msgstr "Последние документы пользователя"

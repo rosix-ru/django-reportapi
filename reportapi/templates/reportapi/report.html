@@ -2,6 +2,7 @@
 {% load i18n l10n %}
 
 {% block content %}
+<legend>{{ report.label }}</legend>
 <div class="row">
     {% for name, filter in report.filters_list %}
         <div class="col-xs-12 col-lg-6">

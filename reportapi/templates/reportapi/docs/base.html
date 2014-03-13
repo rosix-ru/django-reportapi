@@ -1,11 +1,11 @@
-{% load i18n l10n %}<!DOCTYPE HTML>
+{% load i18n l10n reportapi_base %}<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html lang="{{ LANGUAGE_CODE|default:"ru" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
     <title>{% block title %}{{ DOCUMENT }}{% endblock %}</title>
     <meta name="generator" content="ReportAPI">
-    <meta name="author" content="{{ user }}">
+    <meta name="author" content="{% full_username user %}">
     <meta name="created" content="{% now 'Ymd;His00' %}">
 
     <style>
@@ -77,31 +77,29 @@
 {% endblock %}
 
 {% block filters %}
-{% if filters %}
+{% if FILTERS %}
     <h4>{% trans 'Filters' %}</h4>
     <table width="100%" cellspacing="0" border="0">
         <thead>
             <tr class="bg-gray">
-                <th class="bordered">{% trans "field" %}</th>
+                <th class="bordered">{% trans "name" %}</th>
                 <th class="bordered">{% trans "condition" %}</th>
                 <th class="bordered">{% trans "value" %}</th>
-                <th class="bordered">{% trans "inverse" %}</th>
             </tr>
         </thead>
         <tbody>
-    {% for filter in filters %}
+    {% for filter in FILTERS %}
         <tr>
-            <td class="bordered">{{ filter.field_title|lower }}</td>
-            <td class="bordered">{{ filter.type_title|lower }}</td>
-        {% if filter.values|join:", " == 'on' %}
-            <td class="bordered">{% trans 'yes' %}</td>
+            <td class="bordered">{{ filter.label|lower }}</td>
+            <td class="bordered">{{ filter.condition_label|lower }}</td>
+        {% if filter.condition == 'isnull' or filter.condition == 'empty' %}
+            <td class="bordered">{% if filter.value %}{% trans 'yes' %}{% else %}{% trans 'no' %}{% endif %}</td>
         {% else %}
-            <td class="bordered">{{ filter.values|join:", " }}</td>
-        {% endif %}
-        {% if filter.inverse %}
-            <td class="bordered">{% trans 'yes' %}</td>
-        {% else %}
-            <td class="bordered"></td>
+            {% if filter.condition == 'range' or filter.condition == 'in' %}
+                <td class="bordered">{{ filter.value|join:", " }}</td>
+            {% else %}
+                <td class="bordered">{{ filter.value }}</td>
+            {% endif %}
         {% endif %}
         </tr>
     {% endfor %}

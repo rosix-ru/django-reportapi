@@ -1,0 +1,17 @@
+# ReportAPI LOCALIZATION.
+# Copyright (C) 2014 Grigoriy Kramarenko
+# This file is distributed under the same license as the ReportAPI package.
+# Grigoriy Kramarenko <root@rosix.ru>, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ReportAPI\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-03-07 00:00+1100\n"
+"PO-Revision-Date: 2013-03-07 00:00+1100\n"
+"Last-Translator: Grigoriy Kramarenko <root@rosix.ru>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+

@@ -38,10 +38,9 @@
 """
 from django.db import models
 from django.db.models import Q
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_noop, ugettext_lazy as _
 from django.utils import timezone
-from django.template import Context
-from django.template.loader import get_template
+from django.template import RequestContext, loader
 from django.core.files.base import ContentFile
 
 from reportapi.conf import (settings, REPORTAPI_CODE_HASHLIB,
@@ -79,6 +78,12 @@ class Report(object):
     icon            = None
     template_name   = 'reportapi/docs/base.html'
     filters         = None
+    site            = None
+    name            = None
+    title           = None
+    verbose_name    = None
+    section         = ugettext_noop('main')
+    section_label   = None
 
     def __init__(self, site=None, section=None, section_label=None, \
         filters=None, title=None, name=None, **kwargs):
@@ -89,13 +94,13 @@ class Report(object):
 
         self.site = site or getattr(self, 'site', None) or raise_set_site(class_name)
 
-        self.section = section or getattr(self, 'section', 'main')
+        self.section = section or getattr(self, 'section')
         if not isinstance(self.section, (str, unicode)) or not validate_name(self.section):
             raise ValueError('Attribute `section` most be string in '
                 'English without digits, spaces and hyphens.')
         self.section_label = section_label or getattr(self, 'section_label', _(self.section))
 
-        self.name = name or getattr(self, 'name', class_name.lower())
+        self.name = name or getattr(self, 'name', None) or class_name.lower()
         if not isinstance(self.name, (str, unicode)) or not validate_name(self.name):
             raise ValueError('Attribute `name` most be string in '
                 'English without digits, spaces and hyphens.')
@@ -153,15 +158,6 @@ class Report(object):
     def has_permission(self, request):
         return bool(self.permitted_register(request))
 
-    def filters_to_string(self, filters):
-        if not isinstance(filters, dict):
-            return str(filters)
-
-        for k,v in filters.items():
-            if isinstance(v, (list,tuple)):
-                filters[k] = list(set(v))
-        return str(filters)
-
     def get_code(self, request, filters):
         """
         Этот метод может быть переопределён для тех отчётов, где 
@@ -194,14 +190,35 @@ class Report(object):
         """
         context = self.get_context(request, document, filters)
         context['DOCUMENT'] = document
-        template = get_template(self.template_name)
-        content  = template.render(Context(context)).encode('utf-8')
-        _file    = ContentFile(content)
+        context['FILTERS'] = self.get_filters_data(filters)
+        content  = loader.render_to_string(self.template_name, context,
+                            context_instance=RequestContext(request,))
+        _file    = ContentFile(content.encode('utf-8'))
         document.report_file.save(self.get_filename(), _file, save=save)
         return document
 
+    def filters_to_string(self, filters):
+        if not isinstance(filters, dict):
+            return str(filters)
+
+        for k,v in filters.items():
+            if isinstance(v, (list,tuple)):
+                filters[k] = list(set(v))
+        return str(filters)
+
     def filters_list(self):
         return [ x.serialize() for x in self.filters ]
+
+    def get_filters_data(self, filters):
+        L = []
+        for key,dic in filters.items():
+            f = self.get_filter(key)
+            if f:
+                L.append(f.data(**dic))
+        return L
+
+    def get_filter(self, filter_name):
+        return self._filters.get(filter_name, None)
 
     def get_scheme(self, request=None):
         SCHEME = {
@@ -219,9 +236,6 @@ class Report(object):
         SCHEME['filters_list'] = [ x[0] for x in filters_list ]
 
         return SCHEME
-
-    def get_filter(self, filter_name):
-        return self._filters.get(filter_name, None)
 
     @property
     def timeout():
@@ -318,7 +332,7 @@ class Document(models.Model):
         return unicode(self.register)
 
     class Meta:
-        ordering = ['-end', '-start']
+        ordering = ['-start', '-end']
         verbose_name = _('generated report')
         verbose_name_plural = _('generated reports')
 

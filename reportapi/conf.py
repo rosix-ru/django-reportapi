@@ -55,21 +55,15 @@ REPORTAPI_CODE_HASHLIB = getattr(settings, 'REPORTAPI_CODE_HASHLIB', 'md5')
 REPORTAPI_UPLOAD_HASHLIB = getattr(settings, 'REPORTAPI_UPLOAD_HASHLIB', 'md5')
 REPORTAPI_FILES_UNIDECODE = getattr(settings, 'REPORTAPI_FILES_UNIDECODE', False)
 REPORTAPI_PDFCONVERT_ARGS1 = getattr(settings, 'REPORTAPI_PDFCONVERT_ARGS1',
-            ['libreoffice', '--headless', '--convert-to', 'pdf'])
+            ['unoconv', '-f', 'pdf'])
 REPORTAPI_PDFCONVERT_ARGS2 = getattr(settings, 'REPORTAPI_PDFCONVERT_ARGS2', [])
 REPORTAPI_CONVERTOR_BACKEND = getattr(settings, 'REPORTAPI_CONVERTOR_BACKEND', None)
 
 REPORTAPI_DEFAULT_FORMAT = getattr(settings, 'REPORTAPI_DEFAULT_FORMAT', None)
 if not REPORTAPI_DEFAULT_FORMAT:
     import subprocess
-    answer = None
 
-    if "libreoffice" in REPORTAPI_PDFCONVERT_ARGS1:
-        answer = subprocess.check_output(["which", "libreoffice"])
-    elif "openoffice" in REPORTAPI_PDFCONVERT_ARGS1:
-        answer = subprocess.check_output(["which", "openoffice"])
-
-    if answer:
+    if subprocess.check_output(["which", "unoconv"]):
         REPORTAPI_DEFAULT_FORMAT = 'pdf'
     else:
         REPORTAPI_DEFAULT_FORMAT = 'odt'

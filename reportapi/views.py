@@ -39,7 +39,7 @@
 from django.contrib.auth import authenticate, login
 from django.core.mail import mail_admins
 from django.shortcuts import render_to_response
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
@@ -58,7 +58,7 @@ from reportapi.conf import (settings, REPORTAPI_FILES_UNIDECODE,
     REPORTAPI_ENABLE_THREADS, REPORTAPI_DEFAULT_FORMAT)
 from reportapi.models import Report, Register, Document
 
-DOCS_PER_PAGE = 25
+DOCS_PER_PAGE = 12
 
 class PermissionError(Exception):
     message = _('Access denied')
@@ -124,14 +124,18 @@ def get_document(request, pk, format=None):
     ctx = _default_context(request)
     try:
         doc = Document.objects.permitted(request).get(pk=pk)
-    except:
+    except Exception as e:
+        print e
         return render_to_response('reportapi/404.html', ctx,
                             context_instance=RequestContext(request,))
+    if doc.error:
+        return HttpResponse(doc.error)
 
     if format:
         url = doc.format_url(format)
     else:
         url = doc.url
+
     if url:
         return HttpResponseRedirect(url)
 

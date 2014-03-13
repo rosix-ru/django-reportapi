@@ -28,7 +28,7 @@
                     <span class="label label-default">{{ doc.end|default:'' }}</span>
                 {% endif %}
                 </p>
-            
+
                 <p>
                     <button onClick="handlerShowDocument('{% url 'reportapi:get_document' doc.pk %}', 'document-{{ doc.pk }}')" 
                         class="btn btn-default btn-block" role="button"

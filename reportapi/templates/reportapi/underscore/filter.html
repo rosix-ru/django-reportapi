@@ -13,10 +13,10 @@
         <span class="lbl"></span>
     </label>
 <% } else { %>
-    <% if (data.type == 'object') { %>
+    <% if (data.type in {'object':0, 'choice':0, 'month':0, 'weekday':0 }) { %>
         <select
         <% if (data.condition in {'in':0, 'range':0}) { %>multiple<% } %>
-        placeholder="{% trans 'Object search' %}"
+        placeholder="<%= data.placeholder %>"
     <% } else { %>
         <input
     <% } %>
@@ -75,9 +75,14 @@
 
     <% } else if (data.type == 'number') { %>
         data-validate="number"
+        <% if (data.placeholder) { %>
+            placeholder="<%= data.placeholder %>"
+        <% } %>
+    <% } else if (data.placeholder) { %>
+        placeholder="<%= data.placeholder %>"
     <% } %>
 
-    <% if (data.type == 'object') { %>
+    <% if (data.type in {'object':0, 'choice':0, 'month':0, 'weekday':0 }) { %>
         ></select>
     <% } else { %>
         />

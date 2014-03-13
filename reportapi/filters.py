@@ -39,7 +39,7 @@
 from django.db import models
 from django.db.models import Q, get_model
 from django.utils.dates import WEEKDAYS, MONTHS
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_noop, ugettext_lazy as _
 from django.core.paginator import Paginator, Page, PageNotAnInteger, EmptyPage
 from django.utils.encoding import python_2_unicode_compatible
 from django.template.defaultfilters import slugify
@@ -55,12 +55,14 @@ DEFAULT_SEARCH_FIELDS = getattr(conf, 'DEFAULT_SEARCH_FIELDS',
     )
 )
 
-__conditions__ = (_('isnull'), _('empty'),# _('bool'),
-    _('exact'), _('iexact'), 
-    _('gt'), _('gte'), _('lt'), _('lte'),
-    _('range'), _('in'),
-    _('contains'), _('icontains'), 
-    _('startswith'), _('istartswith'), _('endswith'), _('iendswith')
+__conditions__ = (ugettext_noop('isnull'), ugettext_noop('empty'),# ugettext_noop('bool'),
+    ugettext_noop('exact'), ugettext_noop('iexact'), 
+    ugettext_noop('gt'), ugettext_noop('gte'),
+    ugettext_noop('lt'), ugettext_noop('lte'),
+    ugettext_noop('range'), ugettext_noop('in'),
+    ugettext_noop('contains'), ugettext_noop('icontains'), 
+    ugettext_noop('startswith'), ugettext_noop('istartswith'),
+    ugettext_noop('endswith'), ugettext_noop('iendswith')
 )
 
 @python_2_unicode_compatible
@@ -68,6 +70,7 @@ class BaseFilter(object):
     required = None
     _type = None
     conditions = ('isnull', 'exact', 'gt', 'gte', 'lt', 'lte', 'range')
+    placeholder = None
 
     def __str__(self):
         return '<%s:%s>' % (self.__class__.__name__, self.name)
@@ -78,20 +81,20 @@ class BaseFilter(object):
         self.name = slugify(name)
         self.verbose_name = _(name)
 
-    def data(self, condition=None, inverse=False, fragment=None, **options):
+    def get_value(self, condition, val):
+        return val
+
+    def data(self, condition=None, value=None, inverse=False, **options):
         """
         Метод получения информации об установленном фильтре.
         """
         options['name'] = self.name
-        options['name_locale'] = self.verbose_name
+        options['label'] = self.verbose_name
         options['type'] = self._type
         options['inverse'] = inverse
-        options['fragment'] = fragment
         options['condition'] = condition
-        if condition:
-            options['condition_locale'] = _(condition)
-        if fragment:
-            options['fragment_locale'] = _(fragment)
+        options['condition_label'] = _(condition)
+        options['value'] = self.get_value(condition, value)
 
         return options
 
@@ -99,7 +102,7 @@ class BaseFilter(object):
         return [(x, _(x)) for x in self.conditions or ()]
 
     def serialize(self):
-        return self.name, {
+        D = {
             'required': self.required or False,
             'name': self.name,
             'label': self.verbose_name,
@@ -107,12 +110,26 @@ class BaseFilter(object):
             'conditions': self.condition_list(),
         }
 
+        if self.placeholder:
+            D['placeholder'] = self.placeholder
+
+        if hasattr(self, 'options'):
+            o = self.options
+            D['options'] = o() if callable(o) else o
+
+        if hasattr(self, 'withseconds'):
+            D['withseconds'] = self.withseconds
+
+        return self.name, D
+
 class FilterObject(BaseFilter):
     _type = 'object'
     conditions = ('isnull', 'exact', 'in', 'range')
     model = None
     manager = None
     fields_search = None
+    placeholder = _('Object search')
+    max_options = 10
 
     def __init__(self, name, model=None, manager=None, fields_search=None, **kwargs):
         """
@@ -126,7 +143,7 @@ class FilterObject(BaseFilter):
 
         manager = manager or getattr(self, 'manager', None)
         model = model or getattr(self, 'model', None)
-        fields_search = fields_search or getattr(self, 'fields_search', None)
+
         if not manager and not model:
             raise AttributeError('First set manager for filter')
         elif manager:
@@ -135,7 +152,9 @@ class FilterObject(BaseFilter):
             self.set_model(model)
             self.set_manager(None)
         self.opts = self.model._meta
-        self.set_fields_search(fields_search)
+
+        self.set_fields_search(fields_search or getattr(self, 'fields_search', None))
+        self.max_options = kwargs.pop('max_options', self.max_options)
 
     def set_model(self, model):
         if issubclass(model, models.ModelBase):
@@ -180,6 +199,10 @@ class FilterObject(BaseFilter):
     def objects(self):
         return self.manager.all()
 
+    @property
+    def options(self):
+        return serialize(self.manager.all()[:self.max_options])
+
     def get_paginator(self, queryset, per_page=25, orphans=0,
         allow_empty_first_page=True, **kwargs):
         return Paginator(
@@ -216,11 +239,13 @@ class FilterObject(BaseFilter):
         page_queryset = self.get_page_queryset(qs, page=page)
         return serialize(page_queryset)
 
-    def get_value(self, condition, keys):
-        if condition == 'exact':
-            return self.objects.get(pk=keys)
+    def get_value(self, condition, value):
+        if condition == 'isnull':
+            return value
+        elif condition == 'exact':
+            return self.objects.get(pk=value)
         else:
-            return self.objects.filter(pk__in=list(keys))
+            return self.objects.filter(pk__in=list(value))
 
 class FilterText(BaseFilter):
     _type = 'text'
@@ -229,53 +254,18 @@ class FilterText(BaseFilter):
 
 class FilterNumber(BaseFilter):
     _type = 'number'
+    conditions = ('exact', 'gt', 'gte', 'lt', 'lte')
 
 class FilterDateTime(BaseFilter):
     _type = 'datetime'
+    withseconds = False
 
 class FilterDate(BaseFilter):
     _type = 'date'
 
 class FilterTime(BaseFilter):
     _type = 'time'
-
-class FilterYear(BaseFilter):
-    _type = 'year'
-    conditions = ('exact', 'gt', 'gte', 'lt', 'lte', 'range')
-
-class FilterMonth(BaseFilter):
-    _type = 'month'
-    conditions = ('exact', 'gt', 'gte', 'lt', 'lte', 'range')
-
-    def serialize(self):
-        name, dic = super(FilterMonth, self).serialize()
-        dic['MONTHS'] = MONTHS
-        return name, dic
-
-class FilterDay(BaseFilter):
-    _type = 'day'
-    conditions = ('exact', 'gt', 'gte', 'lt', 'lte', 'range')
-
-class FilterWeekDay(BaseFilter):
-    _type = 'weekday'
-    conditions = ('exact', 'gt', 'gte', 'lt', 'lte', 'range')
-
-    def serialize(self):
-        name, dic = super(FilterWeekDay, self).serialize()
-        dic['WEEKDAYS'] = WEEKDAYS
-        return name, dic
-
-class FilterHour(BaseFilter):
-    _type = 'hour'
-    conditions = ('exact', 'gt', 'gte', 'lt', 'lte', 'range')
-
-class FilterMinute(BaseFilter):
-    _type = 'minute'
-    conditions = ('exact', 'gt', 'gte', 'lt', 'lte', 'range')
-
-class FilterSecond(BaseFilter):
-    _type = 'second'
-    conditions = ('exact', 'gt', 'gte', 'lt', 'lte', 'range')
+    withseconds = False
 
 class FilterBoolean(BaseFilter):
     _type = 'boolean'
@@ -285,6 +275,45 @@ class FilterBoolean(BaseFilter):
         name, dic = super(FilterBoolean, self).serialize()
         dic['YESNO'] = _('yes'), _('no')
         return name, dic
+
+class FilterChoice(BaseFilter):
+    _type = 'choice'
+    conditions = ('exact', 'gt', 'gte', 'lt', 'lte', 'range', 'in')
+    placeholder = _('Choice')
+    keytype = int
+    _options = None
+
+    def __init__(self, name, options=None, **kwargs):
+        if options:
+            self._options = dict(options)
+        else:
+            self._options = self._options or {}
+        super(FilterChoice, self).__init__(name, **kwargs)
+
+    @property
+    def options(self):
+        return [ {'value':x,'label':y} for x,y in self._options.items() ]
+
+    def get_value(self, condition, value):
+        dic = self._options
+        if condition in ('range', 'in'):
+            return [ dic[self.keytype(x)] for x in list(value) if self.keytype(x) in dic ]
+        else:
+            return dic.get(self.keytype(value), None)
+
+class FilterChoiceStr(FilterChoice):
+    keytype = str
+
+class FilterWeekDay(FilterChoice):
+    _type = 'weekday'
+    placeholder = _('Select weekday')
+    _options = WEEKDAYS
+
+class FilterMonth(FilterChoice):
+    _type = 'month'
+    placeholder = _('Select month')
+    _options = MONTHS
+
 
 def _search_in_fields(queryset, fields, query):
     """ Фильтрация """

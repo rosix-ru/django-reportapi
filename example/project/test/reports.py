@@ -39,33 +39,26 @@
 from django.utils.translation import ugettext_noop, ugettext_lazy as _
 from reportapi.filters import (FilterObject, FilterText, FilterNumber,
     FilterDateTime, FilterDate, FilterTime,
-    FilterYear, FilterMonth, FilterDay, FilterWeekDay,
-    FilterHour, FilterMinute, FilterSecond,
-    FilterBoolean)
+    FilterBoolean, FilterChoice, FilterMonth, FilterWeekDay,)
 from reportapi.models import Report
 from reportapi.sites import site
 from reportapi.conf import settings
 
 @site.register
 class TestReport(Report):
-    title = 'Test report'
-    create_force = False
+    title = ugettext_noop('Test report')
+
     filters = (
-        FilterObject('user', manager='auth.User.objects', required=True),
-        FilterText('filter for text'),
-        FilterNumber('filter for number'),
-        FilterDateTime('filter for date and time', True), # required=True as argument
-        FilterDate('filter for date'),
-        FilterTime('filter for time'),
-        # In the future:
-        #~ FilterYear('filter for year'),
-        #~ FilterMonth('filter for month'),
-        #~ FilterDay('filter for day'),
-        #~ FilterWeekDay('filter for weekday'),
-        #~ FilterHour('filter for hour'),
-        #~ FilterMinute('filter for minute'),
-        #~ FilterSecond('filter for second'),
-        FilterBoolean('filter for boolean'),
+        FilterObject(ugettext_noop('filter for objects'), manager='auth.User.objects', required=True),
+        FilterText(ugettext_noop('filter for text')),
+        FilterNumber(ugettext_noop('filter for number')),
+        FilterDateTime(ugettext_noop('filter for date and time'), True), # required=True as argument
+        FilterDate(ugettext_noop('filter for date')),
+        FilterTime(ugettext_noop('filter for time')),
+        FilterChoice(ugettext_noop('filter for choice'), options=((1, _('First')),(2, _('Second')))),
+        FilterMonth(ugettext_noop('filter for month')),
+        FilterWeekDay(ugettext_noop('filter for weekday')),
+        FilterBoolean(ugettext_noop('filter for boolean')),
     )
 
     def get_context(self, request, document, filters):
@@ -76,7 +69,7 @@ class TestReport(Report):
         методе self.render(...)
         """
         import time
-        time.sleep(120)
+        #~ time.sleep(30)
 
         return {}
 
