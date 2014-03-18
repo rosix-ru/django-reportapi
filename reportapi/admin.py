@@ -41,7 +41,7 @@ from django.utils.translation import ugettext_lazy as _
 from .models import *
 
 class RegisterAdmin(admin.ModelAdmin):
-    list_display = ('title', 'section', 'name', 'timeout', 'id')
+    list_display = ('__unicode__', 'section', 'name', 'timeout', 'id')
     search_fields = ['title', 'id']
     list_filter = ('section',)
     filter_horizontal = ('users', 'groups')
