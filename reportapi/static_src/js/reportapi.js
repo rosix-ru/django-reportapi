@@ -39,7 +39,8 @@
 ////////////////////////////////////////////////////////////////////////
 //                   КОНСТАНТЫ И ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ                //
 ////////////////////////////////////////////////////////////////////////
-var TIMEOUT_PROGRESS = 1000;
+var TIMEOUT_PROGRESS = 1000,
+    SERVER_TZ_OFFSET = window.SERVER_TZ_OFFSET || -240; // Europe/Moscow
 
 // Глобальные хранилища-регистраторы
 window.TEMPLATES = {}; // Шаблоны
@@ -209,24 +210,28 @@ function jsonAPI(args, callback, to_console, sync, timeout) {
 /* Обработчик создания отчёта */
 function handlerCreateReport(force) {
     if (DEBUG) {console.log('function:'+'handlerCreateReport')};
-    filters = {};
+    $('.action-preview, .action-remove, .action-download')
+        .prop('disabled', true);
+    window.REPORT.id = null;
+    window.REPORT.process_filters = {};
     $.each(window.REPORT.filters, function(key, item) {
         if (item.condition || item.value != null) {
-            filters[item.name] = {condition:item.condition, value:item.value};
+            window.REPORT.process_filters[item.name] = {condition:item.condition, value:item.value};
         };
     });
     args = {
-        'method': 'reportapi.create_document',
+        'method': 'reportapi.document_create',
         'section': window.REPORT.section,
         'name': window.REPORT.name,
-        'filters': filters,
+        'filters': window.REPORT.process_filters,
         'force': force,
     };
     cb = function(json, status, xhr) {
-        handlerStartProgress(json.data);
+        
     };
-    
-    var jqxhr = jsonAPI(args, cb);
+
+    var jqxhr = jsonAPI(args, cb, null, false, window.REPORT.timeout);
+    handlerStartProgress();
     return jqxhr;
 };
 
@@ -247,24 +252,48 @@ function handlerCheckProcess() {
     if (DEBUG) {console.log('function:'+'handlerCheckProcess')};
     args = {
         'method': 'reportapi.document_info',
-        'id': window.REPORT.id,
+        'id': window.REPORT.id || null,
+        'section': window.REPORT.section,
+        'name': window.REPORT.name,
+        'filters': window.REPORT.process_filters,
     };
+
     cb = function(json, status, xhr) {
         $obj = $('.progress .progress-bar');
         max = Number($obj.attr('aria-valuemax'));
         now = Number($obj.attr('aria-valuetransitiongoal'));
+        window.REPORT.id = json.data.id;
+        window.REPORT.timeout = json.data.timeout;
         if (json.data.end) {
             clearInterval(window.REPORT.process);
             window.REPORT.process = undefined;
             $obj.attr('aria-valuetransitiongoal', max).progressbar();
             
             url = json.data.url + window.REPORT.format.toLowerCase() + '/';
-            $('.action-download')
-                .attr('href', url)
-                .prop('disabled', false).show();
+
             $('.action-preview')
                 .attr('onClick', "handlerShowDocument('"+json.data.url+"', 'document-"+json.data.id+"')")
                 .prop('disabled', false).show();
+            if (json.data.error) {
+                $('.action-download').prop('disabled', true).hide();
+                $('.action-remove')
+                    .attr('onClick', "handlerRemoveDocument("+json.data.id+")")
+                    .prop('disabled', true).show();
+                if (json.data.has_remove) {
+                    $('.action-remove').prop('disabled', false);
+                };
+                $('.action-preview')
+                    .removeClass('btn-default').addClass('btn-warning')
+                    .find('.fa').removeClass('fa-search').addClass('fa-bug');
+            } else {
+                $('.action-remove').prop('disabled', true).hide();
+                $('.action-download')
+                    .attr('href', url)
+                    .prop('disabled', false).show();
+                $('.action-preview')
+                    .removeClass('btn-warning').addClass('btn-default')
+                    .find('.fa').removeClass('fa-bug').addClass('fa-search');
+            };
             $('.progress')
                 .removeClass('progress-striped')
                 .removeClass('active')
@@ -287,29 +316,50 @@ function handlerCheckProcess() {
             $obj.attr('aria-valuetransitiongoal', TIMEOUT_PROGRESS + now).progressbar();
         };
     };
-    
+
     var jqxhr = jsonAPI(args, cb);
     return jqxhr;
 };
 
-
 /* Обработчик запуска ожидания создания отчёта */
-function handlerStartProgress(data) {
+function handlerStartProgress() {
     if (DEBUG) {console.log('function:'+'handlerStartProgress')};
     $('.action-create-report').prop("disabled", true);
     $('.progress .progress-bar')
-        .attr('aria-valuemax', data.timeout || 5000)
-        .attr('aria-valuetransitiongoal', 0)
+        .attr('aria-valuemax', window.REPORT.timeout || TIMEOUT_PROGRESS)
+        .attr('aria-valuetransitiongoal', 1)
         .progressbar();
     $('.progress').show();
     
-    window.REPORT.id = data.id;
-    window.REPORT.timeout = data.timeout;
     window.REPORT.process = setInterval(function () {
         handlerCheckProcess();
     }, window.TIMEOUT_PROGRESS);
 };
 
+/* Обработчик удаления отчёта */
+function handlerRemoveDocument(id) {
+    if (DEBUG) {console.log('function:'+'handlerRemoveDocument')};
+    if (id) {
+        var args = {
+                'method': 'reportapi.document_delete',
+                'id': id,
+            },
+            success = function() {
+                $('.action-preview, .action-remove, .action-download')
+                    .prop('disabled', true).hide();
+                $('#thumbnail-document-'+id).remove();
+            };
+        new jsonAPI(args, success);
+    };
+    
+};
+
+/* Обработчик события удаления отчёта */
+function eventRemoveDocument(event) {
+    if (DEBUG) {console.log('function:'+'eventRemoveDocument')};
+    var id = null;
+    handlerRemoveDocument(id);
+};
 
 ////////////////////////////////////////////////////////////////////////
 //                    Обработчики типов фильтров                      //
@@ -328,7 +378,7 @@ function handlerSetSelectizers($box) {
             $(select).selectize({
                 valueField: 'pk',
                 labelField: unicode_key,
-                searchField: unicode_key,
+                searchField: filter.fields_search || unicode_key,
                 create: false,
                 options: filter.options,
                 maxItems: (filter.condition == 'range') ? 2 : undefined,
@@ -341,28 +391,26 @@ function handlerSetSelectizers($box) {
                     }
                 },
                 load: function(query, callback) {
-                    //~ if (!query.length) return callback();
+                    if (!query.length) return callback();
+                    if (filter.search_on_date) {
+                        var day = moment(query);
+                        if (day.invalidAt() > -1 || query.length <10) {
+                            return callback();
+                        };
+                    };
 
-                    $.ajax({
-                        type: "POST",
-                        timeout: window.AJAX_TIMEOUT,
-                        url: REPORTAPI_API_URL,
-                        data: {'jsonData': $.toJSON({
+                    var args = {
                             'method': "reportapi.object_search",
                             'section': window.REPORT.section || null,
                             'name': window.REPORT.name,
                             'filter_name': filter_name,
                             'query': query,
-                        }), 'language': window.LANGUAGE_CODE},
-                        dataType: 'json',
-                        error: function() {
-                            callback();
                         },
-                        success: function(res) {
-                            console.log(res);
+                        success = function(res) {
+                            //~ console.log(res);
                             callback(res.data.object_list);
-                        }
-                    });
+                        };
+                    new jsonAPI(args, success);
                 },
                 onChange: function(value) {
                     if (filter.condition == 'range' && value.length != 2) {
@@ -370,11 +418,11 @@ function handlerSetSelectizers($box) {
                     } else {
                         filter.value = (value == '') ? null : value;
                     };
-                    handlerCheckRequiredValue();
+                    handlerAfterChanges();
                 },
                 onClear: function() {
                     filter.value = null;
-                    handlerCheckRequiredValue();
+                    handlerAfterChanges();
                 }
             });
         }
@@ -390,6 +438,7 @@ function handlerSetSelectizers($box) {
                 valueField: 'value',
                 labelField: 'label',
                 searchField: 'label',
+                create: false,
                 maxItems: (filter.condition == 'range') ? 2 : undefined,
                 onChange: function(value) {
                     if (filter.condition == 'range' && value.length != 2) {
@@ -397,11 +446,11 @@ function handlerSetSelectizers($box) {
                     } else {
                         filter.value = (value == '') ? null : value;
                     };
-                    handlerCheckRequiredValue();
+                    handlerAfterChanges();
                 },
                 onClear: function() {
                     filter.value = null;
-                    handlerCheckRequiredValue();
+                    handlerAfterChanges();
                 }
             });
         }
@@ -453,7 +502,28 @@ function handlerCheckRequiredValue() {
     return completed;
 };
 
+/* Постобработчик изменения значения или условия фильтра */
+function handlerAfterChanges() {
+    if (DEBUG) {console.log('function:'+'handlerAfterChanges')};
+    if (window.REPORT.process) {
+        clearInterval(window.REPORT.process);
+        window.REPORT.id = null;
+        window.REPORT.process = null;
+    };
+    $('.progress:visible').hide();
+    $('.progress .progress-bar').attr('aria-valuetransitiongoal', 0)
+        .progressbar();
+    $('.action-preview:visible').hide();
+    $('.action-download:visible').hide();
+    $('.action-recreate-report:visible').hide();
+    $('.action-create-report:hidden').show();
+    $('.action-preview, .action-remove, .action-download')
+        .prop('disabled', true).hide();
+    handlerCheckRequiredValue();
+};
+
 // События
+
 
 /* Обработчик события изменения значения фильтра */
 function eventChangeValue(event) {
@@ -467,14 +537,7 @@ function eventChangeValue(event) {
     } else {
         filter.value = value || null;
     };
-    $('.progress:visible').hide();
-    $('.progress:visible .progress-bar').attr('aria-valuetransitiongoal', 0)
-        .progressbar();
-    $('.action-preview:visible').hide();
-    $('.action-download:visible').hide();
-    $('.action-recreate-report:visible').hide();
-    $('.action-create-report:hidden').show();
-    handlerCheckRequiredValue();
+    handlerAfterChanges();
 };
 
 /* Обработчик события изменения условия фильтра */
@@ -484,7 +547,7 @@ function eventConditionChange(event) {
     filter_name = $(event.target).data()['name'];
     filter = REPORT.filters[filter_name];
     filter.condition = event.target.value || null;
-    console.log(filter.condition);
+    //~ console.log(filter.condition);
     if (filter.condition in {'isnull':0, 'empty':0}) {
         filter.value = false;
     } else if (!filter.condition || filter.condition in {'range':0,'in':0} || filter.type == 'object') {
@@ -497,14 +560,7 @@ function eventConditionChange(event) {
     handlerSetSelectizers($('#valuebox-'+filter_name));
     handlerMaskInputs($('#valuebox-'+filter_name));
 
-    $('.progress:visible').hide();
-    $('.progress:visible .progress-bar').attr('aria-valuetransitiongoal', 0)
-        .progressbar();
-    $('.action-preview:visible').hide();
-    $('.action-download:visible').hide();
-    $('.action-recreate-report:visible').hide();
-    $('.action-create-report:hidden').show();
-    handlerCheckRequiredValue();
+    handlerAfterChanges();
 
     return true;
 };
@@ -529,7 +585,7 @@ function eventKeyDownOnDateTime(event) {
 
     prepare = function(event) {
         value = event.target.value || '';
-        console.log(value, event.charCode);
+        //~ console.log(value, event.charCode);
     };
 
     // Enabled keys browser control
@@ -575,13 +631,6 @@ function eventKeyDownOnNumber(event) {
 ////////////////////////////////////////////////////////////////////////
 //                              ПРОЧЕЕ                                //
 ////////////////////////////////////////////////////////////////////////
-
-/* Обработчик просмотра отчёта */
-function handlerShowDocument(href, name) {
-    if (DEBUG) {console.log('function:'+'handlerShowDocument')};
-    var win = window.open(href, name, 'height=500,width=800,resizable=yes,scrollbars=yes');
-    win.focus();
-};
 
 /* Обработчик просмотра отчёта */
 function handlerShowDocument(href, name) {
@@ -643,6 +692,52 @@ function handlerBindinds() {
     return true;
 };
 
+/* Первичный парсер дат в ISO8601 и ECMA-262 */
+function datePreParser(string) {
+    var re = /^(\d{4}|[+\-]\d{6})(?:-(\d{2})(?:-(\d{2}))?)?(?:[ T](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?(?:(Z)|([+\-])(\d{2})(?::(\d{2}))?)?)?$/;
+    var L = re.exec(string);
+    if (!L) return null;
+
+    return {
+        dict: {
+            'year': Number(L[1]),
+            'month': L[2] ? Number(L[2]) : null,
+            'day': L[3] ? Number(L[3]) : null,
+            'hour': L[4] ? Number(L[4]) : null,
+            'minute': L[5] ? Number(L[5]) : null,
+            'second': L[6] ? Number(L[6]) : null,
+            'millisecond': L[7] ? Number(L[7]) : null,
+            'UTC': L[8] ? true : false,
+            'TZsign': (L[9] == '-') ? -1 : 1,
+            'TZhour': L[10] ? Number(L[10]) : null,
+            'TZminute': L[11] ? Number(L[11]) : null,
+        },
+        list: L,
+    };
+};
+
+/* Парсер дат в ISO8601 и ECMA-262 */
+function dateParser(string, local) {
+    var pre = datePreParser(string);
+    if (!pre) return null;
+
+    var D = pre.dict, L = pre.list,
+        localoffset = (new Date()).getTimezoneOffset();
+        tzoffset = 0, minute=0;
+
+    if (D.UTC) {
+        minute -= localoffset;
+    } else if (L[10] || L[11]) {
+        tzoffset = D.TZsign * (D.TZhour * 60  + D.TZminute) * -1;
+        minute -= localoffset - tzoffset;
+    } else if (!local) {
+        minute -= localoffset - (window.SERVER_TZ_OFFSET || 0);
+    };
+
+    return new Date(D.year, (D.month ? (D.month - 1) : 0), D.day,
+                    D.hour, minute, D.second, D.millisecond);
+};
+
 ////////////////////////////////////////////////////////////////////////
 //                            ИСПОЛНЕНИЕ                              //
 ////////////////////////////////////////////////////////////////////////
@@ -661,6 +756,8 @@ $(document).ready(function($) {
     // Установка биндингов для элементов
     handlerBindinds();
 
+    // Прочее
+    handlerMaskInputs();
     handlerHideAdditionalFilters();
 
 });

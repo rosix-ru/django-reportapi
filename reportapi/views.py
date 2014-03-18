@@ -41,13 +41,14 @@ from django.core.mail import mail_admins
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
+from django.views.debug import ExceptionReporter
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
 from datetime import timedelta
-import os, datetime, hashlib
+import os, sys, datetime, hashlib, traceback, threading
 
 from quickapi.http import JSONResponse, tojson
 from quickapi.views import api as quickapi_index, get_methods
@@ -125,11 +126,10 @@ def get_document(request, pk, format=None):
     try:
         doc = Document.objects.permitted(request).get(pk=pk)
     except Exception as e:
-        print e
         return render_to_response('reportapi/404.html', ctx,
                             context_instance=RequestContext(request,))
     if doc.error:
-        return HttpResponse(doc.error)
+        return HttpResponse(doc.error, mimetype='text/html')
 
     if format:
         url = doc.format_url(format)
@@ -161,7 +161,15 @@ def create_document(request, report, document, filters):
     try:
         report.render(request, document, filters)
     except Exception as e:
-        document.error = unicode(e)
+        msg = traceback.format_exc()
+        print msg
+        if settings.DEBUG:
+            exc_info = sys.exc_info()
+            reporter = ExceptionReporter(request, *exc_info)
+            document.error = reporter.get_traceback_html()
+        else:
+            document.error = '%s:\n%s' % (unicode(_('Error in template')), msg)
+
     document.end = timezone.now()
     document.save()
     if not document.error:
@@ -174,7 +182,8 @@ def create_document(request, report, document, filters):
 
     return document
 
-def result(document, old=False):
+def result(request, document, old=False):
+    user = request.user
     result = {
         'id': document.id,
         'start': document.start,
@@ -182,11 +191,14 @@ def result(document, old=False):
         'user': document.user.get_full_name() or document.user.username,
         'error': document.error or None,
         'timeout': document.register.timeout,
+        'has_remove': False,
     }
     if old:
         result['old'] = True
     if document.end:
         result['url'] = document.get_absolute_url()
+        if user.is_superuser or document.user == user:
+            result['has_remove'] = True
     return JSONResponse(data=result)
 
 ########################################################################
@@ -208,7 +220,7 @@ def API_get_scheme(request, **kwargs):
 
 @api_required
 @login_required
-def API_create_document(request, section, name, filters=None, force=False, **kwargs):
+def API_document_create(request, section, name, filters=None, force=False, fake=False, **kwargs):
     """ *Запускает процесс создания отчёта и/или возвращает информацию
         об уже запущенном процессе.*
 
@@ -232,7 +244,7 @@ def API_create_document(request, section, name, filters=None, force=False, **kwa
             "url": "",
             "old": null, // true, когда взят уже существующий старый отчёт
             "error": null, // или описание ошибки
-            "timeout": 5000, // расчётное время ожидания результата в милисекундах 
+            "timeout": 1000, // расчётное время ожидания результата в милисекундах 
         }
         ```
 
@@ -247,17 +259,21 @@ def API_create_document(request, section, name, filters=None, force=False, **kwa
     code = report.get_code(request, filters)
     expired = timezone.now() - timedelta(seconds=report.expiration_time)
 
-    all_documents = register.document_set.filter(code=code)
+    all_documents = register.document_set.filter(code=code, error='')
     proc_documents = all_documents.filter(end__isnull=True)
     last_documents = all_documents.filter(end__gt=expired)
 
     if proc_documents:
         # Создающийся отчёт
-        return result(proc_documents[0])
+        return result(request, proc_documents[0])
     elif last_documents and (not force or not report.create_force):
         # Готовый отчёт
-        return result(last_documents[0], old=True)
+        if fake:
+            return result(request, last_documents[0])
+        return result(request, last_documents[0], old=True)
     else:
+        if not report.validate_filters(filters):
+            return JSONResponse(status=400, message=_('One or more filters filled in not correctly'))
         # Новый отчёт
         document = Document(user=user, code=code, register=register)
         document.save()
@@ -274,21 +290,25 @@ def API_create_document(request, section, name, filters=None, force=False, **kwa
             t = threading.Thread(target=create_document, kwargs=func_kwargs)
             t.setDaemon(True)
             t.start()
-            return result(document)
+            return result(request, document)
         else:
             # Последовательное создание отчёта
             r = create_document(**func_kwargs)
-            return result(document)
+            return result(request, document)
 
 @api_required
 @login_required
-def API_document_info(request, id, **kwargs):
+def API_document_info(request, id, section, name, filters=None, **kwargs):
     """ *Возвращает информацию об определённом запущенном или
-        завершённом отчёте по заданному идентификационному номеру.*
+        завершённом отчёте по заданному идентификационному номеру,
+        либо по другим идентификационным данным.*
 
         ####ЗАПРОС. Параметры:
 
         1. "id" - идентификатор отчёта;
+        2. "section" - идентификационное название раздела;
+        3. "name"    - идентификационное название отчёта;
+        4. "filters" - фильтры для обработки результата (необязательно);
 
         ####ОТВЕТ. Формат ключа "data":
         Информация о процессе формирования отчёта
@@ -306,6 +326,8 @@ def API_document_info(request, id, **kwargs):
         ```
 
     """
+    if not id:
+        return API_document_create(request, section, name, filters, fake=True)
     user = request.user
     all_documents = Document.objects.permitted(request)
     try:
@@ -313,7 +335,34 @@ def API_document_info(request, id, **kwargs):
     except:
         return JSONResponse(status=404)
     else:
-        return result(document)
+        return result(request, document)
+
+@api_required
+@login_required
+def API_document_delete(request, id, **kwargs):
+    """ *Удаляет документ по заданному идентификационному номеру.*
+
+        ####ЗАПРОС. Параметры:
+
+        1. "id" - идентификатор отчёта;
+
+        ####ОТВЕТ. Формат ключа "data":
+
+        ```
+        #!javascript
+        true // если удаление произведено
+        ```
+
+    """
+    user = request.user
+    all_documents = Document.objects.del_permitted(request)
+    try:
+        document = all_documents.get(id=id)
+    except:
+        return JSONResponse(status=404)
+    else:
+        document.delete()
+        return JSONResponse(data=True)
 
 @api_required
 @login_required
@@ -370,8 +419,9 @@ def API_object_search(request, section, name, filter_name, query=None, page=1, *
 
 _methods = [
     ('reportapi.get_scheme', API_get_scheme),
-    ('reportapi.create_document', API_create_document),
+    ('reportapi.document_create', API_document_create),
     ('reportapi.document_info', API_document_info),
+    ('reportapi.document_delete', API_document_delete),
     ('reportapi.object_search', API_object_search),
 ]
 

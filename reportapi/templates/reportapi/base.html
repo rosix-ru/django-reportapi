@@ -1,4 +1,5 @@
-{% load i18n l10n reportapi_base %}{% load url from future %}<!DOCTYPE html>
+{% load i18n l10n reportapi_base cache %}{% load url from future %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE|default:"ru" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
 <head>
     <title>{% block title %}{% trans 'Reporting' %}{% endblock %}</title>
@@ -53,6 +54,7 @@
         </div>
         <div class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
+        {% cache 500 navbarsections request.user.id LANGUAGE_CODE %}
             {% for sect, reports in sections %}
                 <li class="dropdown">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">
@@ -67,6 +69,7 @@
                     </ul>
                 </li>
             {% endfor %}
+        {% endcache %}
             </ul>
             {% block navbar_project %}
             <ul class="nav navbar-nav navbar-right">
@@ -104,13 +107,15 @@
 
 <!-- START: block jstemplates -->
     {% block jstemplates %}
+    {% cache 600 jstemplates LANGUAGE_CODE %}
     <!-- underscore -->
     <script type="text/x-underscore" id="underscore-alert">
-        {% include "reportapi/underscore/alert.html" %}
+        {% include "reportapi/underscore_alert.html" %}
     </script>
     <script type="text/x-underscore" id="underscore-filter">
-        {% include "reportapi/underscore/filter.html" %}
+        {% include "reportapi/underscore_filter.html" %}
     </script>
+    {% endcache %}
     {% endblock %}
 <!-- END: block jstemplates -->
 

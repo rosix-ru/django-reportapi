@@ -69,7 +69,7 @@
 {% block header %}
     <h1>{% block header_title %}{{ DOCUMENT }}{% endblock %}</h1>
     {% block header_title_after %}{% endblock %}
-    <div align="right">{% trans "formed" %}: {% now "DATETIME_FORMAT" %}</div>
+    <div align="right">{% trans "formed" %}: {% now "DATETIME_FORMAT" %} /{% full_username user %}/</div>
 {% if not filters %}
     <br>
     <hr>
@@ -96,7 +96,7 @@
             <td class="bordered">{% if filter.value %}{% trans 'yes' %}{% else %}{% trans 'no' %}{% endif %}</td>
         {% else %}
             {% if filter.condition == 'range' or filter.condition == 'in' %}
-                <td class="bordered">{{ filter.value|join:", " }}</td>
+                <td class="bordered">{{ filter.value|join:";<br>" }}</td>
             {% else %}
                 <td class="bordered">{{ filter.value }}</td>
             {% endif %}

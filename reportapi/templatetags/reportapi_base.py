@@ -158,3 +158,21 @@ def pagination(request, paginator):
             link = addGET(request, 'page', num)
         L.append(temp % (css, link, num))
     return u''.join(L)
+
+@register.filter
+def multiply(obj, digit):
+    if obj is None:
+        return 0
+    try:
+        return obj * digit
+    except:
+        return 'filter error'
+
+@register.filter
+def divide(obj, digit):
+    if obj is None or digit == 0:
+        return 0
+    try:
+        return 1.0 * obj / digit
+    except:
+        return 'filter error'

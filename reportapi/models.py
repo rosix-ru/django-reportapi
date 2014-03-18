@@ -41,6 +41,7 @@ from django.db.models import Q
 from django.utils.translation import ugettext_noop, ugettext_lazy as _
 from django.utils import timezone
 from django.template import RequestContext, loader
+from django.template.defaultfilters import slugify
 from django.core.files.base import ContentFile
 
 from reportapi.conf import (settings, REPORTAPI_CODE_HASHLIB,
@@ -98,7 +99,7 @@ class Report(object):
         if not isinstance(self.section, (str, unicode)) or not validate_name(self.section):
             raise ValueError('Attribute `section` most be string in '
                 'English without digits, spaces and hyphens.')
-        self.section_label = section_label or getattr(self, 'section_label', _(self.section))
+        self.section_label = section_label or getattr(self, 'section_label', None) or _(self.section)
 
         self.name = name or getattr(self, 'name', None) or class_name.lower()
         if not isinstance(self.name, (str, unicode)) or not validate_name(self.name):
@@ -167,7 +168,10 @@ class Report(object):
             return request.LANGUAGE_CODE
         code = hashlib.new(REPORTAPI_CODE_HASHLIB)
         code.update(self.filters_to_string(filters))
-        code.update(request.LANGUAGE_CODE)
+        if hasattr(request, 'LANGUAGE_CODE'):
+            code.update(request.LANGUAGE_CODE)
+        else:
+            code.update(settings.LANGUAGE_CODE)
         return code.hexdigest()
 
     def get_filename(self):
@@ -191,9 +195,10 @@ class Report(object):
         context = self.get_context(request, document, filters)
         context['DOCUMENT'] = document
         context['FILTERS'] = self.get_filters_data(filters)
-        content  = loader.render_to_string(self.template_name, context,
+        content = loader.render_to_string(self.template_name, context,
                             context_instance=RequestContext(request,))
-        _file    = ContentFile(content.encode('utf-8'))
+        _file = ContentFile(content.encode('utf-8') or \
+            unicode(_('Unspecified render error in template.')))
         document.report_file.save(self.get_filename(), _file, save=save)
         return document
 
@@ -209,6 +214,13 @@ class Report(object):
     def filters_list(self):
         return [ x.serialize() for x in self.filters ]
 
+    def validate_filters(self, filters):
+        try:
+            data = self.get_filters_data(filters)
+        except:
+            return False
+        return True
+
     def get_filters_data(self, filters):
         L = []
         for key,dic in filters.items():
@@ -217,8 +229,21 @@ class Report(object):
                 L.append(f.data(**dic))
         return L
 
-    def get_filter(self, filter_name):
-        return self._filters.get(filter_name, None)
+    def get_filter_data(self, name, filters):
+        f = self.get_filter(name)
+        kw = filters.get(slugify(name), None)
+        if f and kw:
+            return f.data(**kw)
+        return None
+
+    def get_filter_clean_value(self, name, filters):
+        data = self.get_filter_data(name, filters)
+        if data:
+            return data.get('value', None)
+        return None
+
+    def get_filter(self, name):
+        return self._filters.get(slugify(name), None)
 
     def get_scheme(self, request=None):
         SCHEME = {
@@ -230,6 +255,7 @@ class Report(object):
             'enable_threads': self.enable_threads,
             'create_force': self.create_force,
             'expiration_time': self.expiration_time,
+            'timeout': self.timeout,
         }
         filters_list = self.filters_list()
         SCHEME['filters'] = dict(filters_list)
@@ -238,7 +264,7 @@ class Report(object):
         return SCHEME
 
     @property
-    def timeout():
+    def timeout(self):
         return self.create_register().timeout
 
 class RegisterManager(models.Manager):
@@ -269,7 +295,7 @@ class Register(models.Model):
         verbose_name=_('allow list users'))
     groups = models.ManyToManyField(AUTH_GROUP_MODEL, null=True, blank=True,
         verbose_name=_('allow list groups'))
-    timeout = models.IntegerField(_('max of timeout'), default=5000, editable=False)
+    timeout = models.IntegerField(_('max of timeout'), default=1000, editable=False)
 
     objects = RegisterManager()
 
@@ -303,6 +329,14 @@ class DocumentManager(models.Manager):
             | Q(register__users=user)
             | Q(register__groups__in=user.groups.all())
         )
+
+    def del_permitted(self, request):
+        user = request.user
+        if not user.is_authenticated():
+            return self.get_query_set().none()
+        if user.is_superuser:
+            return self.get_query_set().all()
+        return self.get_query_set().filter(user=user).all()
 
 class Document(models.Model):
     """
@@ -437,7 +471,8 @@ class Document(models.Model):
         super(Document, self).save()
 
     def delete(self):
-        remove_file(self.report_file.path)
+        if self.report_file:
+            remove_file(self.report_file.path)
         super(Document, self).delete()
 
 

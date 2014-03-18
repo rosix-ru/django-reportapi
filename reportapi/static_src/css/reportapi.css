@@ -3,6 +3,10 @@
     height: 34px;
 }
 
+.form-control.selectize-control.multi {
+    height: auto;
+}
+
 /*
 td.align-middle, th.align-middle {
     vertical-align: middle;

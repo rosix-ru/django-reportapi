@@ -77,7 +77,17 @@ class SerializerWrapper(object):
         return value
 
     def handle_property(self, obj, name):
-        value = getattr(obj, name)
+        if hasattr(obj, name):
+            value = getattr(obj, name)
+        elif '__' in name and not name.startswith('_'): 
+            names = name.split('__')
+            o = obj
+            for n in names:
+                value = getattr(o, n)
+                o = value
+        else:
+            raise AttributeError(name)
+
         if callable(value):
             value = value()
         if isinstance(value, models.Model):
@@ -95,7 +105,14 @@ class SerializerWrapper(object):
         if obj.pk:
             related = getattr(obj, field.name)
             if related:
-                value = (related.pk, smart_unicode(related))
+                #~ value = (related.pk, smart_unicode(related))
+                app, model = smart_unicode(related._meta).split('.')
+                value = {
+                    self.unicode_key: smart_unicode(related),
+                    'pk': related.pk,
+                    'app': app,
+                    'model': model,
+                }
             else:
                 value = None
         else:
@@ -103,7 +120,14 @@ class SerializerWrapper(object):
             rel_model = field.rel.to
             try:
                 related = rel_model._default_manager.get(pk=value)
-                value = (related.pk, smart_unicode(related))
+                #~ value = (related.pk, smart_unicode(related))
+                app, model = smart_unicode(related._meta).split('.')
+                value = {
+                    self.unicode_key: smart_unicode(related),
+                    'pk': related.pk,
+                    'app': app,
+                    'model': model,
+                }
             except:
                 value = None
 
@@ -113,7 +137,15 @@ class SerializerWrapper(object):
     def handle_m2m_field(self, obj, field):
         value = []
         if obj.pk and field.rel.through._meta.auto_created:
-            m2m_value = lambda value: (value.pk, smart_unicode(value))
+            #~ m2m_value = lambda value: (value.pk, smart_unicode(value))
+            app, model = smart_unicode(field.rel.through._meta).split('.')
+            def m2m_value(related):
+                return {
+                    self.unicode_key: smart_unicode(related),
+                    'pk': related.pk,
+                    'app': app,
+                    'model': model,
+                }
             value = [m2m_value(related)
                             for related in getattr(obj, field.name).iterator()]
 

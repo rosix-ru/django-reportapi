@@ -42,7 +42,9 @@ from django.utils.dates import WEEKDAYS, MONTHS
 from django.utils.translation import ugettext_noop, ugettext_lazy as _
 from django.core.paginator import Paginator, Page, PageNotAnInteger, EmptyPage
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.dateparse import parse_datetime, parse_date, parse_time
 from django.template.defaultfilters import slugify
+from datetime import timedelta
 import operator, re
 
 from reportapi import conf
@@ -52,6 +54,12 @@ DEFAULT_SEARCH_FIELDS = getattr(conf, 'DEFAULT_SEARCH_FIELDS',
     (# Основные классы, от которых наследуются другие
         models.CharField,
         models.TextField,
+    )
+)
+DEFAULT_SEARCH_DATE_FIELDS = getattr(conf, 'DEFAULT_SEARCH_DATE_FIELDS',
+    (# Основные классы, от которых наследуются другие
+        models.DateTimeField,
+        models.DateField,
     )
 )
 
@@ -71,18 +79,21 @@ class BaseFilter(object):
     _type = None
     conditions = ('isnull', 'exact', 'gt', 'gte', 'lt', 'lte', 'range')
     placeholder = None
+    verbose_name = None
 
     def __str__(self):
         return '<%s:%s>' % (self.__class__.__name__, self.name)
 
-    def __init__(self, name, required=False):
+    def __init__(self, name, required=False, conditions=None):
         if self.required is None:
             self.required = required
+        if conditions:
+            self.conditions = conditions
         self.name = slugify(name)
-        self.verbose_name = _(name)
+        self.verbose_name = self.verbose_name or _(name)
 
-    def get_value(self, condition, val):
-        return val
+    def get_value(self, condition, value):
+        return value
 
     def data(self, condition=None, value=None, inverse=False, **options):
         """
@@ -120,6 +131,15 @@ class BaseFilter(object):
         if hasattr(self, 'withseconds'):
             D['withseconds'] = self.withseconds
 
+        if hasattr(self, 'search_on_date'):
+            D['search_on_date'] = self.search_on_date
+
+        if hasattr(self, 'fields_search'):
+            D['fields_search'] = self.fields_search
+
+        if hasattr(self, 'unicode_key'):
+            D['unicode_key'] = self.unicode_key
+
         return self.name, D
 
 class FilterObject(BaseFilter):
@@ -128,8 +148,10 @@ class FilterObject(BaseFilter):
     model = None
     manager = None
     fields_search = None
+    search_on_date = False
     placeholder = _('Object search')
     max_options = 10
+    unicode_key = '__unicode__'
 
     def __init__(self, name, model=None, manager=None, fields_search=None, **kwargs):
         """
@@ -170,6 +192,7 @@ class FilterObject(BaseFilter):
     def set_manager(self, manager):
         if isinstance(manager, models.Manager):
             self.manager = manager
+            self.model = manager.model
         elif isinstance(manager, (str, unicode)):
             app, model, manager = manager.split('.')
             self.model = get_model(app, model)
@@ -183,17 +206,21 @@ class FilterObject(BaseFilter):
 
     def set_fields_search(self, fields_search):
         """
-        Устанавливает доступные текстовые поля для поиска по ним.
+        Устанавливает доступные текстовые поля или поля с датой
+        для поиска по ним.
         Если параметр пуст, то установит все доступные текстовые поля
         из модели.
         """
-        all_fields = self.opts.get_fields_with_model()
-        self.fields_search = [
-            x[0].name for x in all_fields \
-            if isinstance(x[0], DEFAULT_SEARCH_FIELDS) and (
-                not fields_search or x[0].name in fields_search
-            )
-        ]
+        if not fields_search:
+            all_fields = self.opts.get_fields_with_model()
+            if self.search_on_date:
+                self.fields_search = [ x[0].name for x in all_fields \
+                            if isinstance(x[0], DEFAULT_SEARCH_DATE_FIELDS) ]
+            else:
+                self.fields_search = [ x[0].name for x in all_fields \
+                            if isinstance(x[0], DEFAULT_SEARCH_FIELDS) ]
+        else:
+            self.fields_search = fields_search
 
     @property
     def objects(self):
@@ -201,7 +228,8 @@ class FilterObject(BaseFilter):
 
     @property
     def options(self):
-        return serialize(self.manager.all()[:self.max_options])
+        return serialize(self.manager.all()[:self.max_options],
+            attrs=self.fields_search, unicode_key=self.unicode_key)
 
     def get_paginator(self, queryset, per_page=25, orphans=0,
         allow_empty_first_page=True, **kwargs):
@@ -233,11 +261,15 @@ class FilterObject(BaseFilter):
 
     def search(self, query, page=1):
         """
-        Регистронезависимый поиск по строковым полям
+        Регистронезависимый поиск по строковым полям, либо по полям с датой
         """
-        qs = _search_in_fields(self.objects, self.fields_search, query)
+        if self.search_on_date:
+            qs = _date_search_in_fields(self.objects, self.fields_search, query)
+        else:
+            qs = _search_in_fields(self.objects, self.fields_search, query)
         page_queryset = self.get_page_queryset(qs, page=page)
-        return serialize(page_queryset)
+        return serialize(page_queryset, attrs=self.fields_search,
+            unicode_key=self.unicode_key)
 
     def get_value(self, condition, value):
         if condition == 'isnull':
@@ -245,7 +277,7 @@ class FilterObject(BaseFilter):
         elif condition == 'exact':
             return self.objects.get(pk=value)
         else:
-            return self.objects.filter(pk__in=list(value))
+            return self.objects.filter(pk__in=list(value)).order_by('pk')
 
 class FilterText(BaseFilter):
     _type = 'text'
@@ -260,12 +292,51 @@ class FilterDateTime(BaseFilter):
     _type = 'datetime'
     withseconds = False
 
+    def get_value(self, condition, value):
+        if isinstance(value, (str,unicode)):
+            value = parse_datetime(value)
+        elif isinstance(value, (list,tuple)):
+            _value = [ parse_datetime(v) for v in value ]
+            if len(_value) == len(value):
+                value = _value
+            else:
+                value = None
+        if value is None:
+            raise ValueError('One or more values not valid in `%s` filter.' % unicode(self))
+        return value
+
 class FilterDate(BaseFilter):
     _type = 'date'
+
+    def get_value(self, condition, value):
+        if isinstance(value, (str,unicode)):
+            value = parse_datetime(value)
+        elif isinstance(value, (list,tuple)):
+            _value = [ parse_date(v) for v in value ]
+            if len(_value) == len(value):
+                value = _value
+            else:
+                value = None
+        if value is None:
+            raise ValueError('One or more values not valid in `%s` filter.' % unicode(self))
+        return value
 
 class FilterTime(BaseFilter):
     _type = 'time'
     withseconds = False
+
+    def get_value(self, condition, value):
+        if isinstance(value, (str,unicode)):
+            value = parse_datetime(value)
+        elif isinstance(value, (list,tuple)):
+            _value = [ parse_time(v) for v in value ]
+            if len(_value) == len(value):
+                value = _value
+            else:
+                value = None
+        if value is None:
+            raise ValueError('One or more values not valid in `%s` filter.' % unicode(self))
+        return value
 
 class FilterBoolean(BaseFilter):
     _type = 'boolean'
@@ -334,5 +405,29 @@ def _search_in_fields(queryset, fields, query):
                 or_queries = [Q(**{orm_lookup: bit})
                               for orm_lookup in orm_lookups]
                 queryset = queryset.filter(reduce(operator.or_, or_queries))
+
+    return queryset
+
+def _date_search_in_fields(queryset, fields, query):
+    """ Фильтрация по дате"""
+    if fields:
+        query = query.strip()
+        date = parse_date(query)
+        if not date:
+            dt = parse_datetime(query)
+            if dt:
+                date = dt.date()
+        if date:
+            date1 = date + timedelta(days=1)
+
+            orm_lookups = [ "%s__range" % str(name) for name in fields ]
+            or_queries = [Q(**{orm_lookup: [date, date1]})
+                              for orm_lookup in orm_lookups]
+            queryset = queryset.filter(reduce(operator.or_, or_queries))
+
+            orm_lookups = [ "%s__exact" % str(name) for name in fields ]
+            or_queries = [Q(**{orm_lookup: date1})
+                              for orm_lookup in orm_lookups]
+            queryset = queryset.exclude(reduce(operator.or_, or_queries))
 
     return queryset

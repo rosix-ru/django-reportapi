@@ -5,13 +5,16 @@
 
 {% block report_list %}{% endblock %}
 
-<legend>{% block page_legend %}{% trans 'Last formed documents' %}{% endblock %}</legend>
+{% if last_docs %}
+
+<h3>{% block page_legend %}{% trans 'Last formed documents' %}{% endblock %}</h3>
+<hr>
 <div class="row">
 {% for doc in last_docs %}
-    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
+    <div id="thumbnail-document-{{ doc.pk }}" class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
         <div class="thumbnail">
-            <div class="caption{% if doc.end %} bg-info{% else %} bg-danger{% endif %}">
-                <h3 class="text-center">{{ doc }}</h3>
+            <div class="caption{% if doc.error %} bg-danger{% else %}{% if not doc.end %} bg-warning{% else %} bg-info{% endif %}{% endif %}">
+                <h4 class="text-center"><abbr title="{{ doc }}">{{ doc|truncatechars:25 }}</abbr></h4>
                 <p class="text-center">
                     {{ doc.user.get_full_name|default:doc.user }}
                 </p>
@@ -30,20 +33,29 @@
                 </p>
 
                 <p>
-                    <button onClick="handlerShowDocument('{% url 'reportapi:get_document' doc.pk %}', 'document-{{ doc.pk }}')" 
-                        class="btn btn-default btn-block" role="button"
-                        {% if not doc.end %} disabled{% endif %}>
-                        <i class="fa fa-search"></i>
-                        {% trans 'View' %}
-                    </button>
-                    <a href="{% url 'reportapi:get_document_format' doc.pk DEFAULT_FORMAT %}" class="btn btn-primary btn-block" role="button"{% if not doc.end %} disabled{% endif %}>
-                        <i class="fa fa-cloud-download"></i>
-                        {% trans 'Download' %} {{ DEFAULT_FORMAT|upper }}
-                    </a>
-                    <a href="{{ doc.register.get_absolute_url }}" class="btn btn-danger btn-block" role="button"{% if not doc.end %} disabled{% endif %}>
+                    <a href="{{ doc.register.get_absolute_url }}" class="btn btn-link btn-block" role="button">
                         <i class="fa fa-gears"></i>
                         {% trans 'Create new' %}
                     </a>
+                    <button onClick="handlerShowDocument('{% url 'reportapi:get_document' doc.pk %}', 'document-{{ doc.pk }}')" 
+                        class="btn {% if doc.error %}btn-warning{% else %}btn-default{% endif %} btn-block" role="button"
+                        {% if not doc.end %} disabled{% endif %}>
+                        <i class="fa {% if doc.error %}fa-bug{% else %}fa-search{% endif %}"></i>
+                        {% trans 'View' %}
+                    </button>
+                {% if doc.error %}
+                    <button onClick="handlerRemoveDocument({{ doc.pk }})" 
+                        class="btn btn-danger btn-block" role="button"
+                        {% if not user.is_superuser or user != doc.user %}disabled{% endif %}>
+                        <i class="fa fa-times"></i>
+                        {% trans 'Remove' %}
+                    </button>
+                {% else %}
+                    <a href="{% url 'reportapi:get_document_format' doc.pk DEFAULT_FORMAT %}" class="btn btn-primary btn-block" role="button"{% if not doc.end or doc.error %} disabled{% endif %}>
+                        <i class="fa fa-cloud-download"></i>
+                        {% trans 'Download' %} {{ DEFAULT_FORMAT|upper }}
+                    </a>
+                {% endif %}
                 </p>
             </div>
         </div>
@@ -52,5 +64,9 @@
     <h1 class="col-xs-12">{% trans 'Empty' %}</h1>
 {% endfor %}
 </div>
+
+{% else %}
+    <h1 class="text-center">{% trans 'Choose report and create document' %}</h1>
+{% endif %}
 
 {% endblock %}
