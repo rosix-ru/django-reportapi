@@ -55,8 +55,9 @@ from quickapi.views import api as quickapi_index, get_methods
 from quickapi.decorators import login_required, api_required
 
 from reportapi.sites import site
-from reportapi.conf import (settings, REPORTAPI_FILES_UNIDECODE,
-    REPORTAPI_ENABLE_THREADS, REPORTAPI_DEFAULT_FORMAT)
+from reportapi.conf import (settings, REPORTAPI_DEBUG,
+    REPORTAPI_FILES_UNIDECODE, REPORTAPI_ENABLE_THREADS,
+    REPORTAPI_DEFAULT_FORMAT)
 from reportapi.models import Report, Register, Document
 
 DOCS_PER_PAGE = 12
@@ -163,7 +164,7 @@ def create_document(request, report, document, filters):
     except Exception as e:
         msg = traceback.format_exc()
         print msg
-        if settings.DEBUG:
+        if REPORTAPI_DEBUG:
             exc_info = sys.exc_info()
             reporter = ExceptionReporter(request, *exc_info)
             document.error = reporter.get_traceback_html()

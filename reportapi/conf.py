@@ -47,7 +47,7 @@ DEBUG   = settings.DEBUG
 DJANGO_VERSION          = '.'.join([str(x) for x in django_version[:2]])
 REPORTAPI_VERSION       = reportapi_version
 QUICKAPI_VERSION        = quickapi_version
-
+REPORTAPI_DEBUG = getattr(settings, 'REPORTAPI_DEBUG', settings.DEBUG)
 REPORTAPI_ROOT = getattr(settings, 'REPORTAPI_ROOT', '%s/reports/' % settings.MEDIA_ROOT.rstrip('/'))
 REPORTAPI_URL  = getattr(settings, 'REPORTAPI_URL',  '%s/reports/' % settings.MEDIA_URL.rstrip('/'))
 REPORTAPI_ENABLE_THREADS = getattr(settings, 'REPORTAPI_ENABLE_THREADS', False)
@@ -58,6 +58,7 @@ REPORTAPI_PDFCONVERT_ARGS1 = getattr(settings, 'REPORTAPI_PDFCONVERT_ARGS1',
             ['unoconv', '-f', 'pdf'])
 REPORTAPI_PDFCONVERT_ARGS2 = getattr(settings, 'REPORTAPI_PDFCONVERT_ARGS2', [])
 REPORTAPI_CONVERTOR_BACKEND = getattr(settings, 'REPORTAPI_CONVERTOR_BACKEND', None)
+
 
 REPORTAPI_DEFAULT_FORMAT = getattr(settings, 'REPORTAPI_DEFAULT_FORMAT', None)
 if not REPORTAPI_DEFAULT_FORMAT:
