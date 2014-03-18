@@ -22,7 +22,7 @@ setup(
     zip_safe=False,
     packages=find_packages(),
     include_package_data = True,
-    install_requires=['django-quickapi'],
+    install_requires=['django-quickapi', 'pytz'],
     classifiers=[
         'Development Status :: 1 - Planning',
         'Environment :: Web Environment',

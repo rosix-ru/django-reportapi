@@ -150,8 +150,8 @@ class Report(object):
         if user.is_superuser:
             return self.create_register()
 
-        registers = Register.objects.filter(section=self.section, name=self.name)
-        registers = registers.permitted(request)
+        registers = Register.objects.permitted(request)
+        registers = registers.filter(section=self.section, name=self.name)
         if registers:
             return registers[0]
         return None
