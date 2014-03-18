@@ -96,9 +96,9 @@
             <td class="bordered">{% if filter.value %}{% trans 'yes' %}{% else %}{% trans 'no' %}{% endif %}</td>
         {% else %}
             {% if filter.condition == 'range' or filter.condition == 'in' %}
-                <td class="bordered">{{ filter.value|join:";<br>" }}</td>
+                <td class="bordered">{{ filter.value_label|join:";<br>" }}</td>
             {% else %}
-                <td class="bordered">{{ filter.value }}</td>
+                <td class="bordered">{{ filter.value_label }}</td>
             {% endif %}
         {% endif %}
         </tr>

@@ -95,6 +95,9 @@ class BaseFilter(object):
     def get_value(self, condition, value):
         return value
 
+    def get_value_label(self, condition, value):
+        return self.get_value(condition, value)
+
     def data(self, condition=None, value=None, inverse=False, **options):
         """
         Метод получения информации об установленном фильтре.
@@ -106,6 +109,7 @@ class BaseFilter(object):
         options['condition'] = condition
         options['condition_label'] = _(condition)
         options['value'] = self.get_value(condition, value)
+        options['value_label'] = self.get_value_label(condition, value)
 
         return options
 
@@ -296,7 +300,7 @@ class FilterDateTime(BaseFilter):
         if isinstance(value, (str,unicode)):
             value = parse_datetime(value)
         elif isinstance(value, (list,tuple)):
-            _value = [ parse_datetime(v) for v in value ]
+            _value = list(set([ parse_datetime(v) for v in value ]))
             if len(_value) == len(value):
                 value = _value
             else:
@@ -312,7 +316,7 @@ class FilterDate(BaseFilter):
         if isinstance(value, (str,unicode)):
             value = parse_datetime(value)
         elif isinstance(value, (list,tuple)):
-            _value = [ parse_date(v) for v in value ]
+            _value = list(set([ parse_date(v) for v in value ]))
             if len(_value) == len(value):
                 value = _value
             else:
@@ -329,7 +333,7 @@ class FilterTime(BaseFilter):
         if isinstance(value, (str,unicode)):
             value = parse_datetime(value)
         elif isinstance(value, (list,tuple)):
-            _value = [ parse_time(v) for v in value ]
+            _value = list(set([ parse_time(v) for v in value ]))
             if len(_value) == len(value):
                 value = _value
             else:
@@ -365,12 +369,19 @@ class FilterChoice(BaseFilter):
     def options(self):
         return [ {'value':x,'label':y} for x,y in self._options.items() ]
 
+    def get_value_label(self, condition, value):
+        dic = self._options
+        if condition in ('range', 'in'):
+            return [ dic[self.keytype(x)] for x in set(list(value)) if self.keytype(x) in dic ]
+        else:
+            return dic.get(self.keytype(value), None)
+
     def get_value(self, condition, value):
         dic = self._options
         if condition in ('range', 'in'):
-            return [ dic[self.keytype(x)] for x in list(value) if self.keytype(x) in dic ]
+            return [ self.keytype(x) for x in set(list(value)) if self.keytype(x) in dic ]
         else:
-            return dic.get(self.keytype(value), None)
+            return self.keytype(value)
 
 class FilterChoiceStr(FilterChoice):
     keytype = str

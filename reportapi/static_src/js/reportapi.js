@@ -211,7 +211,7 @@ function jsonAPI(args, callback, to_console, sync, timeout) {
 function handlerCreateReport(force) {
     if (DEBUG) {console.log('function:'+'handlerCreateReport')};
     $('.action-preview, .action-remove, .action-download')
-        .prop('disabled', true);
+        .attr('disabled', 'disabled');
     window.REPORT.id = null;
     window.REPORT.process_filters = {};
     $.each(window.REPORT.filters, function(key, item) {
@@ -273,23 +273,23 @@ function handlerCheckProcess() {
 
             $('.action-preview')
                 .attr('onClick', "handlerShowDocument('"+json.data.url+"', 'document-"+json.data.id+"')")
-                .prop('disabled', false).show();
+                .removeAttr('disabled').show();
             if (json.data.error) {
-                $('.action-download').prop('disabled', true).hide();
+                $('.action-download').attr('disabled', 'disabled').hide();
                 $('.action-remove')
                     .attr('onClick', "handlerRemoveDocument("+json.data.id+")")
-                    .prop('disabled', true).show();
+                    .attr('disabled', 'disabled').show();
                 if (json.data.has_remove) {
-                    $('.action-remove').prop('disabled', false);
+                    $('.action-remove').removeAttr('disabled');
                 };
                 $('.action-preview')
                     .removeClass('btn-default').addClass('btn-warning')
                     .find('.fa').removeClass('fa-search').addClass('fa-bug');
             } else {
-                $('.action-remove').prop('disabled', true).hide();
+                $('.action-remove').attr('disabled', 'disabled').hide();
                 $('.action-download')
                     .attr('href', url)
-                    .prop('disabled', false).show();
+                    .removeAttr('disabled').show();
                 $('.action-preview')
                     .removeClass('btn-warning').addClass('btn-default')
                     .find('.fa').removeClass('fa-bug').addClass('fa-search');
@@ -346,7 +346,7 @@ function handlerRemoveDocument(id) {
             },
             success = function() {
                 $('.action-preview, .action-remove, .action-download')
-                    .prop('disabled', true).hide();
+                    .attr('disabled', 'disabled').hide();
                 $('#thumbnail-document-'+id).remove();
             };
         new jsonAPI(args, success);
@@ -518,7 +518,7 @@ function handlerAfterChanges() {
     $('.action-recreate-report:visible').hide();
     $('.action-create-report:hidden').show();
     $('.action-preview, .action-remove, .action-download')
-        .prop('disabled', true).hide();
+        .attr('disabled', 'disabled').hide();
     handlerCheckRequiredValue();
 };
 

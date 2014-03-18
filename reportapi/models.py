@@ -165,13 +165,10 @@ class Report(object):
         уникальный код следует генерировать иначе.
         """
         if not filters:
-            return request.LANGUAGE_CODE
+            return getattr(request, 'LANGUAGE_CODE', settings.LANGUAGE_CODE)
         code = hashlib.new(REPORTAPI_CODE_HASHLIB)
         code.update(self.filters_to_string(filters))
-        if hasattr(request, 'LANGUAGE_CODE'):
-            code.update(request.LANGUAGE_CODE)
-        else:
-            code.update(settings.LANGUAGE_CODE)
+        code.update(getattr(request, 'LANGUAGE_CODE', settings.LANGUAGE_CODE))
         return code.hexdigest()
 
     def get_filename(self):
