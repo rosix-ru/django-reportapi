@@ -63,7 +63,6 @@ def filtering(objects, args):
         args = [ x.strip(' ') for x in args.split(',')]
         args = [ x.split('=') for x in args ]
         args = [ {x[0]: get_boolean(x[1])} for x in args ]
-        print args
 
     orm_lookup = [ Q(**x) for x in args ]
     return objects.filter(*orm_lookup)

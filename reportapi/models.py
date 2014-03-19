@@ -40,7 +40,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils.translation import ugettext_noop, ugettext_lazy as _
 from django.utils import timezone
-from django.utils.encoding import smart_str
+from django.utils.encoding import smart_unicode
 from django.template import RequestContext, loader
 from django.template.defaultfilters import slugify
 from django.core.files.base import ContentFile
@@ -379,7 +379,7 @@ class Document(models.Model):
         code.update(str(dt.isoformat()))
         code.update('reportapi'+settings.SECRET_KEY)
         dic['code'] = code.hexdigest()
-        return smart_str(u'reports/%(date)s/%(code)s/%(filename)s' % dic)
+        return smart_unicode(u'reports/%(date)s/%(code)s/%(filename)s' % dic)
 
     @models.permalink
     def get_absolute_url(self):

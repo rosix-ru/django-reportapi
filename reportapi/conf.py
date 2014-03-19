@@ -53,7 +53,7 @@ REPORTAPI_URL  = getattr(settings, 'REPORTAPI_URL',  '%s/reports/' % settings.ME
 REPORTAPI_ENABLE_THREADS = getattr(settings, 'REPORTAPI_ENABLE_THREADS', False)
 REPORTAPI_CODE_HASHLIB = getattr(settings, 'REPORTAPI_CODE_HASHLIB', 'md5')
 REPORTAPI_UPLOAD_HASHLIB = getattr(settings, 'REPORTAPI_UPLOAD_HASHLIB', 'md5')
-REPORTAPI_FILES_UNIDECODE = getattr(settings, 'REPORTAPI_FILES_UNIDECODE', False)
+REPORTAPI_FILES_UNIDECODE = getattr(settings, 'REPORTAPI_FILES_UNIDECODE', True)
 REPORTAPI_PDFCONVERT_ARGS1 = getattr(settings, 'REPORTAPI_PDFCONVERT_ARGS1',
             ['unoconv', '-f', 'pdf'])
 REPORTAPI_PDFCONVERT_ARGS2 = getattr(settings, 'REPORTAPI_PDFCONVERT_ARGS2', [])
@@ -64,10 +64,12 @@ REPORTAPI_DEFAULT_FORMAT = getattr(settings, 'REPORTAPI_DEFAULT_FORMAT', None)
 if not REPORTAPI_DEFAULT_FORMAT:
     import subprocess
 
-    if subprocess.check_output(["which", "unoconv"]):
-        REPORTAPI_DEFAULT_FORMAT = 'pdf'
-    else:
-        REPORTAPI_DEFAULT_FORMAT = 'odt'
+    REPORTAPI_DEFAULT_FORMAT = 'odt'
+    try:
+        if subprocess.check_output(["which", "unoconv"]):
+            REPORTAPI_DEFAULT_FORMAT = 'pdf'
+    except:
+        pass
 
 AUTH_USER_MODEL  = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 AUTH_GROUP_MODEL = getattr(settings, 'AUTH_GROUP_MODEL', 'auth.Group')
