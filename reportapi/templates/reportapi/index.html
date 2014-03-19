@@ -46,7 +46,7 @@
                 {% if doc.error %}
                     <button onClick="handlerRemoveDocument({{ doc.pk }})" 
                         class="btn btn-danger btn-block" role="button"
-                        {% if not user.is_superuser or user != doc.user %}disabled{% endif %}>
+                        {% if not user.is_superuser and user != doc.user %}disabled{% endif %}>
                         <i class="fa fa-times"></i>
                         {% trans 'Remove' %}
                     </button>
