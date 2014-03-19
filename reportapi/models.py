@@ -172,8 +172,9 @@ class Report(object):
         return code.hexdigest()
 
     def get_filename(self):
-        filename = self.verbose_name + '.html'
+        filename = u'' + unicode(self.verbose_name) + '.html'
         filename = prep_filename(filename)
+        filename = filename.encode('utf-8')
         return filename
 
     def get_context(self, request, document, filters):
@@ -378,7 +379,7 @@ class Document(models.Model):
         code.update(str(dt.isoformat()))
         code.update('reportapi'+settings.SECRET_KEY)
         dic['code'] = code.hexdigest()
-        return u'reports/%(date)s/%(code)s/%(filename)s' % dic
+        return 'reports/%(date)s/%(code)s/%(filename)s' % dic
 
     @models.permalink
     def get_absolute_url(self):
