@@ -421,7 +421,7 @@ class Document(models.Model):
         path = self.report_file.path
         newpath = path[:-4] + format # cut 'html' and append format file
         if format in ('odt', 'ods'):
-            if not exists(newpath):
+            if not os.path.exists(newpath):
                 cwd = os.getcwd()
                 os.chdir(os.path.dirname(path))
                 os.symlink(os.path.basename(path), os.path.basename(newpath))

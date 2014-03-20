@@ -51,10 +51,23 @@
                         {% trans 'Remove' %}
                     </button>
                 {% else %}
-                    <a href="{% url 'reportapi:get_document_format' doc.pk DEFAULT_FORMAT %}" class="btn btn-primary btn-block" role="button"{% if not doc.end or doc.error %} disabled{% endif %}>
-                        <i class="fa fa-cloud-download"></i>
-                        {% trans 'Download' %} {{ DEFAULT_FORMAT|upper }}
-                    </a>
+                    {% if DEFAULT_FORMAT|lower == 'odt' %}
+                        <a href="{% url 'reportapi:get_document_format' doc.pk DEFAULT_FORMAT %}" class="btn btn-primary btn-block" role="button"{% if not doc.end or doc.error %} disabled{% endif %}>
+                            <i class="fa fa-cloud-download"></i>
+                            {% trans 'Download' %} {{ DEFAULT_FORMAT|upper }}
+                        </a>
+                    {% else %}
+                        <div class="btn-group btn-group-justified">
+                            <a href="{% url 'reportapi:get_document_format' doc.pk DEFAULT_FORMAT %}" title="{% trans 'Download' %}" class="btn btn-primary" role="button"{% if not doc.end or doc.error %} disabled{% endif %}>
+                                <i class="fa fa-cloud-download"></i>
+                               {{ DEFAULT_FORMAT|upper }}
+                            </a>
+                            <a href="{% url 'reportapi:get_document_format' doc.pk 'odt' %}" title="{% trans 'Download' %}" class="btn btn-primary" role="button"{% if not doc.end or doc.error %} disabled{% endif %}>
+                                <i class="fa fa-cloud-download"></i>
+                                ODT
+                            </a>
+                        </div>
+                    {% endif %}
                 {% endif %}
                 </p>
             </div>
