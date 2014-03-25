@@ -722,7 +722,7 @@ function dateParser(string, local) {
     if (!pre) return null;
 
     var D = pre.dict, L = pre.list,
-        localoffset = (new Date()).getTimezoneOffset();
+        localoffset = (new Date()).getTimezoneOffset(),
         tzoffset = 0, minute=0;
 
     if (D.UTC) {
