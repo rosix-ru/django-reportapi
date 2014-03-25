@@ -42,7 +42,7 @@ from reportapi.utils.version import auto_create_version_links
 
 __label__ = _('Reporting')
 
-VERSION = (0, 1)
+VERSION = (0, 2)
 __version__ = '.'.join([ str(x) for x in VERSION ])
 
 
