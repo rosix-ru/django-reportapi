@@ -1,40 +1,40 @@
 /* reportapi.js for ReportAPI
-###############################################################################
-# Copyright 2014 Grigoriy Kramarenko.
-###############################################################################
-# This file is part of ReportAPI.
-#
-#    ReportAPI is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    ReportAPI is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with ReportAPI.  If not, see <http://www.gnu.org/licenses/>.
-#
-# Этот файл — часть ReportAPI.
-#
-#   ReportAPI - свободная программа: вы можете перераспространять ее и/или
-#   изменять ее на условиях Стандартной общественной лицензии GNU в том виде,
-#   в каком она была опубликована Фондом свободного программного обеспечения;
-#   либо версии 3 лицензии, либо (по вашему выбору) любой более поздней
-#   версии.
-#
-#   ReportAPI распространяется в надежде, что она будет полезной,
-#   но БЕЗО ВСЯКИХ ГАРАНТИЙ; даже без неявной гарантии ТОВАРНОГО ВИДА
-#   или ПРИГОДНОСТИ ДЛЯ ОПРЕДЕЛЕННЫХ ЦЕЛЕЙ. Подробнее см. в Стандартной
-#   общественной лицензии GNU.
-#
-#   Вы должны были получить копию Стандартной общественной лицензии GNU
-#   вместе с этой программой. Если это не так, см.
-#   <http://www.gnu.org/licenses/>.
-###############################################################################
-*/
+ * 
+ * Copyright 2014 Grigoriy Kramarenko.
+ * 
+ * This file is part of ReportAPI.
+ * 
+ * ReportAPI is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * ReportAPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with ReportAPI.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * Этот файл — часть ReportAPI.
+ * 
+ * ReportAPI - свободная программа: вы можете перераспространять ее и/или
+ * изменять ее на условиях Стандартной общественной лицензии GNU в том виде,
+ * в каком она была опубликована Фондом свободного программного обеспечения;
+ * либо версии 3 лицензии, либо (по вашему выбору) любой более поздней
+ * версии.
+ * 
+ * ReportAPI распространяется в надежде, что она будет полезной,
+ * но БЕЗО ВСЯКИХ ГАРАНТИЙ; даже без неявной гарантии ТОВАРНОГО ВИДА
+ * или ПРИГОДНОСТИ ДЛЯ ОПРЕДЕЛЕННЫХ ЦЕЛЕЙ. Подробнее см. в Стандартной
+ * общественной лицензии GNU.
+ *
+ * Вы должны были получить копию Стандартной общественной лицензии GNU
+ * вместе с этой программой. Если это не так, см.
+ * <http://www.gnu.org/licenses/>.
+ * 
+ */
 
 ////////////////////////////////////////////////////////////////////////
 //                   КОНСТАНТЫ И ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ                //
@@ -62,15 +62,6 @@ _.mixin(_.str.exports());
 //                               ОБЩИЕ                                //
 ////////////////////////////////////////////////////////////////////////
 
-/* Проверка объекта на пустоту */
-function isEmpty(obj) {
-    for (var k in obj) {
-        return false; // если цикл хоть раз сработал, то объект не пустой => false
-    };
-    // дошли до этой строки - значит цикл не нашёл ни одного свойства => true
-    return true;
-};
-
 /* Единая, переопределяемая задержка для действий или функций */
 delay = (function(){
     var timer = 0;
@@ -80,41 +71,6 @@ delay = (function(){
         timer = setTimeout(callback, ms);
     };
 })();
-
-/* Генератор идентификаторов, которому можно задавать статические
- * начало и конец идентификатора, например:
- *  >> id = generatorID()
- *  >> "i1363655293735"
- *  >> id = generatorID(null, "object")
- *  >> "gen1363655293736_object"
- *  >> id = generatorID("object")
- *  >> "object_i1363655293737"
- *  >> id = generatorID("model", "object")
- *  >> "model_i1363655293738_object"
- */
-function generatorID(prefix, postfix) {
-    if (DEBUG) {console.log('function:'+'generatorID')};
-    var result = [],
-        gen = 'i',
-        m = 1000,
-        n = 9999,
-        salt = Math.floor( Math.random() * (n - m + 1) ) + m;
-    gen += $.now() + String(salt);
-    if (prefix) { result.push(prefix)};
-    result.push(gen); 
-    if (postfix) { result.push(postfix) };
-    return validatorID(result);
-};
-
-/* Приводит идентификаторы в позволительный jQuery вид.
- * В данном приложении он заменяет точки на "-".
- * На вход может принимать список или строку
- */
-function validatorID(id) {
-    if ($.type(id) === 'array') { id = id.join('_'); };
-    if (DEBUG) { console.log('function:'+'validatorID'); };
-    return id.replace(/[\.,\:,\/, ,\(,\),=,?]/g, "-");
-};
 
 /* Общие функции вывода сообщений */
 function handlerHideAlert() {
@@ -690,52 +646,6 @@ function handlerBindinds() {
     //~ $('body').on('click', '[data-action=object_print]',   eventObjectPrint);
 
     return true;
-};
-
-/* Первичный парсер дат в ISO8601 и ECMA-262 */
-function datePreParser(string) {
-    var re = /^(\d{4}|[+\-]\d{6})(?:-(\d{2})(?:-(\d{2}))?)?(?:[ T](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?(?:(Z)|([+\-])(\d{2})(?::(\d{2}))?)?)?$/;
-    var L = re.exec(string);
-    if (!L) return null;
-
-    return {
-        dict: {
-            'year': Number(L[1]),
-            'month': L[2] ? Number(L[2]) : null,
-            'day': L[3] ? Number(L[3]) : null,
-            'hour': L[4] ? Number(L[4]) : null,
-            'minute': L[5] ? Number(L[5]) : null,
-            'second': L[6] ? Number(L[6]) : null,
-            'millisecond': L[7] ? Number(L[7]) : null,
-            'UTC': L[8] ? true : false,
-            'TZsign': (L[9] == '-') ? -1 : 1,
-            'TZhour': L[10] ? Number(L[10]) : null,
-            'TZminute': L[11] ? Number(L[11]) : null,
-        },
-        list: L,
-    };
-};
-
-/* Парсер дат в ISO8601 и ECMA-262 */
-function dateParser(string, local) {
-    var pre = datePreParser(string);
-    if (!pre) return null;
-
-    var D = pre.dict, L = pre.list,
-        localoffset = (new Date()).getTimezoneOffset(),
-        tzoffset = 0, minute=0;
-
-    if (D.UTC) {
-        minute -= localoffset;
-    } else if (L[10] || L[11]) {
-        tzoffset = D.TZsign * (D.TZhour * 60  + D.TZminute) * -1;
-        minute -= localoffset - tzoffset;
-    } else if (!local) {
-        minute -= localoffset - (window.SERVER_TZ_OFFSET || 0);
-    };
-
-    return new Date(D.year, (D.month ? (D.month - 1) : 0), D.day,
-                    D.hour, minute, D.second, D.millisecond);
 };
 
 ////////////////////////////////////////////////////////////////////////
