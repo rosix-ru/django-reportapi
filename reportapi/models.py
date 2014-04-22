@@ -1,54 +1,22 @@
 # -*- coding: utf-8 -*-
-"""
-###############################################################################
-# Copyright 2014 Grigoriy Kramarenko.
-###############################################################################
-# This file is part of ReportAPI.
-#
-#    ReportAPI is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    ReportAPI is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with ReportAPI.  If not, see <http://www.gnu.org/licenses/>.
-#
-# Этот файл — часть ReportAPI.
-#
-#   ReportAPI - свободная программа: вы можете перераспространять ее и/или
-#   изменять ее на условиях Стандартной общественной лицензии GNU в том виде,
-#   в каком она была опубликована Фондом свободного программного обеспечения;
-#   либо версии 3 лицензии, либо (по вашему выбору) любой более поздней
-#   версии.
-#
-#   ReportAPI распространяется в надежде, что она будет полезной,
-#   но БЕЗО ВСЯКИХ ГАРАНТИЙ; даже без неявной гарантии ТОВАРНОГО ВИДА
-#   или ПРИГОДНОСТИ ДЛЯ ОПРЕДЕЛЕННЫХ ЦЕЛЕЙ. Подробнее см. в Стандартной
-#   общественной лицензии GNU.
-#
-#   Вы должны были получить копию Стандартной общественной лицензии GNU
-#   вместе с этой программой. Если это не так, см.
-#   <http://www.gnu.org/licenses/>.
-###############################################################################
-"""
+from __future__ import unicode_literals
+from django.utils.encoding import smart_text, python_2_unicode_compatible
+from django.utils import six
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, get_model
 from django.utils.translation import ugettext_noop, ugettext_lazy as _
 from django.utils import timezone
-from django.utils.encoding import smart_unicode
 from django.template import RequestContext, loader
 from django.template.defaultfilters import slugify
 from django.core.files.base import ContentFile
 
 from reportapi.conf import (settings, REPORTAPI_CODE_HASHLIB,
     REPORTAPI_UPLOAD_HASHLIB, REPORTAPI_FILES_UNIDECODE,
-    AUTH_USER_MODEL, AUTH_GROUP_MODEL, REPORTAPI_CONVERTOR_BACKEND,
+    AUTH_USER_MODEL, REPORTAPI_CONVERTOR_BACKEND,
     REPORTAPI_PDFCONVERT_ARGS1, REPORTAPI_PDFCONVERT_ARGS2)
+
+User = get_model(*AUTH_USER_MODEL.split('.'))
+Group = User.groups.field.rel.to
 
 if REPORTAPI_FILES_UNIDECODE:
     from unidecode import unidecode
@@ -97,13 +65,13 @@ class Report(object):
         self.site = site or getattr(self, 'site', None) or raise_set_site(class_name)
 
         self.section = section or getattr(self, 'section')
-        if not isinstance(self.section, (str, unicode)) or not validate_name(self.section):
+        if not isinstance(self.section, six.string_types) or not validate_name(self.section):
             raise ValueError('Attribute `section` most be string in '
                 'English without digits, spaces and hyphens.')
         self.section_label = section_label or getattr(self, 'section_label', None) or _(self.section)
 
         self.name = name or getattr(self, 'name', None) or class_name.lower()
-        if not isinstance(self.name, (str, unicode)) or not validate_name(self.name):
+        if not isinstance(self.name, six.string_types) or not validate_name(self.name):
             raise ValueError('Attribute `name` most be string in '
                 'English without digits, spaces and hyphens.')
 
@@ -118,7 +86,7 @@ class Report(object):
         self.filters = [ f for f in self.filters if f in self._filters.values() ]
 
         self.title = title or getattr(self, 'title')
-        if not isinstance(self.title, (str, unicode)) or not validate_title(self.title):
+        if not isinstance(self.title, six.string_types) or not validate_title(self.title):
             raise ValueError('Attribute `title` most be string in '
                 'English without translation.')
         self.verbose_name = _(self.title)
@@ -173,7 +141,7 @@ class Report(object):
         return code.hexdigest()
 
     def get_filename(self):
-        filename = u'' + unicode(self.verbose_name) + '.html'
+        filename = smart_text(self.verbose_name) + '.html'
         filename = prep_filename(filename)
         return filename
 
@@ -196,7 +164,7 @@ class Report(object):
         content = loader.render_to_string(self.template_name, context,
                             context_instance=RequestContext(request,))
         _file = ContentFile(content.encode('utf-8') or \
-            unicode(_('Unspecified render error in template.')))
+            smart_text(_('Unspecified render error in template.')))
         document.report_file.save(self.get_filename(), _file, save=save)
         return document
 
@@ -207,7 +175,7 @@ class Report(object):
         for k,v in filters.items():
             if isinstance(v, (list,tuple)):
                 filters[k] = list(set(v))
-        return str(filters)
+        return smart_text(filters)
 
     def filters_list(self):
         return [ x.serialize() for x in self.filters ]
@@ -280,6 +248,7 @@ class RegisterManager(models.Manager):
             | Q(groups__in=user.groups.all())
         )
 
+@python_2_unicode_compatible
 class Register(models.Model):
     """
     Зарегистрированные отчёты.
@@ -289,9 +258,9 @@ class Register(models.Model):
     name    = models.CharField(_('name'), max_length=255)
     title = models.CharField(_('title without translation'), max_length=255)
     all_users = models.BooleanField(_('allow all users'), default=False)
-    users = models.ManyToManyField(AUTH_USER_MODEL, null=True, blank=True,
+    users = models.ManyToManyField(User, null=True, blank=True,
         verbose_name=_('allow list users'))
-    groups = models.ManyToManyField(AUTH_GROUP_MODEL, null=True, blank=True,
+    groups = models.ManyToManyField(Group, null=True, blank=True,
         verbose_name=_('allow list groups'))
     timeout = models.IntegerField(_('max of timeout'), default=1000, editable=False)
 
@@ -303,9 +272,9 @@ class Register(models.Model):
         verbose_name_plural = _('registered reports')
         unique_together = ('section', 'name')
 
-    def __unicode__(self):
+    def __str__(self):
         try:
-            return unicode(_(self.title))
+            return smart_text(_(self.title))
         except:
             return self.title
 
@@ -336,6 +305,7 @@ class DocumentManager(models.Manager):
             return self.get_query_set().all()
         return self.get_query_set().filter(user=user).all()
 
+@python_2_unicode_compatible
 class Document(models.Model):
     """
     Файл сформированного документа.
@@ -348,7 +318,7 @@ class Document(models.Model):
     """
     register = models.ForeignKey(Register, editable=False,
         verbose_name=_('registered report'))
-    user = models.ForeignKey(AUTH_USER_MODEL, editable=False, null=True,
+    user = models.ForeignKey(User, editable=False, null=True,
         verbose_name=_('user'))
     code  = models.CharField(_('process key'), editable=False,
         blank=True, db_index=True, max_length=REPORTAPI_CODE_LENGTH)
@@ -360,8 +330,8 @@ class Document(models.Model):
 
     objects = DocumentManager()
 
-    def __unicode__(self):
-        return unicode(self.register)
+    def __str__(self):
+        return smart_text(self.register)
 
     class Meta:
         ordering = ['-start', '-end']
@@ -379,7 +349,7 @@ class Document(models.Model):
         code.update(str(dt.isoformat()))
         code.update('reportapi'+settings.SECRET_KEY)
         dic['code'] = code.hexdigest()
-        return smart_unicode(u'reports/%(date)s/%(code)s/%(filename)s' % dic)
+        return smart_text('reports/%(date)s/%(code)s/%(filename)s' % dic)
 
     @models.permalink
     def get_absolute_url(self):

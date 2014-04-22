@@ -1,47 +1,12 @@
 # -*- coding: utf-8 -*-
-"""
-###############################################################################
-# Copyright 2014 Grigoriy Kramarenko.
-###############################################################################
-# This file is part of ReportAPI.
-#
-#    ReportAPI is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    ReportAPI is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with ReportAPI.  If not, see <http://www.gnu.org/licenses/>.
-#
-# Этот файл — часть ReportAPI.
-#
-#   ReportAPI - свободная программа: вы можете перераспространять ее и/или
-#   изменять ее на условиях Стандартной общественной лицензии GNU в том виде,
-#   в каком она была опубликована Фондом свободного программного обеспечения;
-#   либо версии 3 лицензии, либо (по вашему выбору) любой более поздней
-#   версии.
-#
-#   ReportAPI распространяется в надежде, что она будет полезной,
-#   но БЕЗО ВСЯКИХ ГАРАНТИЙ; даже без неявной гарантии ТОВАРНОГО ВИДА
-#   или ПРИГОДНОСТИ ДЛЯ ОПРЕДЕЛЕННЫХ ЦЕЛЕЙ. Подробнее см. в Стандартной
-#   общественной лицензии GNU.
-#
-#   Вы должны были получить копию Стандартной общественной лицензии GNU
-#   вместе с этой программой. Если это не так, см.
-#   <http://www.gnu.org/licenses/>.
-###############################################################################
-"""
+from __future__ import unicode_literals
+from django.utils.encoding import smart_text, python_2_unicode_compatible
+from django.utils import six
 from django.db import models
 from django.db.models import Q, get_model
 from django.utils.dates import WEEKDAYS, MONTHS
 from django.utils.translation import ugettext_noop, ugettext_lazy as _
 from django.core.paginator import Paginator, Page, PageNotAnInteger, EmptyPage
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.dateparse import parse_datetime, parse_date, parse_time
 from django.template.defaultfilters import slugify
 from datetime import timedelta
@@ -185,7 +150,7 @@ class FilterObject(BaseFilter):
     def set_model(self, model):
         if issubclass(model, models.ModelBase):
             self.model = model
-        elif isinstance(model, (str, unicode)):
+        elif isinstance(model, six.string_types):
             app, model = model.split('.')
             self.model = get_model(app, model)
             if not self.model:
@@ -197,7 +162,7 @@ class FilterObject(BaseFilter):
         if isinstance(manager, models.Manager):
             self.manager = manager
             self.model = manager.model
-        elif isinstance(manager, (str, unicode)):
+        elif isinstance(manager, six.string_types):
             app, model, manager = manager.split('.')
             self.model = get_model(app, model)
             if not self.model:
@@ -297,32 +262,32 @@ class FilterDateTime(BaseFilter):
     withseconds = False
 
     def get_value(self, condition, value):
-        if isinstance(value, (str,unicode)):
+        if isinstance(value, six.string_types):
             value = parse_datetime(value)
-        elif isinstance(value, (list,tuple)):
+        elif isinstance(value, (list, tuple)):
             _value = list(set([ parse_datetime(v) for v in value ]))
             if len(_value) == len(value):
                 value = _value
             else:
                 value = None
         if value is None:
-            raise ValueError('One or more values not valid in `%s` filter.' % unicode(self))
+            raise ValueError('One or more values not valid in `%s` filter.' % smart_text(self))
         return value
 
 class FilterDate(BaseFilter):
     _type = 'date'
 
     def get_value(self, condition, value):
-        if isinstance(value, (str,unicode)):
+        if isinstance(value, six.string_types):
             value = parse_datetime(value)
-        elif isinstance(value, (list,tuple)):
+        elif isinstance(value, (list, tuple)):
             _value = list(set([ parse_date(v) for v in value ]))
             if len(_value) == len(value):
                 value = _value
             else:
                 value = None
         if value is None:
-            raise ValueError('One or more values not valid in `%s` filter.' % unicode(self))
+            raise ValueError('One or more values not valid in `%s` filter.' % smart_text(self))
         return value
 
 class FilterTime(BaseFilter):
@@ -330,16 +295,16 @@ class FilterTime(BaseFilter):
     withseconds = False
 
     def get_value(self, condition, value):
-        if isinstance(value, (str,unicode)):
+        if isinstance(value, six.string_types):
             value = parse_datetime(value)
-        elif isinstance(value, (list,tuple)):
+        elif isinstance(value, (list, tuple)):
             _value = list(set([ parse_time(v) for v in value ]))
             if len(_value) == len(value):
                 value = _value
             else:
                 value = None
         if value is None:
-            raise ValueError('One or more values not valid in `%s` filter.' % unicode(self))
+            raise ValueError('One or more values not valid in `%s` filter.' % smart_text(self))
         return value
 
 class FilterBoolean(BaseFilter):
@@ -384,7 +349,7 @@ class FilterChoice(BaseFilter):
             return self.keytype(value)
 
 class FilterChoiceStr(FilterChoice):
-    keytype = str
+    keytype = six.text_type
 
 class FilterWeekDay(FilterChoice):
     _type = 'weekday'
@@ -409,7 +374,7 @@ def _search_in_fields(queryset, fields, query):
                 return "%s__search" % field_name[1:]
             else:
                 return "%s__icontains" % field_name
-        orm_lookups = [construct_search(str(search_field))
+        orm_lookups = [construct_search(smart_text(search_field))
                        for search_field in fields]
         if not query in ('', None, False, True):
             for bit in query.split():
@@ -431,12 +396,12 @@ def _date_search_in_fields(queryset, fields, query):
         if date:
             date1 = date + timedelta(days=1)
 
-            orm_lookups = [ "%s__range" % str(name) for name in fields ]
+            orm_lookups = [ "%s__range" % smart_text(name) for name in fields ]
             or_queries = [Q(**{orm_lookup: [date, date1]})
                               for orm_lookup in orm_lookups]
             queryset = queryset.filter(reduce(operator.or_, or_queries))
 
-            orm_lookups = [ "%s__exact" % str(name) for name in fields ]
+            orm_lookups = [ "%s__exact" % smart_text(name) for name in fields ]
             or_queries = [Q(**{orm_lookup: date1})
                               for orm_lookup in orm_lookups]
             queryset = queryset.exclude(reduce(operator.or_, or_queries))

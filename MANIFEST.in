@@ -1,5 +1,13 @@
-recursive-include reportapi *
-recursive-exclude reportapi *.pyc
-include LICENSE
+include README.rst
 include AUTHORS
-include README.md
+include INSTALL
+include LICENSE
+
+recursive-include reportapi *
+recursive-include docs *
+recursive-include example *
+
+recursive-exclude example/media *
+recursive-exclude * *.sqlite
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]

@@ -1,45 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-###############################################################################
-# Copyright 2014 Grigoriy Kramarenko.
-###############################################################################
-# This file is part of ReportAPI.
-#
-#    ReportAPI is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    ReportAPI is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with ReportAPI.  If not, see <http://www.gnu.org/licenses/>.
-#
-# Этот файл — часть ReportAPI.
-#
-#   ReportAPI - свободная программа: вы можете перераспространять ее и/или
-#   изменять ее на условиях Стандартной общественной лицензии GNU в том виде,
-#   в каком она была опубликована Фондом свободного программного обеспечения;
-#   либо версии 3 лицензии, либо (по вашему выбору) любой более поздней
-#   версии.
-#
-#   ReportAPI распространяется в надежде, что она будет полезной,
-#   но БЕЗО ВСЯКИХ ГАРАНТИЙ; даже без неявной гарантии ТОВАРНОГО ВИДА
-#   или ПРИГОДНОСТИ ДЛЯ ОПРЕДЕЛЕННЫХ ЦЕЛЕЙ. Подробнее см. в Стандартной
-#   общественной лицензии GNU.
-#
-#   Вы должны были получить копию Стандартной общественной лицензии GNU
-#   вместе с этой программой. Если это не так, см.
-#   <http://www.gnu.org/licenses/>.
-###############################################################################
-"""
+from __future__ import unicode_literals
 from StringIO import StringIO
 from types import MethodType
 from django.db import models
-from django.utils.encoding import smart_unicode, is_protected_type
+from django.utils.encoding import smart_text
 from django.core.paginator import Page
 from django.core.serializers.python import Serializer as OrignSerializer
 
@@ -91,9 +55,9 @@ class SerializerWrapper(object):
         if callable(value):
             value = value()
         if isinstance(value, models.Model):
-            app, model = smart_unicode(value._meta).split('.')
+            app, model = smart_text(value._meta).split('.')
             value = {
-                self.unicode_key: smart_unicode(value),
+                self.unicode_key: smart_text(value),
                 'pk': value.pk,
                 'app': app,
                 'model': model,
@@ -105,10 +69,10 @@ class SerializerWrapper(object):
         if obj.pk:
             related = getattr(obj, field.name)
             if related:
-                #~ value = (related.pk, smart_unicode(related))
-                app, model = smart_unicode(related._meta).split('.')
+                #~ value = (related.pk, smart_text(related))
+                app, model = smart_text(related._meta).split('.')
                 value = {
-                    self.unicode_key: smart_unicode(related),
+                    self.unicode_key: smart_text(related),
                     'pk': related.pk,
                     'app': app,
                     'model': model,
@@ -120,10 +84,10 @@ class SerializerWrapper(object):
             rel_model = field.rel.to
             try:
                 related = rel_model._default_manager.get(pk=value)
-                #~ value = (related.pk, smart_unicode(related))
-                app, model = smart_unicode(related._meta).split('.')
+                #~ value = (related.pk, smart_text(related))
+                app, model = smart_text(related._meta).split('.')
                 value = {
-                    self.unicode_key: smart_unicode(related),
+                    self.unicode_key: smart_text(related),
                     'pk': related.pk,
                     'app': app,
                     'model': model,
@@ -137,11 +101,11 @@ class SerializerWrapper(object):
     def handle_m2m_field(self, obj, field):
         value = []
         if obj.pk and field.rel.through._meta.auto_created:
-            #~ m2m_value = lambda value: (value.pk, smart_unicode(value))
-            app, model = smart_unicode(field.rel.through._meta).split('.')
+            #~ m2m_value = lambda value: (value.pk, smart_text(value))
+            app, model = smart_text(field.rel.through._meta).split('.')
             def m2m_value(related):
                 return {
-                    self.unicode_key: smart_unicode(related),
+                    self.unicode_key: smart_text(related),
                     'pk': related.pk,
                     'app': app,
                     'model': model,
@@ -239,10 +203,10 @@ class SerializerWrapper(object):
     def end_object(self, obj):
         _unicode = ""
         try:
-            _unicode = smart_unicode(obj)
+            _unicode = smart_text(obj)
         except:
             pass
-        pk = smart_unicode(obj._get_pk_val(), strings_only=True)
+        pk = smart_text(obj._get_pk_val(), strings_only=True)
         if self.simple_select_list:
             self._current = (pk, _unicode)
         else:

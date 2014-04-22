@@ -1,41 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-###############################################################################
-# Copyright 2013 Grigoriy Kramarenko.
-###############################################################################
-# This file is part of ReportAPI.
-#
-#    ReportAPI is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    ReportAPI is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with ReportAPI.  If not, see <http://www.gnu.org/licenses/>.
-#
-# Этот файл — часть ReportAPI.
-#
-#   ReportAPI - свободная программа: вы можете перераспространять ее и/или
-#   изменять ее на условиях Стандартной общественной лицензии GNU в том виде,
-#   в каком она была опубликована Фондом свободного программного обеспечения;
-#   либо версии 3 лицензии, либо (по вашему выбору) любой более поздней
-#   версии.
-#
-#   ReportAPI распространяется в надежде, что она будет полезной,
-#   но БЕЗО ВСЯКИХ ГАРАНТИЙ; даже без неявной гарантии ТОВАРНОГО ВИДА
-#   или ПРИГОДНОСТИ ДЛЯ ОПРЕДЕЛЕННЫХ ЦЕЛЕЙ. Подробнее см. в Стандартной
-#   общественной лицензии GNU.
-#
-#   Вы должны были получить копию Стандартной общественной лицензии GNU
-#   вместе с этой программой. Если это не так, см.
-#   <http://www.gnu.org/licenses/>.
-###############################################################################
-"""
+from __future__ import unicode_literals, print_function
+from django.utils.encoding import smart_text
+from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 from django.db.models.base import ModelBase
 from django.core.exceptions import ImproperlyConfigured
@@ -184,7 +150,7 @@ class SiteReportAPI(object):
         """
         Unregisters the given report name(s).
         """
-        if isinstance(itername, (str, unicode)):
+        if isinstance(itername, six.string_types):
             itername = [itername]
         for report_name in itername:
             section_name = report_name.split('.')[0]
@@ -230,7 +196,7 @@ class SiteReportAPI(object):
             section = self.sections[section_name]
             scheme = section.get_scheme(request)
             if scheme:
-                sections_list.append((section_name, unicode(section.label)))
+                sections_list.append((section_name, smart_text(section.label)))
                 SCHEME['sections'][section_name] = scheme
 
         if SORTING_SECTIONS:
@@ -256,7 +222,7 @@ class SiteReportAPI(object):
 
         if SORTING_SECTIONS:
             # Сортировка по локализованному названию
-            SECTIONS = sorted(SECTIONS, key=lambda x: unicode(x[0].label))
+            SECTIONS = sorted(SECTIONS, key=lambda x: smart_text(x[0].label))
 
         return SECTIONS
 
