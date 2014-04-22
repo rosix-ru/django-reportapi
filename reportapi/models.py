@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from django.utils.encoding import smart_text, python_2_unicode_compatible
+from django.utils.encoding import smart_text, force_text, python_2_unicode_compatible
 from django.utils import six
 from django.db import models
 from django.db.models import Q, get_model
-from django.utils.translation import ugettext_noop, ugettext_lazy as _
+from django.utils.translation import ugettext_noop, ugettext, ugettext_lazy as _
 from django.utils import timezone
 from django.template import RequestContext, loader
 from django.template.defaultfilters import slugify
@@ -274,7 +274,7 @@ class Register(models.Model):
 
     def __str__(self):
         try:
-            return smart_text(_(self.title))
+            return ugettext(self.title)
         except:
             return self.title
 
@@ -331,7 +331,7 @@ class Document(models.Model):
     objects = DocumentManager()
 
     def __str__(self):
-        return smart_text(self.register)
+        return force_text(self.register)
 
     class Meta:
         ordering = ['-start', '-end']
