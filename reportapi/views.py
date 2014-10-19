@@ -257,6 +257,8 @@ def API_document_create(request, section, name, filters=None, force=False, fake=
             return JSONResponse(status=400, message=_('One or more filters filled in not correctly'))
         # Новый отчёт
         document = Document(user=user, code=code, register=register)
+        document.description = report.get_description_from_filters(filters)
+        document.details = report.get_details(request, document, filters)
         document.save()
 
         func_kwargs = {

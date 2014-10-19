@@ -15,6 +15,8 @@ from reportapi.conf import (settings, REPORTAPI_CODE_HASHLIB,
     AUTH_USER_MODEL, REPORTAPI_CONVERTOR_BACKEND,
     REPORTAPI_PDFCONVERT_ARGS1, REPORTAPI_PDFCONVERT_ARGS2)
 
+from reportapi.fields import JSONField
+
 User = get_model(*AUTH_USER_MODEL.split('.'))
 Group = User.groups.field.rel.to
 
@@ -46,7 +48,7 @@ class Report(object):
     expiration_time = 86400 # 1 day
     report_format   = ('pdf', 'application/pdf') # ending and content type
     icon            = None
-    template_name   = 'reportapi/docs/base.html'
+    template_name   = 'reportapi/portrait.html'
     filters         = None
     site            = None
     name            = None
@@ -153,6 +155,41 @@ class Report(object):
         методе self.render(...)
         """
         raise NotImplementedError()
+
+    def get_description_from_filters(self, filters):
+        """
+        Получаем описание из фильтров
+        """
+
+        filters = self.get_filters_data(filters)
+        L = []
+        for f in filters:
+            label = (f['label']).lower()
+            clabel = (f['condition_label']).lower()
+
+            if f['condition'] in ('isnull', 'empty'):
+                cond = _('empty') if f['value'] else _('no empty')
+                s = '%s: %s' % (label, cond)
+            elif f['condition'] == 'in':
+                cond = ', '.join([ smart_text(x) for x in f['value_label']])
+                s = '%s: %s [%s]' % (label, clabel, cond)
+            elif f['condition'] == 'range':
+                cond = [ smart_text(x) for x in f['value_label']]
+                s = _('%(label)s: from %(cond0)s to %(cond1)s') % {
+                    'label': label, 'cond0': cond[0], 'cond1': cond[1]
+                }
+            else:
+                cond = f['value_label']
+                s = '%s: %s %s' % (label, clabel, cond)
+
+            L.append(s)
+        return ';\n'.join(L)
+
+    def get_details(self, request, document, filters):
+        """
+        Этот метод может быть переопределён в наследуемых классах.
+        """
+        return {}
 
     def render(self, request, document, filters, save=False):
         """
@@ -327,6 +364,8 @@ class Document(models.Model):
     end   = models.DateTimeField(_('end create'), null=True, blank=True)
     report_file = models.FileField(_('report file'), blank=True,
         upload_to=lambda x,y: x.upload_to(y), max_length=512)
+    description = models.TextField(_('description'), blank=True)
+    details = JSONField(_('details'), null=True, blank=True)
 
     objects = DocumentManager()
 

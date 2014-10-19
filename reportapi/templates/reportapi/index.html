@@ -8,16 +8,14 @@
 {% if last_docs %}
 
 <h3>{% block page_legend %}{% trans 'Last formed documents' %}{% endblock %}</h3>
-<hr>
-<div class="row">
-{% for doc in last_docs %}
-    <div id="thumbnail-document-{{ doc.pk }}" class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="thumbnail">
-            <div class="caption{% if doc.error %} bg-danger{% else %}{% if not doc.end %} bg-warning{% else %} bg-info{% endif %}{% endif %}">
-                <h4 class="text-center"><abbr title="{{ doc }}">{{ doc|truncatechars:25 }}</abbr></h4>
-                <p class="text-center">
-                    {{ doc.user.get_full_name|default:doc.user }}
-                </p>
+
+<table class="table">
+    <tbody>
+        {% for doc in last_docs %}
+        <tr id="tr-document-{{ doc.pk }}" class="{% if doc.error %}bg-danger{% elif not doc.end %}bg-warning{% else %}bg-info{% endif %}">
+            <td class="col-xs-3">
+                <h4 class="text-center" title="{{ doc }}">{{ doc|truncatechars:25 }} ывфыв фыв фыв фыв фыв  фыв фыв фыв </h4>
+                <p class="text-center">{{ doc.user.get_full_name|default:doc.user }}</p>
                 <p class="text-center">
                 {% if not doc.end %}
                     <span class="label label-danger">
@@ -31,52 +29,51 @@
                     <span class="label label-default">{{ doc.end|default:'' }}</span>
                 {% endif %}
                 </p>
+            </td>
+            <td>{{ doc.description|linebreaks }}</td>
 
-                <p>
-                    <a href="{{ doc.register.get_absolute_url }}" class="btn btn-link btn-block" role="button">
-                        <i class="fa fa-gears"></i>
-                        {% trans 'Create new' %}
+            <td>
+                <a href="{{ doc.register.get_absolute_url }}" class="btn btn-default btn-block" role="button">
+                    <i class="fa fa-gears"></i>
+                    {% trans 'Create new' %}
+                </a>
+                <button onClick="handlerShowDocument('{% url 'reportapi:get_document' doc.pk %}', 'document-{{ doc.pk }}')" 
+                    class="btn {% if doc.error %}btn-warning{% else %}btn-success{% endif %} btn-block" role="button"
+                    {% if not doc.end %} disabled{% endif %}>
+                    <i class="fa {% if doc.error %}fa-bug{% else %}fa-search{% endif %}"></i>
+                    {% trans 'View' %}
+                </button>
+            {% if doc.error %}
+                <button onClick="handlerRemoveDocument({{ doc.pk }})" 
+                    class="btn btn-danger btn-block" role="button"
+                    {% if not user.is_superuser and user != doc.user %}disabled{% endif %}>
+                    <i class="fa fa-times"></i>
+                    {% trans 'Remove' %}
+                </button>
+            {% else %}
+                {% if DEFAULT_FORMAT|lower == 'odt' %}
+                    <a href="{% url 'reportapi:get_document_format' doc.pk DEFAULT_FORMAT %}" class="btn btn-primary btn-block" role="button"{% if not doc.end or doc.error %} disabled{% endif %}>
+                        <i class="fa fa-cloud-download"></i>
+                        {% trans 'Download' %} {{ DEFAULT_FORMAT|upper }}
                     </a>
-                    <button onClick="handlerShowDocument('{% url 'reportapi:get_document' doc.pk %}', 'document-{{ doc.pk }}')" 
-                        class="btn {% if doc.error %}btn-warning{% else %}btn-default{% endif %} btn-block" role="button"
-                        {% if not doc.end %} disabled{% endif %}>
-                        <i class="fa {% if doc.error %}fa-bug{% else %}fa-search{% endif %}"></i>
-                        {% trans 'View' %}
-                    </button>
-                {% if doc.error %}
-                    <button onClick="handlerRemoveDocument({{ doc.pk }})" 
-                        class="btn btn-danger btn-block" role="button"
-                        {% if not user.is_superuser and user != doc.user %}disabled{% endif %}>
-                        <i class="fa fa-times"></i>
-                        {% trans 'Remove' %}
-                    </button>
                 {% else %}
-                    {% if DEFAULT_FORMAT|lower == 'odt' %}
-                        <a href="{% url 'reportapi:get_document_format' doc.pk DEFAULT_FORMAT %}" class="btn btn-primary btn-block" role="button"{% if not doc.end or doc.error %} disabled{% endif %}>
+                    <div class="btn-group btn-group-justified">
+                        <a href="{% url 'reportapi:get_document_format' doc.pk DEFAULT_FORMAT %}" title="{% trans 'Download' %}" class="btn btn-primary" role="button"{% if not doc.end or doc.error %} disabled{% endif %}>
                             <i class="fa fa-cloud-download"></i>
-                            {% trans 'Download' %} {{ DEFAULT_FORMAT|upper }}
+                           {{ DEFAULT_FORMAT|upper }}
                         </a>
-                    {% else %}
-                        <div class="btn-group btn-group-justified">
-                            <a href="{% url 'reportapi:get_document_format' doc.pk DEFAULT_FORMAT %}" title="{% trans 'Download' %}" class="btn btn-primary" role="button"{% if not doc.end or doc.error %} disabled{% endif %}>
-                                <i class="fa fa-cloud-download"></i>
-                               {{ DEFAULT_FORMAT|upper }}
-                            </a>
-                            <a href="{% url 'reportapi:get_document_format' doc.pk 'odt' %}" title="{% trans 'Download' %}" class="btn btn-primary" role="button"{% if not doc.end or doc.error %} disabled{% endif %}>
-                                <i class="fa fa-cloud-download"></i>
-                                ODT
-                            </a>
-                        </div>
-                    {% endif %}
+                        <a href="{% url 'reportapi:get_document_format' doc.pk 'odt' %}" title="{% trans 'Download' %}" class="btn btn-primary" role="button"{% if not doc.end or doc.error %} disabled{% endif %}>
+                            <i class="fa fa-cloud-download"></i>
+                            ODT
+                        </a>
+                    </div>
                 {% endif %}
-                </p>
-            </div>
-        </div>
-    </div>
-{% empty %}
-    <h1 class="col-xs-12">{% trans 'Empty' %}</h1>
-{% endfor %}
-</div>
+            {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
 {% else %}
     <h1 class="text-center">{% trans 'Choose report and create document' %}</h1>
