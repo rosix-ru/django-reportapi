@@ -14,7 +14,7 @@
         {% for doc in last_docs %}
         <tr id="tr-document-{{ doc.pk }}" class="{% if doc.error %}bg-danger{% elif not doc.end %}bg-warning{% else %}bg-info{% endif %}">
             <td class="col-xs-3">
-                <h4 class="text-center" title="{{ doc }}">{{ doc|truncatechars:25 }} ывфыв фыв фыв фыв фыв  фыв фыв фыв </h4>
+                <h4 class="text-center" title="{{ doc }}">{{ doc|truncatechars:25 }}</h4>
                 <p class="text-center">{{ doc.user.get_full_name|default:doc.user }}</p>
                 <p class="text-center">
                 {% if not doc.end %}
