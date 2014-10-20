@@ -2,7 +2,7 @@
 #
 #  reportapi/fields.py
 #  
-#  Copyright 2014 Grigory Kramarenko <root@rosix.ru>
+#  Copyright 2014 Grigoriy Kramarenko <root@rosix.ru>
 #  
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 #  
-# 
+#  
 import json as jsonlib
 
 from django.db.models import SubfieldBase, TextField
