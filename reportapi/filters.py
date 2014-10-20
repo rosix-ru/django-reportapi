@@ -60,6 +60,12 @@ class BaseFilter(object):
     def get_value(self, condition, value):
         return value
 
+    def get_value_range_label(self, condition, value):
+        if condition == 'range':
+            value = list(self.get_value_label(condition, value))
+            return value[0], value[-1] 
+        return None
+
     def get_value_label(self, condition, value):
         return self.get_value(condition, value)
 
@@ -75,6 +81,8 @@ class BaseFilter(object):
         options['condition_label'] = _(condition)
         options['value'] = self.get_value(condition, value)
         options['value_label'] = self.get_value_label(condition, value)
+        if condition == 'range':
+            options['value_range_label'] = self.get_value_range_label(condition, value)
 
         return options
 
@@ -245,6 +253,8 @@ class FilterObject(BaseFilter):
             return value
         elif condition == 'exact':
             return self.objects.get(pk=value)
+        elif condition == 'range':
+            return self.objects.filter(pk__gte=min(value), pk__lte=max(value)).order_by('pk')
         else:
             return self.objects.filter(pk__in=list(value)).order_by('pk')
 

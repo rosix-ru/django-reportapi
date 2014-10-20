@@ -93,6 +93,9 @@ class Report(object):
                 'English without translation.')
         self.verbose_name = _(self.title)
 
+    def slugify(self, name):
+        return slugify(name)
+
     @property
     def label(self):
         return self.verbose_name
@@ -234,7 +237,7 @@ class Report(object):
 
     def get_filter_data(self, name, filters):
         f = self.get_filter(name)
-        kw = filters.get(slugify(name), None)
+        kw = filters.get(self.slugify(name), None)
         if f and kw:
             return f.data(**kw)
         return None
@@ -246,7 +249,7 @@ class Report(object):
         return None
 
     def get_filter(self, name):
-        return self._filters.get(slugify(name), None)
+        return self._filters.get(self.slugify(name), None)
 
     def get_scheme(self, request=None):
         SCHEME = {
