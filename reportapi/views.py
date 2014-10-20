@@ -46,7 +46,7 @@ from reportapi.conf import (settings, REPORTAPI_DEBUG,
     REPORTAPI_DEFAULT_FORMAT)
 from reportapi.models import Report, Register, Document
 
-DOCS_PER_PAGE = 12
+DOCS_PER_PAGE = 25
 
 class PermissionError(Exception):
     message = _('Access denied')

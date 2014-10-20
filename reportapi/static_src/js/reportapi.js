@@ -293,7 +293,7 @@ function handlerStartProgress() {
 };
 
 /* Обработчик удаления отчёта */
-function handlerRemoveDocument(id) {
+function handlerRemoveDocument(id, refresh) {
     if (DEBUG) {console.log('function:'+'handlerRemoveDocument')};
     if (id) {
         var args = {
@@ -304,6 +304,7 @@ function handlerRemoveDocument(id) {
                 $('.action-preview, .action-remove, .action-download')
                     .attr('disabled', 'disabled').hide();
                 $('#thumbnail-document-'+id).remove();
+                if (refresh) { window.location.reload() };
             };
         new jsonAPI(args, success);
     };

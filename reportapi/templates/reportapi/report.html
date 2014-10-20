@@ -5,7 +5,7 @@
 <legend>{{ report.label }}</legend>
 <div class="row">
     {% for name, filter in report.filters_list %}
-        <div class="col-xs-12{% if report.filters_list|length > 1 %} col-lg-6{% endif %}">
+        <div class="col-xs-12{% if report.filters_list|length > 4 %} col-lg-6{% endif %}">
         {% if filter.type == 'boolean' %}
             <table class="table table-bordered{% if not filter.required %} additional-filter{% endif %}"
                 {% if not filter.required %}style="display: none;"{% endif %}>
