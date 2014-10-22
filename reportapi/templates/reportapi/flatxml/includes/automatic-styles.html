@@ -1,0 +1,94 @@
+{% load i18n l10n %}
+<office:automatic-styles>{% block automatic_styles %}
+    <style:page-layout style:name="{{ PAGE.style_name|default:'A4' }}">
+        <style:page-layout-properties
+            fo:page-width="{{ PAGE.width|default:'21cm' }}"
+            fo:page-height="{{ PAGE.height|default:'29.7cm' }}"
+            fo:margin-top="{{ PAGE.margin_top|default:'0.6cm' }}"
+            fo:margin-bottom="{{ PAGE.margin_bottom|default:'0.6cm' }}"
+            fo:margin-left="{{ PAGE.margin_left|default:'2.0cm' }}"
+            fo:margin-right="{{ PAGE.margin_right|default:'0.6cm' }}"
+            style:num-format="{{ PAGE.num_format|default:'1' }}"
+            style:print-orientation="{{ PAGE.print_orientation|default:'portrait' }}"
+            style:writing-mode="{% if LANGUAGE_BIDI %}rtl{% else %}lr-tb{% endif %}"
+            style:footnote-max-height="{{ PAGE.footnote_max_height|default:'0cm' }}"/>
+
+        <style:header-style>
+            <style:header-footer-properties
+                fo:min-height="{{ PAGE.header.min_height|default:'0.1cm' }}"
+                fo:margin-top="{{ PAGE.header.margin_top|default:'0cm' }}"
+                fo:margin-bottom="{{ PAGE.header.margin_bottom|default:'0cm' }}"
+                fo:margin-left="{{ PAGE.header.margin_left|default:'0cm' }}"
+                fo:margin-right="{{ PAGE.header.margin_right|default:'0cm' }}"
+                style:dynamic-spacing="{{ PAGE.header.dynamic_spacing|default:'false' }}"
+                style:auto-height="{{ PAGE.header.auto_height|default:'false' }}"/>
+        </style:header-style>
+
+        <style:footer-style>
+            <style:header-footer-properties
+                fo:min-height="{{ PAGE.footer.min_height|default:'1.2cm' }}"
+                fo:margin-top="{{ PAGE.footer.margin_top|default:'0.5cm' }}"
+                fo:margin-bottom="{{ PAGE.footer.margin_bottom|default:'0cm' }}"
+                fo:margin-left="{{ PAGE.footer.margin_left|default:'0cm' }}"
+                fo:margin-right="{{ PAGE.footer.margin_right|default:'0cm' }}"
+                fo:border-top="{{ PAGE.footer.border_top|default:'0.002cm solid #000000' }}"/>
+        </style:footer-style>
+
+    </style:page-layout>
+
+{% block brand_styles %}
+    <style:style style:name="BRAND.para-legal" style:family="paragraph" style:parent-style-name="Footer">
+        <style:paragraph-properties fo:text-align="center" style:justify-single-word="false"/>
+        <style:text-properties fo:font-size="7pt"/>
+    </style:style>
+
+    <style:style style:name="BRAND.footer-start" style:family="paragraph" style:parent-style-name="Footer">
+        <style:paragraph-properties
+            fo:margin-top="0.05cm"
+            fo:margin-right="0.1cm"
+            fo:text-align="start"
+            style:justify-single-word="false"/>
+        <style:text-properties fo:font-size="7pt" fo:color="{{ BRAND_COLOR|default:'#303030' }}"/>
+    </style:style>
+
+    <style:style style:name="BRAND.footer-end" style:family="paragraph" style:parent-style-name="Footer">
+        <style:paragraph-properties
+            fo:margin-top="0.05cm"
+            fo:margin-right="0.1cm"
+            fo:text-align="end"
+            style:justify-single-word="false"/>
+        <style:text-properties fo:font-size="7pt" fo:color="{{ BRAND_COLOR|default:'#303030' }}"/>
+    </style:style>
+
+    <style:style style:name="BRAND.para-line" style:family="paragraph" style:parent-style-name="Header">
+        <style:paragraph-properties fo:text-align="left" style:justify-single-word="false"/>
+        <style:text-properties
+            style:text-rotation-angle="90"
+            style:text-rotation-scale="line-height"
+            fo:letter-spacing="0.07cm"/>
+    </style:style>
+
+    <style:style style:name="BRAND.text-line" style:family="text">
+        <style:text-properties style:font-name="Arial Black" fo:font-size="7pt" fo:color="#FFFFFF"/>
+    </style:style>
+
+    <style:style style:name="BRAND.line" style:family="graphic">
+        <style:graphic-properties
+            draw:textarea-horizontal-align="center"
+            draw:textarea-vertical-align="middle"
+            draw:stroke="solid"
+            fo:padding-left="0cm"
+            svg:stroke-width="0.0cm"
+            style:run-through="foreground"
+            style:wrap="run-through"
+            style:number-wrapped-paragraphs="no-limit"
+            style:vertical-pos="top"
+            style:vertical-rel="page"
+            style:horizontal-pos="left"
+            style:horizontal-rel="page"
+            draw:fill-color="{{ BRAND_COLOR|default:'#303030' }}"
+            svg:stroke-color="{{ BRAND_COLOR|default:'#303030' }}"/>
+    </style:style>
+{% endblock %}
+
+{% endblock %}</office:automatic-styles>

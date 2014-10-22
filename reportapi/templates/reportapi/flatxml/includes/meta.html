@@ -1,0 +1,11 @@
+{% load i18n l10n reportapi_base %}
+<office:meta>{% block office_meta %}
+    <dc:title>{% block office_meta_dc_title %}{{ DOCUMENT }}{% endblock %}</dc:title>
+    <dc:subject>{% block office_meta_dc_subject %}{% endblock %}</dc:subject>
+    <dc:description>{% block office_meta_dc_description %}description{% endblock %}</dc:description>
+    <dc:date>{% now 'c' %}</dc:date>
+    <dc:language>{{ LANGUAGE_CODE|default:"ru" }}</dc:language>
+    <meta:generator>ReportAPI (https://bitbucket.org/rosix/django-reportapi)</meta:generator>
+    <meta:creator>{% full_username user %}</meta:creator>
+    <meta:creation-date>{{ DOCUMENT.created|date:'c' }}</meta:creation-date>
+{% endblock %}</office:meta>

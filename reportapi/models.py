@@ -20,7 +20,10 @@
 #  MA 02110-1301, USA.
 #  
 #  
+
 from __future__ import unicode_literals
+import os, re, hashlib, subprocess
+
 from django.utils.encoding import smart_text, force_text, python_2_unicode_compatible
 from django.utils import six
 from django.db import models
@@ -46,8 +49,6 @@ if REPORTAPI_FILES_UNIDECODE:
     prep_filename = lambda x: unidecode(x).replace(' ', '_').replace("'", "")
 else:
     prep_filename = lambda x: x
-
-import os, re, hashlib, subprocess
 
 REPORTAPI_CODE_LENGTH = len(hashlib.new(REPORTAPI_CODE_HASHLIB).hexdigest())
 
@@ -417,6 +418,10 @@ class Document(models.Model):
     @models.permalink
     def get_absolute_url(self):
         return ('reportapi:get_document', [self.pk])
+
+    @property
+    def created(self):
+        return self.end
 
     @property
     def url(self):

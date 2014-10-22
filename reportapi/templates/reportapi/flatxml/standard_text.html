@@ -1,0 +1,85 @@
+{% extends 'reportapi/flatxml/base.html' %}{% load i18n l10n reportapi_base %}
+
+{% block office_body %}
+<office:text>
+    <text:sequence-decls>
+        <text:sequence-decl text:display-outline-level="0" text:name="Illustration"/>
+        <text:sequence-decl text:display-outline-level="0" text:name="Table"/>
+        <text:sequence-decl text:display-outline-level="0" text:name="Text"/>
+        <text:sequence-decl text:display-outline-level="0" text:name="Drawing"/>
+    </text:sequence-decls>
+
+{% block body %}
+
+    {% block header %}
+    <text:h text:style-name="Heading1">{% block header_title %}{{ DOCUMENT }}{% endblock %}</text:h>
+    {% block header_after_title %}{% endblock %}
+    {% endblock %}
+
+    {% block filters %}
+    {% if FILTERS %}
+    <text:h text:style-name="HeadingSmall">{% trans 'Filters' %}</text:h>
+    <table:table table:name="TableFilters" table:style-name="table"
+        table:display-name="{% trans 'Table Filters' %}">
+
+        <table:table-column table:number-columns-repeated="3"/>
+
+        <table:table-header-rows>
+            <table:table-row>
+                <table:table-cell office:value-type="string">
+                    <text:p text:style-name="TextCellHead.AA">{% trans "name" %}</text:p>
+                </table:table-cell>
+                <table:table-cell office:value-type="string">
+                    <text:p text:style-name="TextCellHead.AA">{% trans "condition" %}</text:p>
+                </table:table-cell>
+                <table:table-cell office:value-type="string">
+                    <text:p text:style-name="TextCellHead.AZ">{% trans "value" %}</text:p>
+                </table:table-cell>
+            </table:table-row>
+        </table:table-header-rows>
+    {% for filter in FILTERS %}
+        <table:table-row>
+            <table:table-cell office:value-type="string">
+                <text:p text:style-name="TextCell.ZA">{{ filter.label|lower }}</text:p>
+            </table:table-cell>
+            <table:table-cell office:value-type="string">
+                <text:p text:style-name="TextCell.ZA">{{ filter.condition_label|lower }}</text:p>
+            </table:table-cell>
+            <table:table-cell office:value-type="string">
+            {% if filter.condition == 'isnull' or filter.condition == 'empty' %}
+                <text:p text:style-name="TextCell.ZZ">{% if filter.value %}{% trans 'yes' %}{% else %}{% trans 'no' %}{% endif %}</text:p>
+            {% elif filter.condition == 'range' %}
+                <text:p text:style-name="TextCell.ZZ">{{ filter.value_range_label|join:";\n" }}</text:p>
+            {% elif filter.condition == 'in' %}
+                <text:p text:style-name="TextCell.ZZ">{{ filter.value_label|join:";\n" }}</text:p>
+            {% else %}
+                <text:p text:style-name="TextCell.ZZ">{{ filter.value_label }}</text:p>
+            {% endif %}
+            </table:table-cell>
+        </table:table-row>
+    {% endfor %}
+    </table:table>
+    {% endif %}
+    {% endblock %}
+
+    {% block main_table %}
+    <text:h text:style-name="HeadingSmall">{% trans 'Table of data' %}</text:h>
+    <table:table table:name="Table1" table:style-name="table"
+        table:display-name="{% trans 'Table of data' %}">
+        {% block main_table_colls %}{% endblock %}
+
+        <table:table-header-rows>{% block main_table_header_rows %}{% endblock %}</table:table-header-rows>
+
+        {% block main_table_rows %}{% endblock %}
+
+        <table:table-footer-rows>{% block main_table_footer_rows %}{% endblock %}</table:table-footer-rows>
+
+    </table:table>
+    {% endblock %}
+
+    {% block footer %}{% endblock %}
+
+{% endblock body %}
+
+</office:text>
+{% endblock office_body %}
