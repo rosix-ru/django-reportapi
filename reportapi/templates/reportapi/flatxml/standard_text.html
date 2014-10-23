@@ -296,11 +296,33 @@
         table:display-name="{% trans 'Table of data' %}">
         {% block main_table_colls %}<!-- PLACE BLOCK MAIN_TABLE_COLLS -->{% endblock %}
 
-        <table:table-header-rows>{% block main_table_header_rows %}<!-- PLACE BLOCK MAIN_TABLE_HEADER_ROWS -->{% endblock %}</table:table-header-rows>
+        <table:table-header-rows>{% block main_table_header_rows %}
+        <!-- PLACE BLOCK MAIN_TABLE_HEADER_ROWS -->
+            <table:table-row>
+                <table:table-cell table:style-name="TH.aZ" office:value-type="string">
+                    <text:p text:style-name="THContent">{% trans 'Please, replace block' %} `main_table_header_rows` </text:p>
+                </table:table-cell>
+            </table:table-row>
+        {% endblock %}</table:table-header-rows>
 
-        {% block main_table_rows %}<!-- PLACE BLOCK MAIN_TABLE_ROWS -->{% endblock %}
+        {% block main_table_rows %}
+        <!-- PLACE BLOCK MAIN_TABLE_ROWS -->
+        <table:table-row>
+            <table:table-cell table:style-name="TD.zZ" office:value-type="string">
+                <text:p text:style-name="TDContent">{% trans 'Please, replace block' %} `main_table_rows` {% trans 'in your template...' %}
+                </text:p>
+            </table:table-cell>
+        </table:table-row>
+        {% endblock %}
 
-        <table:table-footer-rows>{% block main_table_footer_rows %}<!-- PLACE BLOCK MAIN_TABLE_COLLS -->{% endblock %}</table:table-footer-rows>
+        {% block main_table_footer_rows %}
+        <!-- PLACE BLOCK MAIN_TABLE_FOOTER_ROWS -->
+        <table:table-row>
+            <table:table-cell table:style-name="TH.zZ" office:value-type="string">
+                <text:p text:style-name="THContent">{% trans 'Please, replace block' %} `main_table_footer_rows`</text:p>
+            </table:table-cell>
+        </table:table-row>
+        {% endblock %}
 
     </table:table>
 

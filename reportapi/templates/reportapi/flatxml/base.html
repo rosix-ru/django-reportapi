@@ -1,6 +1,6 @@
 {% load i18n l10n reportapi_base %}<?xml version="1.0" encoding="UTF-8"?>
 <office:document office:version="1.2"
-    office:mimetype="application/vnd.oasis.opendocument.{{ DOCUMENT.odftype|default:'text' }}"
+    office:mimetype="{{ DOCUMENT.mimetype|default:'application/vnd.oasis.opendocument.text' }}"
     xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
     xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
     xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
@@ -46,7 +46,7 @@
 
     <dc:date>{% now 'c' %}</dc:date>
     <dc:language>{{ LANGUAGE_CODE|default:"ru" }}</dc:language>
-    <meta:generator>ReportAPI (https://bitbucket.org/rosix/django-reportapi)</meta:generator>
+    <meta:generator>ReportAPI &lt;https://bitbucket.org/rosix/django-reportapi&gt;</meta:generator>
     <meta:creator>{% full_username user %}</meta:creator>
     <meta:creation-date>{{ DOCUMENT.created|date:'c' }}</meta:creation-date>
 
