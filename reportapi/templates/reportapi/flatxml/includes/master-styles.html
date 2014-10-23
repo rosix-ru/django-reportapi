@@ -1,5 +1,4 @@
 {% load i18n l10n reportapi_base %}
-<office:master-styles>{% block master_styles %}
     <style:master-page style:name="Standard" style:page-layout-name="{{ PAGE.style_name|default:'A4' }}" style:next-style-name="Standard">
 
         <style:header>
@@ -46,4 +45,3 @@
         {% endif %}
         </style:footer>
     </style:master-page>
-{% endblock %}</office:master-styles>

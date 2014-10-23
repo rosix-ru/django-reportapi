@@ -1,0 +1,36 @@
+{% load i18n l10n %}
+    <style:page-layout style:name="{{ PAGE.style_name|default:'A4' }}">
+        <style:page-layout-properties
+            fo:page-width="{{ PAGE.width|default:'21cm' }}"
+            fo:page-height="{{ PAGE.height|default:'29.7cm' }}"
+            fo:margin-top="{{ PAGE.margin_top|default:'0.6cm' }}"
+            fo:margin-bottom="{{ PAGE.margin_bottom|default:'0.6cm' }}"
+            fo:margin-left="{{ PAGE.margin_left|default:'2.0cm' }}"
+            fo:margin-right="{{ PAGE.margin_right|default:'0.6cm' }}"
+            style:num-format="{{ PAGE.num_format|default:'1' }}"
+            style:print-orientation="{{ PAGE.print_orientation|default:'portrait' }}"
+            style:writing-mode="{% if LANGUAGE_BIDI %}rtl{% else %}lr-tb{% endif %}"
+            style:footnote-max-height="{{ PAGE.footnote_max_height|default:'0cm' }}"/>
+
+        <style:header-style>
+            <style:header-footer-properties
+                fo:min-height="{{ PAGE.header.min_height|default:'0.1cm' }}"
+                fo:margin-top="{{ PAGE.header.margin_top|default:'0cm' }}"
+                fo:margin-bottom="{{ PAGE.header.margin_bottom|default:'0cm' }}"
+                fo:margin-left="{{ PAGE.header.margin_left|default:'0cm' }}"
+                fo:margin-right="{{ PAGE.header.margin_right|default:'0cm' }}"
+                style:dynamic-spacing="{{ PAGE.header.dynamic_spacing|default:'false' }}"
+                style:auto-height="{{ PAGE.header.auto_height|default:'false' }}"/>
+        </style:header-style>
+
+        <style:footer-style>
+            <style:header-footer-properties
+                fo:min-height="{{ PAGE.footer.min_height|default:'1.2cm' }}"
+                fo:margin-top="{{ PAGE.footer.margin_top|default:'0.5cm' }}"
+                fo:margin-bottom="{{ PAGE.footer.margin_bottom|default:'0cm' }}"
+                fo:margin-left="{{ PAGE.footer.margin_left|default:'0cm' }}"
+                fo:margin-right="{{ PAGE.footer.margin_right|default:'0cm' }}"
+                fo:border-top="{{ PAGE.footer.border_top|default:'0.002cm solid #000000' }}"/>
+        </style:footer-style>
+
+    </style:page-layout>

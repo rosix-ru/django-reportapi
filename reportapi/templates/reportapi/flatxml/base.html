@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+{% load i18n l10n reportapi_base %}<?xml version="1.0" encoding="UTF-8"?>
 <office:document office:version="1.2"
     office:mimetype="application/vnd.oasis.opendocument.{{ DOCUMENT.odftype|default:'text' }}"
     xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
@@ -34,14 +34,73 @@
     xmlns:formx="urn:openoffice:names:experimental:ooxml-odf-interop:xmlns:form:1.0"
     xmlns:css3t="http://www.w3.org/TR/css3-text/">
 
-{% include "reportapi/flatxml/includes/meta.html" %}
-{# include "reportapi/flatxml/includes/settings.html" #}
-{% include "reportapi/flatxml/includes/scripts.html" %}
-{% include "reportapi/flatxml/includes/font-face-decls.html" %}
-{% include "reportapi/flatxml/includes/styles.html" %}
-{% include "reportapi/flatxml/includes/automatic-styles.html" %}
-{% include "reportapi/flatxml/includes/master-styles.html" %}
+<office:meta>{% block office_meta %}
+<!-- BLOCK OFFICE_META -->
 
-<office:body>{% block office_body %}{% endblock %}</office:body>
+    <!-- IN TAG: BLOCK OFFICE_META_DC_TITLE -->
+    <dc:title>{% block office_meta_dc_title %}{{ DOCUMENT }}{% endblock %}</dc:title>
+    <!-- IN TAG: BLOCK OFFICE_META_DC_SUBJECT -->
+    <dc:subject>{% block office_meta_dc_subject %}{% endblock %}</dc:subject>
+    <!-- IN TAG: BLOCK OFFICE_META_DC_DESCRIPTION -->
+    <dc:description>{% block office_meta_dc_description %}description{% endblock %}</dc:description>
+
+    <dc:date>{% now 'c' %}</dc:date>
+    <dc:language>{{ LANGUAGE_CODE|default:"ru" }}</dc:language>
+    <meta:generator>ReportAPI (https://bitbucket.org/rosix/django-reportapi)</meta:generator>
+    <meta:creator>{% full_username user %}</meta:creator>
+    <meta:creation-date>{{ DOCUMENT.created|date:'c' }}</meta:creation-date>
+
+<!-- ENDBLOCK OFFICE_META -->
+{% endblock %}</office:meta>
+
+<office:settings>{% block office_settings %}
+{# include "reportapi/flatxml/includes/settings.html" #}
+{% endblock %}</office:settings>
+
+<office:scripts>{% block office_scripts %}
+<!-- BLOCK OFFICE_SCRIPTS -->
+{% include "reportapi/flatxml/includes/scripts.html" %}
+<!-- ENDBLOCK OFFICE_SCRIPTS -->
+{% endblock %}</office:scripts>
+
+<office:font-face-decls>{% block office_font_face_decls %}
+<!-- BLOCK OFFICE_FONT_FACE_DECLS -->
+{% include "reportapi/flatxml/includes/font-face-decls.html" %}
+<!-- ENDBLOCK OFFICE_FONT_FACE_DECLS -->
+{% endblock %}</office:font-face-decls>
+
+<office:styles>{% block office_styles %}
+<!-- BLOCK OFFICE_STYLES -->
+{% include "reportapi/flatxml/includes/styles.html" %}
+<!-- ENDBLOCK OFFICE_STYLES -->
+{% endblock %}</office:styles>
+
+<office:automatic-styles>{% block automatic_styles %}
+<!-- BLOCK AUTOMATIC_STYLES -->
+
+{% block automatic_styles_page %}
+<!-- BLOCK AUTOMATIC_STYLES_PAGE -->
+{% include "reportapi/flatxml/includes/automatic-styles-page.html" %}
+<!-- ENDBLOCK AUTOMATIC_STYLES_PAGE -->
+{% endblock %}
+
+{% block brand_styles %}
+<!-- BLOCK BRAND_STYLES -->
+{% include "reportapi/flatxml/includes/automatic-styles-brand.html" %}
+<!-- ENDBLOCK BRAND_STYLES -->
+{% endblock %}
+
+{% block table_styles %}<!-- PLACE BLOCK TABLE_STYLES -->{% endblock %}
+
+<!-- ENDBLOCK AUTOMATIC_STYLES -->
+{% endblock %}</office:automatic-styles>
+
+<office:master-styles>{% block master_styles %}
+<!-- BLOCK MASTER_STYLES -->
+{% include "reportapi/flatxml/includes/master-styles.html" %}
+<!-- ENDBLOCK MASTER_STYLES -->
+{% endblock %}</office:master-styles>
+
+<office:body>{% block office_body %}<!-- PLACE BLOCK OFFICE_BODY -->{% endblock %}</office:body>
 
 </office:document>

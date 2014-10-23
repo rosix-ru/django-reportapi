@@ -1,5 +1,5 @@
 {% load i18n l10n %}
-<office:styles>{% block office_styles %}
+
     <style:default-style style:family="graphic">
         <style:graphic-properties
             draw:shadow-offset-x="0.3cm"
@@ -273,6 +273,30 @@
             style:font-name="Arial"/>
     </style:style>
 
+    <style:style style:name="TableContents" style:family="paragraph"
+        style:display-name="Table Contents"
+        style:parent-style-name="Paragraph"
+        style:class="extra">
+        <style:paragraph-properties text:number-lines="false" text:line-number="0"/>
+    </style:style>
+
+    <style:style style:name="THContent" style:family="paragraph"
+        style:parent-style-name="TableContents">
+        <style:text-properties fo:font-weight="bold" fo:color="#303030"/>
+        <style:paragraph-properties fo:text-align="center"/>
+    </style:style>
+
+    <style:style style:name="TDContent" style:family="paragraph"
+        style:parent-style-name="TableContents">
+        <style:text-properties fo:font-size="10pt"/>
+        <style:paragraph-properties fo:text-align="left"/>
+    </style:style>
+
+    <style:style style:name="TDContentRight" style:family="paragraph"
+        style:parent-style-name="TDContent">
+        <style:paragraph-properties fo:text-align="right"/>
+    </style:style>
+
     <style:style style:name="Title" style:family="paragraph"
         style:display-name="Title Default">
         <style:paragraph-properties style:shadow="none"/>
@@ -441,120 +465,3 @@
         text:number-position="left"
         text:increment="5"/>
 
-    <!-- Table cell styles
-
-    |AA|AA|AZ|
-    |ZA|ZA|ZZ|
-    |ZA|ZA|ZZ|
-
-    AA borders: top-left-bottom
-    AZ borders: top-left-bottom-right
-    ZA borders: left-bottom
-    ZZ borders: left-bottom-right
-
-    -->
-
-    <style:style style:name="TextCellHead.AZ" style:family="paragraph">
-        <style:text-properties fo:font-weight="bold" fo:color="{{ BRAND_COLOR|default:'#303030' }}"/>
-        <style:paragraph-properties
-            fo:background-color="#e6e6e6"
-            fo:padding="0.05cm"
-            fo:border-left="0.05pt solid #000000"
-            fo:border-right="0.05pt solid #000000"
-            fo:border-top="0.05pt solid #000000"
-            fo:border-bottom="0.05pt solid #000000"
-            fo:text-align="center"
-            style:shadow="none">
-        </style:paragraph-properties>
-    </style:style>
-
-    <style:style style:name="TextCellHead.AA" style:family="paragraph"
-        style:parent-style-name="TextCellHead.AZ">
-        <style:paragraph-properties
-            fo:background-color="#e6e6e6"
-            fo:padding="0.05cm"
-            fo:border-left="0.05pt solid #000000"
-            fo:border-right="none"
-            fo:border-top="0.05pt solid #000000"
-            fo:border-bottom="0.05pt solid #000000"
-            fo:text-align="center"
-            style:shadow="none">
-        </style:paragraph-properties>
-    </style:style>
-
-    <style:style style:name="TextCellHead.ZZ" style:family="paragraph"
-        style:parent-style-name="TextCellHead.AZ">
-        <style:paragraph-properties
-            fo:background-color="#e6e6e6"
-            fo:padding="0.05cm"
-            fo:border-left="0.05pt solid #000000"
-            fo:border-right="0.05pt solid #000000"
-            fo:border-top="none"
-            fo:border-bottom="0.05pt solid #000000"
-            fo:text-align="center"
-            style:shadow="none">
-        </style:paragraph-properties>
-    </style:style>
-
-    <style:style style:name="TextCellHead.ZA" style:family="paragraph"
-        style:parent-style-name="TextCellHead.AZ">
-        <style:paragraph-properties
-            fo:background-color="#e6e6e6"
-            fo:padding="0.05cm"
-            fo:border-left="0.05pt solid #000000"
-            fo:border-right="none"
-            fo:border-top="none"
-            fo:border-bottom="0.05pt solid #000000"
-            style:shadow="none">
-        </style:paragraph-properties>
-    </style:style>
-
-    <style:style style:name="TextCell.AZ" style:family="paragraph">
-        <style:text-properties fo:font-size="10pt"/>
-        <style:paragraph-properties
-            fo:padding="0.05cm"
-            fo:border-left="0.05pt solid #000000"
-            fo:border-right="0.05pt solid #000000"
-            fo:border-top="0.05pt solid #000000"
-            fo:border-bottom="0.05pt solid #000000"
-            style:shadow="none">
-        </style:paragraph-properties>
-    </style:style>
-
-    <style:style style:name="TextCell.AA" style:family="paragraph"
-        style:parent-style-name="TextCell.AZ">
-        <style:paragraph-properties
-            fo:padding="0.05cm"
-            fo:border-left="0.05pt solid #000000"
-            fo:border-right="none"
-            fo:border-top="0.05pt solid #000000"
-            fo:border-bottom="0.05pt solid #000000"
-            style:shadow="none">
-        </style:paragraph-properties>
-    </style:style>
-
-    <style:style style:name="TextCell.ZZ" style:family="paragraph"
-        style:parent-style-name="TextCell.AZ">
-        <style:paragraph-properties
-            fo:padding="0.05cm"
-            fo:border-left="0.05pt solid #000000"
-            fo:border-right="0.05pt solid #000000"
-            fo:border-top="none"
-            fo:border-bottom="0.05pt solid #000000"
-            style:shadow="none">
-        </style:paragraph-properties>
-    </style:style>
-
-    <style:style style:name="TextCell.ZA" style:family="paragraph"
-        style:parent-style-name="TextCell.AZ">
-        <style:paragraph-properties
-            fo:padding="0.05cm"
-            fo:border-left="0.05pt solid #000000"
-            fo:border-right="none"
-            fo:border-top="none"
-            fo:border-bottom="0.05pt solid #000000"
-            style:shadow="none">
-        </style:paragraph-properties>
-    </style:style>
-
-{% endblock %}</office:styles>

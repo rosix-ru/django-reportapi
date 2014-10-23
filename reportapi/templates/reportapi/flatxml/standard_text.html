@@ -1,6 +1,148 @@
 {% extends 'reportapi/flatxml/base.html' %}{% load i18n l10n reportapi_base %}
 
+{% block table_styles %}
+<!-- BLOCK TABLE_STYLES -->
+    <!--
+    Read the document:
+    http://docs.oasis-open.org/office/v1.2/os/OpenDocument-v1.2-os-part1.html#__RefHeading__1415580_253892949
+    -->
+
+    <!-- Standard table cell styles
+    a - first row
+    A - starts columns
+    z - ends rows
+    Z - end column
+
+    |aA|aA|aZ|
+    |zA|zA|zZ|
+    |zA|zA|zZ|
+
+    aA borders: top-left-bottom
+    aZ borders: top-left-bottom-right
+    zA borders: left-bottom
+    zZ borders: left-bottom-right
+
+    -->
+
+    <style:style style:name="TH.aZ" style:family="table-cell">
+        <style:table-cell-properties
+            fo:background-color="#e6e6e6"
+            fo:padding="0.05cm"
+            fo:border-left="0.05pt solid #000000"
+            fo:border-right="0.05pt solid #000000"
+            fo:border-top="0.05pt solid #000000"
+            fo:border-bottom="0.05pt solid #000000"
+            style:shadow="none">
+        </style:table-cell-properties>
+    </style:style>
+
+    <style:style style:name="TH.aA" style:family="table-cell">
+        <style:table-cell-properties
+            fo:background-color="#e6e6e6"
+            fo:padding="0.05cm"
+            fo:border-left="0.05pt solid #000000"
+            fo:border-right="none"
+            fo:border-top="0.05pt solid #000000"
+            fo:border-bottom="0.05pt solid #000000"
+            style:shadow="none">
+        </style:table-cell-properties>
+    </style:style>
+
+    <style:style style:name="TH.zZ" style:family="table-cell">
+        <style:table-cell-properties
+            fo:background-color="#e6e6e6"
+            fo:padding="0.05cm"
+            fo:border-left="0.05pt solid #000000"
+            fo:border-right="0.05pt solid #000000"
+            fo:border-top="none"
+            fo:border-bottom="0.05pt solid #000000"
+            style:shadow="none">
+        </style:table-cell-properties>
+    </style:style>
+
+    <style:style style:name="TH.zA" style:family="table-cell">
+        <style:table-cell-properties
+            fo:background-color="#e6e6e6"
+            fo:padding="0.05cm"
+            fo:border-left="0.05pt solid #000000"
+            fo:border-right="none"
+            fo:border-top="none"
+            fo:border-bottom="0.05pt solid #000000"
+            style:shadow="none">
+        </style:table-cell-properties>
+    </style:style>
+
+    <style:style style:name="TD.aZ" style:family="table-cell">
+        <style:table-cell-properties
+            fo:padding="0.05cm"
+            fo:border-left="0.05pt solid #000000"
+            fo:border-right="0.05pt solid #000000"
+            fo:border-top="0.05pt solid #000000"
+            fo:border-bottom="0.05pt solid #000000"
+            style:shadow="none">
+        </style:table-cell-properties>
+    </style:style>
+
+    <style:style style:name="TD.aA" style:family="table-cell">
+        <style:table-cell-properties
+            fo:padding="0.05cm"
+            fo:border-left="0.05pt solid #000000"
+            fo:border-right="none"
+            fo:border-top="0.05pt solid #000000"
+            fo:border-bottom="0.05pt solid #000000"
+            style:shadow="none">
+        </style:table-cell-properties>
+    </style:style>
+
+    <style:style style:name="TD.zZ" style:family="table-cell">
+        <style:table-cell-properties
+            fo:padding="0.05cm"
+            fo:border-left="0.05pt solid #000000"
+            fo:border-right="0.05pt solid #000000"
+            fo:border-top="none"
+            fo:border-bottom="0.05pt solid #000000"
+            style:shadow="none">
+        </style:table-cell-properties>
+    </style:style>
+
+    <style:style style:name="TD.zA" style:family="table-cell">
+        <style:table-cell-properties
+            fo:padding="0.05cm"
+            fo:border-left="0.05pt solid #000000"
+            fo:border-right="none"
+            fo:border-top="none"
+            fo:border-bottom="0.05pt solid #000000"
+            style:shadow="none">
+        </style:table-cell-properties>
+    </style:style>
+
+
+    <!-- Styles for table filters -->
+
+    <style:style style:name="TableFilters" style:family="table">
+        <style:table-properties style:width="18.4cm" table:align="left"/>
+    </style:style>
+
+    <style:style style:name="TableFilters.A" style:family="table-column">
+        <style:table-column-properties style:column-width="5.0cm"/>
+    </style:style>
+
+    <style:style style:name="TableFilters.B" style:family="table-column">
+        <style:table-column-properties style:column-width="4.0cm"/>
+    </style:style>
+
+    <style:style style:name="TableFilters.C" style:family="table-column">
+        <style:table-column-properties />
+    </style:style>
+
+
+<!-- ENDBLOCK TABLE_STYLES -->
+{% endblock %}
+
+
 {% block office_body %}
+<!-- BLOCK OFFICE_BODY -->
+
 <office:text>
     <text:sequence-decls>
         <text:sequence-decl text:display-outline-level="0" text:name="Illustration"/>
@@ -10,76 +152,92 @@
     </text:sequence-decls>
 
 {% block body %}
+<!-- BLOCK BODY -->
 
     {% block header %}
+    <!-- BLOCK HEADER -->
+
     <text:h text:style-name="Heading1">{% block header_title %}{{ DOCUMENT }}{% endblock %}</text:h>
-    {% block header_after_title %}{% endblock %}
+    {% block header_after_title %}<!-- PLACE BLOCK HEADER_AFTER_TITLE -->{% endblock %}
+
+    <!-- ENDBLOCK HEADER -->
     {% endblock %}
 
     {% block filters %}
+    <!-- BLOCK FILTERS -->
     {% if FILTERS %}
     <text:h text:style-name="HeadingSmall">{% trans 'Filters' %}</text:h>
-    <table:table table:name="TableFilters" table:style-name="table"
+    <table:table table:name="TableFilters" table:style-name="TableFilters"
         table:display-name="{% trans 'Table Filters' %}">
 
-        <table:table-column table:number-columns-repeated="3"/>
+        <table:table-column table:style-name="TableFilters.A"/>
+        <table:table-column table:style-name="TableFilters.B"/>
+        <table:table-column table:style-name="TableFilters.C"/>
 
         <table:table-header-rows>
             <table:table-row>
-                <table:table-cell office:value-type="string">
-                    <text:p text:style-name="TextCellHead.AA">{% trans "name" %}</text:p>
+                <table:table-cell table:style-name="TH.aA" office:value-type="string">
+                    <text:p text:style-name="THContent">{% trans "name" %}</text:p>
                 </table:table-cell>
-                <table:table-cell office:value-type="string">
-                    <text:p text:style-name="TextCellHead.AA">{% trans "condition" %}</text:p>
+                <table:table-cell table:style-name="TH.aA" office:value-type="string">
+                    <text:p text:style-name="THContent">{% trans "condition" %}</text:p>
                 </table:table-cell>
-                <table:table-cell office:value-type="string">
-                    <text:p text:style-name="TextCellHead.AZ">{% trans "value" %}</text:p>
+                <table:table-cell table:style-name="TH.aZ" office:value-type="string">
+                    <text:p text:style-name="THContent">{% trans "value" %}</text:p>
                 </table:table-cell>
             </table:table-row>
         </table:table-header-rows>
     {% for filter in FILTERS %}
         <table:table-row>
-            <table:table-cell office:value-type="string">
-                <text:p text:style-name="TextCell.ZA">{{ filter.label|lower }}</text:p>
+            <table:table-cell table:style-name="TD.zA" office:value-type="string">
+                <text:p text:style-name="TDContent">{{ filter.label|lower }}</text:p>
             </table:table-cell>
-            <table:table-cell office:value-type="string">
-                <text:p text:style-name="TextCell.ZA">{{ filter.condition_label|lower }}</text:p>
+            <table:table-cell table:style-name="TD.zA" office:value-type="string">
+                <text:p text:style-name="TDContent">{{ filter.condition_label|lower }}</text:p>
             </table:table-cell>
-            <table:table-cell office:value-type="string">
+            <table:table-cell table:style-name="TD.zZ" office:value-type="string">
             {% if filter.condition == 'isnull' or filter.condition == 'empty' %}
-                <text:p text:style-name="TextCell.ZZ">{% if filter.value %}{% trans 'yes' %}{% else %}{% trans 'no' %}{% endif %}</text:p>
+                <text:p text:style-name="TDContent">{% if filter.value %}{% trans 'yes' %}{% else %}{% trans 'no' %}{% endif %}</text:p>
             {% elif filter.condition == 'range' %}
-                <text:p text:style-name="TextCell.ZZ">{{ filter.value_range_label|join:";\n" }}</text:p>
+                <text:p text:style-name="TDContent">{{ filter.value_range_label|join:";<text:line-break/>" }}</text:p>
             {% elif filter.condition == 'in' %}
-                <text:p text:style-name="TextCell.ZZ">{{ filter.value_label|join:";\n" }}</text:p>
+                <text:p text:style-name="TDContent">{{ filter.value_label|join:";<text:line-break/>" }}</text:p>
             {% else %}
-                <text:p text:style-name="TextCell.ZZ">{{ filter.value_label }}</text:p>
+                <text:p text:style-name="TDContent">{{ filter.value_label }}</text:p>
             {% endif %}
             </table:table-cell>
         </table:table-row>
     {% endfor %}
     </table:table>
     {% endif %}
+    <!-- ENDBLOCK FILTERS -->
     {% endblock %}
 
     {% block main_table %}
+    <!-- BLOCK MAIN_TABLE -->
+
     <text:h text:style-name="HeadingSmall">{% trans 'Table of data' %}</text:h>
     <table:table table:name="Table1" table:style-name="table"
         table:display-name="{% trans 'Table of data' %}">
-        {% block main_table_colls %}{% endblock %}
+        {% block main_table_colls %}<!-- PLACE BLOCK MAIN_TABLE_COLLS -->{% endblock %}
 
-        <table:table-header-rows>{% block main_table_header_rows %}{% endblock %}</table:table-header-rows>
+        <table:table-header-rows>{% block main_table_header_rows %}<!-- PLACE BLOCK MAIN_TABLE_HEADER_ROWS -->{% endblock %}</table:table-header-rows>
 
-        {% block main_table_rows %}{% endblock %}
+        {% block main_table_rows %}<!-- PLACE BLOCK MAIN_TABLE_ROWS -->{% endblock %}
 
-        <table:table-footer-rows>{% block main_table_footer_rows %}{% endblock %}</table:table-footer-rows>
+        <table:table-footer-rows>{% block main_table_footer_rows %}<!-- PLACE BLOCK MAIN_TABLE_COLLS -->{% endblock %}</table:table-footer-rows>
 
     </table:table>
+
+    <!-- ENDBLOCK MAIN_TABLE -->
     {% endblock %}
 
-    {% block footer %}{% endblock %}
+    {% block footer %}<!-- PLACE BLOCK FOOTER -->{% endblock %}
 
+<!-- ENDBLOCK BODY -->
 {% endblock body %}
 
 </office:text>
+
+<!-- ENDBLOCK OFFICE_BODY -->
 {% endblock office_body %}
