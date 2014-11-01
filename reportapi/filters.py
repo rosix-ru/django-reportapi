@@ -68,7 +68,7 @@ class BaseFilter(object):
     verbose_name = None
 
     def __str__(self):
-        return '<%s:%s>' % (self.__class__.__name__, self.name)
+        return '%s:%s' % (self.__class__.__name__, self.name)
 
     def __init__(self, name, required=False, conditions=None):
         if self.required is None:
@@ -310,7 +310,7 @@ class FilterDate(BaseFilter):
 
     def get_value(self, condition, value):
         if isinstance(value, six.string_types):
-            value = parse_datetime(value)
+            value = parse_date(value)
         elif isinstance(value, (list, tuple)):
             _value = list(set([ parse_date(v) for v in value ]))
             if len(_value) == len(value):
@@ -327,7 +327,7 @@ class FilterTime(BaseFilter):
 
     def get_value(self, condition, value):
         if isinstance(value, six.string_types):
-            value = parse_datetime(value)
+            value = parse_time(value)
         elif isinstance(value, (list, tuple)):
             _value = list(set([ parse_time(v) for v in value ]))
             if len(_value) == len(value):
