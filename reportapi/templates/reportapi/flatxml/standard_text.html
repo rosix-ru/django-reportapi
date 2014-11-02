@@ -271,7 +271,7 @@
                 <text:p text:style-name="TDContent">{{ filter.condition_label|lower }}</text:p>
             </table:table-cell>
             <table:table-cell table:style-name="TD.zZ" office:value-type="string">
-            {% if filter.condition == 'isnull' or filter.condition == 'empty' %}
+            {% if filter.condition == 'isnull' or filter.condition == 'empty' or filter.condition == 'truth' %}
                 <text:p text:style-name="TDContent">{% if filter.value %}{% trans 'yes' %}{% else %}{% trans 'no' %}{% endif %}</text:p>
             {% elif filter.condition == 'range' %}
                 <text:p text:style-name="TDContent">{{ filter.value_range_label|join:";<text:line-break/>" }}</text:p>

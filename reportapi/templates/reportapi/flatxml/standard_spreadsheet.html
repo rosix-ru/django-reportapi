@@ -1,0 +1,69 @@
+{% extends 'reportapi/flatxml/base.html' %}{% load i18n l10n reportapi_base %}
+
+{% block master_styles %}
+<!-- BLOCK MASTER_STYLES -->
+
+    <style:master-page style:name="Default" style:page-layout-name="pm1">
+        <style:header>
+            <text:p><text:sheet-name>???</text:sheet-name></text:p>
+        </style:header>
+        <style:header-left style:display="false"/>
+        <style:footer>
+            <text:p>{% trans "Page" %} <text:page-number>1</text:page-number></text:p>
+        </style:footer>
+        <style:footer-left style:display="false"/>
+    </style:master-page>
+
+    <style:master-page style:name="Report" style:page-layout-name="pm2">
+        <style:header>
+            <style:region-left>
+                <text:p><text:sheet-name>???</text:sheet-name> (<text:title>???</text:title>)</text:p>
+            </style:region-left>
+            <style:region-right>
+                <text:p><text:date style:data-style-name="N2" text:date-value="2014-10-07">00.00.0000</text:date>, <text:time>00:00:00</text:time></text:p>
+            </style:region-right>
+        </style:header>
+        <style:header-left style:display="false"/>
+        <style:footer>
+            <text:p>{% trans "Page" %} <text:page-number>1</text:page-number> / <text:page-count>99</text:page-count></text:p>
+        </style:footer>
+        <style:footer-left style:display="false"/>
+    </style:master-page>
+
+
+<!-- ENDBLOCK MASTER_STYLES -->
+{% endblock master_styles %}
+
+{% block office_body %}
+<!-- BLOCK OFFICE_BODY -->
+
+<office:spreadsheet>
+{% block body %}
+<!-- BLOCK BODY -->
+
+    <table:table table:name="{% trans "Sheet" %}1" table:style-name="ta1">
+        <table:table-column table:style-name="co1" table:default-cell-style-name="Default"/>
+        <table:table-row table:style-name="ro1">
+            <table:table-cell/>
+        </table:table-row>
+    </table:table>
+    <table:table table:name="{% trans "Sheet" %}2" table:style-name="ta1">
+        <table:table-column table:style-name="co1" table:default-cell-style-name="Default"/>
+        <table:table-row table:style-name="ro1">
+            <table:table-cell/>
+        </table:table-row>
+    </table:table>
+    <table:table table:name="{% trans "Sheet" %}3" table:style-name="ta1">
+        <table:table-column table:style-name="co1" table:default-cell-style-name="Default"/>
+        <table:table-row table:style-name="ro1">
+            <table:table-cell/>
+        </table:table-row>
+    </table:table>
+    <table:named-expressions/>
+
+<!-- ENDBLOCK BODY -->
+{% endblock body %}
+</office:spreadsheet>
+
+<!-- ENDBLOCK OFFICE_BODY -->
+{% endblock office_body %}

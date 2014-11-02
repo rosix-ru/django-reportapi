@@ -90,7 +90,7 @@ class BaseFilter(object):
     def get_value_label(self, condition, value):
         return self.get_value(condition, value)
 
-    def data(self, condition=None, value=None, inverse=False, **options):
+    def data(self, condition='truth', value=None, inverse=False, **options):
         """
         Метод получения информации об установленном фильтре.
         """
@@ -391,6 +391,42 @@ class FilterMonth(FilterChoice):
     _type = 'month'
     placeholder = _('Select month')
     _options = MONTHS
+
+class FilterPeriod(FilterChoice):
+    _type = 'period'
+    placeholder = _('Select period')
+    _options = (
+        ('today', _('Today')),
+        ('tomorrow', _('Tomorrow')),
+        ('tomorrow2', _('Day after tomorrow')),
+        ('yesterday', _('Yesterday')),
+        ('yesterday2', _('Two days ago')),
+
+        ('next2days', _('Next two days')),
+        ('next3days', _('Next three days')),
+        ('last2days', _('Last two days')),
+        ('last3days', _('Last three days')),
+
+        ('week', _('Current week')),
+        ('next_week', _('Next week')),
+        ('previous_week', _('Previous week')),
+
+        ('month', _('Current month')),
+        ('next_month', _('Next month')),
+        ('previous_month', _('Previous month')),
+
+        ('quarter1', _('First quarter')),
+        ('quarter2', _('Second quarter')),
+        ('quarter3', _('Third quarter')),
+        ('quarter4', _('Fourth quarter')),
+
+        ('halfyear1', _('First half year')),
+        ('halfyear2', _('Second half year')),
+
+        ('year', _('Current year')),
+        ('next_year', _('Next year')),
+        ('previous_year', _('Previous year')),
+    )
 
 
 def _search_in_fields(queryset, fields, query):

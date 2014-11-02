@@ -46,14 +46,8 @@ urlpatterns = patterns('reportapi.views',
     url(r'^api/', 'api', name='api'),
     url(r'^list/(?P<section>\w+)/$', 'report_list', name='report_list'),
     url(r'^docs/(?P<pk>\d+)/$', 'get_document', name='get_document'),
-    url(r'^docs/(?P<pk>\d+)/(?P<format>\w+)/$', 'get_document', name='get_document_format'),
     url(r'^docs/$', 'documents', name='documents'),
     url(r'^docs/(?P<section>\w+)/$', 'documents', name='documents_section'),
     url(r'^docs/(?P<section>\w+)/(?P<name>\w+)/$', 'documents', name='documents_section_name'),
     url(r'^report/(?P<section>\w+)/(?P<name>\w+)/$', 'report', name='report'),
-    #~ url(r'^test/$', 'test',  name='reportapi_test'),
 )
-
-#~ urlpatterns += patterns('',
-    #~ url(r'^api/',   include('quickapi.urls'), name='reportapi')
-#~ )

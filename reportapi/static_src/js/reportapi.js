@@ -142,6 +142,10 @@ function jsonAPI(args, callback, to_console, sync, timeout) {
         /* При ошибках извещаем пользователя полученным сообщением */
         else if (json.status >=400) {
             handlerShowAlert(json.message, 'alert-danger');
+            clearInterval(window.REPORT.process);
+            window.REPORT.process = undefined;
+            $('.progress .progress-bar').removeClass('progress-striped active');
+            handlerSetProgress(0);
         }
         /* При нормальном возврате в debug-режиме выводим в консоль
          * сообщение
@@ -166,8 +170,10 @@ function jsonAPI(args, callback, to_console, sync, timeout) {
 /* Обработчик создания отчёта */
 function handlerCreateReport(force) {
     if (DEBUG) {console.log('function:'+'handlerCreateReport')};
-    $('.action-preview, .action-remove, .action-download')
+    $('.action-create-report, .action-recreate-report, .action-preview, .action-remove')
         .attr('disabled', 'disabled');
+    $('#view-document-place').hide();
+
     window.REPORT.id = null;
     window.REPORT.process_filters = {};
     $.each(window.REPORT.filters, function(key, item) {
@@ -215,61 +221,59 @@ function handlerCheckProcess() {
     };
 
     cb = function(json, status, xhr) {
-        $obj = $('.progress .progress-bar');
-        max = Number($obj.attr('aria-valuemax'));
-        now = Number($obj.attr('aria-valuetransitiongoal'));
+        var $pbar = $('.progress .progress-bar'),
+            max = Number($pbar.attr('aria-valuemax')),
+            now = Number($pbar.attr('aria-valuenow'));
         window.REPORT.id = json.data.id;
         window.REPORT.timeout = json.data.timeout;
         if (json.data.end) {
+            // report ready
             clearInterval(window.REPORT.process);
             window.REPORT.process = undefined;
-            $obj.attr('aria-valuetransitiongoal', max).progressbar();
-            
-            url = json.data.url + window.REPORT.format.toLowerCase() + '/';
+            handlerSetProgress(max);
 
             $('.action-preview')
-                .attr('onClick', "handlerShowDocument('"+json.data.url+"', 'document-"+json.data.id+"')")
-                .removeAttr('disabled').show();
+                .attr('onclick', "handlerShowDocument('"+json.data.url+"', 'document-"+json.data.id+"')")
+                .prop("disabled", false).removeAttr('disabled');
             if (json.data.error) {
-                $('.action-download').attr('disabled', 'disabled').hide();
-                $('.action-remove')
-                    .attr('onClick', "handlerRemoveDocument("+json.data.id+")")
-                    .attr('disabled', 'disabled').show();
-                if (json.data.has_remove) {
-                    $('.action-remove').removeAttr('disabled');
-                };
                 $('.action-preview')
-                    .removeClass('btn-default').addClass('btn-warning')
+                    .removeClass('btn-default btn-success')
+                    .addClass('btn-warning')
                     .find('.fa').removeClass('fa-search').addClass('fa-bug');
             } else {
-                $('.action-remove').attr('disabled', 'disabled').hide();
-                $('.action-download')
-                    .attr('href', url)
-                    .removeAttr('disabled').show();
                 $('.action-preview')
                     .removeClass('btn-warning').addClass('btn-default')
                     .find('.fa').removeClass('fa-bug').addClass('fa-search');
             };
-            $('.progress')
-                .removeClass('progress-striped')
-                .removeClass('active')
-                .hide();
-            $obj.attr('aria-valuetransitiongoal', 0).progressbar();
+            // If user can remove this report
+            if (json.data.has_remove) {
+                $('.action-remove')
+                    .attr('onclick', "handlerRemoveDocument("+json.data.id+")")
+                    .prop("disabled", false).removeAttr('disabled');
+            } else {
+                $('.action-remove').removeAttr('onclick')
+                    .prop("disabled", true).attr('disabled', 'disabled');
+            };
+
+            // TODO: animation or 1-2 seconds after
+            $pbar.removeClass('progress-striped active');
+            //~ handlerSetProgress(0);
 
             if (window.REPORT.create_force) {
                 $('.action-create-report:visible').hide();
-                $('.action-recreate-report:hidden').show();
+                $('.action-recreate-report:hidden')
+                    .prop("disabled", false).removeAttr('disabled')
+                    .show();
             } else {
-                $('.action-create-report').prop("disabled", true);
+                $('.action-create-report').prop("disabled", true).attr('disabled', 'disabled');
             };
-            //~ $('.progress').hide(500);
         } else if (now >= max){
-            //~ $obj.attr('aria-valuetransitiongoal', (max/100)*99).progressbar();
-            $('.progress')
-                .addClass('progress-striped')
-                .addClass('active');
+            // report not ready and count request to server >= maximum request
+            $pbar.addClass('progress-striped active');
         } else {
-            $obj.attr('aria-valuetransitiongoal', TIMEOUT_PROGRESS + now).progressbar();
+            // report not ready
+            console.log(TIMEOUT_PROGRESS + now);
+            handlerSetProgress(TIMEOUT_PROGRESS + now);
         };
     };
 
@@ -283,9 +287,7 @@ function handlerStartProgress() {
     $('.action-create-report').prop("disabled", true);
     $('.progress .progress-bar')
         .attr('aria-valuemax', window.REPORT.timeout || TIMEOUT_PROGRESS)
-        .attr('aria-valuetransitiongoal', 1)
-        .progressbar();
-    $('.progress').show();
+        .attr('aria-valuenow', 0).css('width', '0%');
     
     window.REPORT.process = setInterval(function () {
         handlerCheckProcess();
@@ -301,9 +303,9 @@ function handlerRemoveDocument(id, refresh) {
                 'id': id,
             },
             success = function() {
-                $('.action-preview, .action-remove, .action-download')
-                    .attr('disabled', 'disabled').hide();
-                $('#thumbnail-document-'+id).remove();
+                $('#div-document-'+id).remove();
+                $('#view-document-place').hide();
+                handlerAfterChanges();
                 if (refresh) { window.location.reload() };
             };
         new jsonAPI(args, success);
@@ -452,9 +454,9 @@ function handlerCheckRequiredValue() {
         };
     });
     if (completed) {
-        $('.action-create-report').prop("disabled", false);
+        $('.action-create-report').prop("disabled", false).removeAttr("disabled");
     } else {
-        $('.action-create-report').prop("disabled", true);
+        $('.action-create-report').prop("disabled", true).attr('disabled', 'disabled');
     };
     return completed;
 };
@@ -467,15 +469,11 @@ function handlerAfterChanges() {
         window.REPORT.id = null;
         window.REPORT.process = null;
     };
-    $('.progress:visible').hide();
-    $('.progress .progress-bar').attr('aria-valuetransitiongoal', 0)
-        .progressbar();
-    $('.action-preview:visible').hide();
-    $('.action-download:visible').hide();
+    handlerSetProgress(0);
+    $('.action-create-report, .action-preview, .action-remove')
+        .attr('disabled', 'disabled');
     $('.action-recreate-report:visible').hide();
     $('.action-create-report:hidden').show();
-    $('.action-preview, .action-remove, .action-download')
-        .attr('disabled', 'disabled').hide();
     handlerCheckRequiredValue();
 };
 
@@ -589,19 +587,43 @@ function eventKeyDownOnNumber(event) {
 //                              ПРОЧЕЕ                                //
 ////////////////////////////////////////////////////////////////////////
 
+/* Обработчик прогрессбара */
+function handlerSetProgress(now) {
+    if (DEBUG) {console.log('function:'+'handlerSetProgress')};
+    var $pbar = $('.progress .progress-bar'),
+        max = Number($pbar.attr('aria-valuemax')) || 100,
+        now = now || 0,
+        width = (now / max) * 100;
+    width = width > 100 ? 100 : width;
+    $pbar.attr('aria-valuenow', now).css('width', width +'%');
+};
+
 /* Обработчик просмотра отчёта */
-function handlerShowDocument(href, name) {
+function handlerShowDocument(href, name, inwindow) {
     if (DEBUG) {console.log('function:'+'handlerShowDocument')};
-    var win = window.open(href, name, 'height=500,width=800,resizable=yes,scrollbars=yes');
-    win.focus();
+    if (inwindow) {
+        var win = window.open(href, name, 'height=500,width=800,resizable=yes,scrollbars=yes');
+        win.focus();
+    } else {
+        var $place  = $('#view-document-place'),
+            html = '<iframe class="embed-responsive-item" src="'
+                   +href
+                   +'" allowfullscreen webkitallowfullscreen></iframe>';
+        if ($place.size() == 0) {
+            $('#view-'+name).toggle();
+            $('#view-'+name+':visible .embed-responsive').html(html);
+        } else {
+            $place.show().find('.embed-responsive').html(html);
+        }
+    }
 };
 
 /* Обработчик отображения дополнительных фильтров */
 function handlerShowAdditionalFilters() {
     if (DEBUG) {console.log('function:'+'handlerShowAdditionalFilters')};
     $('.additional-filter').show();
-    $('button.action-hide-additional').show();
-    $('button.action-show-additional').hide();
+    $('.action-hide-additional').show();
+    $('.action-show-additional').hide();
 
     return true;
 };
@@ -610,8 +632,8 @@ function handlerShowAdditionalFilters() {
 function handlerHideAdditionalFilters() {
     if (DEBUG) {console.log('function:'+'handlerHideAdditionalFilters')};
     $('.additional-filter').hide();
-    $('button.action-hide-additional').hide();
-    $('button.action-show-additional').show();
+    $('.action-hide-additional').hide();
+    $('.action-show-additional').show();
     return true;
 };
 

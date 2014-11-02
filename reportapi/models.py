@@ -25,6 +25,7 @@ from __future__ import unicode_literals
 import os, re, hashlib, subprocess
 
 from django.utils.encoding import smart_text, force_text, python_2_unicode_compatible
+from django.utils.crypto import get_random_string
 from django.utils import six
 from django.db import models
 from django.db.models import Q, get_model
@@ -34,10 +35,14 @@ from django.template import RequestContext, loader
 from django.template.defaultfilters import slugify
 from django.core.files.base import ContentFile
 
-from reportapi.conf import (settings, REPORTAPI_CODE_HASHLIB,
-    REPORTAPI_UPLOAD_HASHLIB, REPORTAPI_FILES_UNIDECODE,
-    AUTH_USER_MODEL, REPORTAPI_CONVERTOR_BACKEND,
-    REPORTAPI_PDFCONVERT_ARGS1, REPORTAPI_PDFCONVERT_ARGS2)
+from reportapi.conf import (
+    settings,
+    REPORTAPI_CODE_HASHLIB,
+    REPORTAPI_UPLOAD_HASHLIB,
+    REPORTAPI_FILES_UNIDECODE,
+    AUTH_USER_MODEL,
+    Header, Footer, Page
+)
 
 from reportapi.fields import JSONField
 
@@ -52,32 +57,22 @@ else:
 
 REPORTAPI_CODE_LENGTH = len(hashlib.new(REPORTAPI_CODE_HASHLIB).hexdigest())
 
-if REPORTAPI_CONVERTOR_BACKEND:
-    from django.utils.importlib import import_module
-    backend = REPORTAPI_CONVERTOR_BACKEND.split('.')
-    mod  = '.'.join(backend[:-1])
-    func = backend[-1]
-    try:
-        CONVERTOR_BACKEND = getattr(import_module(mod), func)
-    except:
-        CONVERTOR_BACKEND = None
-else:
-    CONVERTOR_BACKEND = None
-
 class Report(object):
     enable_threads  = True
     create_force    = True
     expiration_time = 86400 # 1 day
-    report_format   = ('pdf', 'application/pdf') # ending and content type
+    mimetype        = 'application/vnd.oasis.opendocument.text'
+    format          = 'fodt'
     icon            = None
-    template_name   = 'reportapi/portrait.html'
+    template_name   = 'reportapi/flatxml/standard_text.html'
     filters         = None
     site            = None
     name            = None
     title           = None
-    verbose_name    = None
+    verbose_name    = None # do not change
     section         = ugettext_noop('main')
-    section_label   = None
+    section_label   = None # do not change
+    page            = Page()
 
     def __init__(self, site=None, section=None, section_label=None, \
         filters=None, title=None, name=None, **kwargs):
@@ -122,10 +117,6 @@ class Report(object):
     def label(self):
         return self.verbose_name
 
-    @property
-    def format(self):
-        return self.report_format[0]
-
     def create_register(self):
         """
         Создаёт в базе данных объект регистрации отчёта
@@ -168,7 +159,7 @@ class Report(object):
         return code.hexdigest()
 
     def get_filename(self):
-        filename = smart_text(self.verbose_name) + '.html'
+        filename = smart_text(self.verbose_name) + '.' + self.format
         filename = prep_filename(filename)
         return filename
 
@@ -221,6 +212,8 @@ class Report(object):
         Формирование файла отчёта.
         """
         context = self.get_context(request, document, filters)
+        document.mimetype   = self.mimetype
+        context['PAGE']     = self.page.checked()
         context['DOCUMENT'] = document
         context['FILTERS'] = self.get_filters_data(filters)
         content = loader.render_to_string(self.template_name, context,
@@ -243,10 +236,10 @@ class Report(object):
         return [ x.serialize() for x in self.filters ]
 
     def validate_filters(self, filters):
-        try:
-            data = self.get_filters_data(filters)
-        except:
-            return False
+        """
+        Raise Exception from filter if not valid
+        """
+        data = self.get_filters_data(filters)
         return True
 
     def get_filters_data(self, filters):
@@ -279,7 +272,7 @@ class Report(object):
             'section': self.section,
             'label': self.label,
             'icon': self.icon,
-            'format': self.report_format[0],
+            'format': self.format,
             'enable_threads': self.enable_threads,
             'create_force': self.create_force,
             'expiration_time': self.expiration_time,
@@ -294,6 +287,11 @@ class Report(object):
     @property
     def timeout(self):
         return self.create_register().timeout
+
+class Spreadsheet(Report):
+    mimetype      = "application/vnd.oasis.opendocument.spreadsheet"
+    format        = 'fods'
+    template_name = 'reportapi/flatxml/standard_spreadsheet.html'
 
 class RegisterManager(models.Manager):
     use_for_related_fields = True
@@ -411,7 +409,8 @@ class Document(models.Model):
         }
         code = hashlib.new(REPORTAPI_UPLOAD_HASHLIB)
         code.update(str(dt.isoformat()))
-        code.update('reportapi'+settings.SECRET_KEY)
+        code.update('reportapi')
+        code.update(get_random_string())
         dic['code'] = code.hexdigest()
         return smart_text('reports/%(date)s/%(code)s/%(filename)s' % dic)
 
@@ -428,67 +427,6 @@ class Document(models.Model):
         if self.report_file:
             return self.report_file.url
         return None
-
-    def format_url(self, format):
-        format = format.lower()
-        if self.report_file:
-            if self.convert_to(format):
-                return self.report_file.url[:-4] + format # cut 'html' and append format file
-        return None
-
-    def convert_to(self, format):
-        """
-        Конвертирует из HTML в заданный формат. Поддерживаются:
-            1. ODT, ODS (фиктивная конвертация простым изменением
-                        окончания файла)
-            2. PDF (натуральная конвертация с использованием 
-                    настроек REPORTAPI_PDFCONVERT_ARGS[1,2])
-
-        Может использовать внешнюю функцию конвертации, заданную в
-        параметре REPORTAPI_CONVERTOR_BACKEND как строка для импорта.
-        Такая функция должна принимать 2 параметра и возвращать строку
-        пути к файлу, либо `None`:
-
-        def myconvertor(document, format):
-            return path_to_file or None
-        """
-        if CONVERTOR_BACKEND:
-            return CONVERTOR_BACKEND(document=self, format=format)
-
-        format = format.lower()
-        path = self.report_file.path
-        newpath = path[:-4] + format # cut 'html' and append format file
-        if format in ('odt', 'ods'):
-            if not os.path.exists(newpath):
-                cwd = os.getcwd()
-                os.chdir(os.path.dirname(path))
-                os.symlink(os.path.basename(path), os.path.basename(newpath))
-                os.chdir(cwd)
-
-        elif format == 'pdf':
-            if not os.path.exists(newpath):
-                cwd = os.getcwd()
-
-                proc = REPORTAPI_PDFCONVERT_ARGS1 + [
-                    os.path.basename(path)
-                ] + REPORTAPI_PDFCONVERT_ARGS2
-
-                out = "/dev/null"
-                err = "/dev/null"
-                p = subprocess.Popen(proc, shell=False,
-                        stdout=open(out, 'w+b'), 
-                        stderr=open(err, 'w+b'),
-                        cwd=os.path.dirname(path))
-                a = p.wait()
-
-                os.chdir(cwd)
-
-                if not os.path.exists(newpath):
-                    return None
-        else:
-            return path
-
-        return newpath
 
     def delete(self):
         remove_dirs(os.path.dirname(self.report_file.path), withfiles=True)

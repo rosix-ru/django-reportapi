@@ -30,8 +30,8 @@ from django.template import Template, Context, RequestContext
 from django.views.debug import ExceptionReporter
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
-from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
+#~ from django.utils import translation
+from django.utils.translation import get_language, ugettext_lazy as _
 
 from datetime import timedelta
 import os, sys, datetime, hashlib, traceback, threading
@@ -43,8 +43,8 @@ from quickapi.decorators import login_required, api_required
 from reportapi.sites import site
 from reportapi.conf import (settings, REPORTAPI_DEBUG,
     REPORTAPI_FILES_UNIDECODE, REPORTAPI_ENABLE_THREADS,
-    REPORTAPI_DEFAULT_FORMAT)
-from reportapi.models import Report, Register, Document
+    REPORTAPI_LANGUAGES)
+from reportapi.models import Register, Document
 
 DOCS_PER_PAGE = 25
 
@@ -86,7 +86,7 @@ def report_list(request, section):
 
     docs = Document.objects.permitted(request).all()
     docs = docs.filter(register__section=section)
-    ctx['last_docs'] = docs[:DOCS_PER_PAGE]
+    ctx['docs'] = docs[:DOCS_PER_PAGE]
 
     ctx['reports'] = site.sections[section].get_reports(request)
 
@@ -96,16 +96,30 @@ def report_list(request, section):
 @login_required
 def documents(request, section=None, name=None):
     """
+    Returns inner html with founded documents
     """
     ctx = _default_context(request)
+
     docs = Document.objects.permitted(request).all()
+
     if section:
+        ctx['section'] = site.sections.get(section, None)
+        if not ctx['section'] or not ctx['section'].has_permission(request):
+            return render_to_response('reportapi/404.html', ctx,
+                            context_instance=RequestContext(request,))
         docs = docs.filter(register__section=section)
+
     if section and name:
+        report, register = site.get_report_and_register(request, section, name)
+        if not report or not register:
+            return render_to_response('reportapi/404.html', ctx,
+                            context_instance=RequestContext(request,))
+        ctx['report'] = report
         docs = docs.filter(register__name=name)
+
     ctx['docs'] = docs[:DOCS_PER_PAGE]
 
-    return render_to_response('reportapi/documents.html', ctx,
+    return render_to_response('reportapi/index.html', ctx,
                             context_instance=RequestContext(request,))
 
 @login_required
@@ -117,29 +131,44 @@ def report(request, section, name):
                             context_instance=RequestContext(request,))
 
     ctx['report_as_json'] = tojson(report.get_scheme(request) or dict())
-    ctx['report'] = report
+    ctx['report']  = report
+    ctx['section'] = site.sections[section]
 
     return render_to_response('reportapi/report.html', ctx,
                             context_instance=RequestContext(request,))
 
 @login_required
-def get_document(request, pk, format=None):
+def get_document(request, pk, download=False):
     ctx = _default_context(request)
     try:
         doc = Document.objects.permitted(request).get(pk=pk)
     except Exception as e:
+        ctx['remove_nav'] = True
         return render_to_response('reportapi/404.html', ctx,
                             context_instance=RequestContext(request,))
     if doc.error:
         return HttpResponse(doc.error, mimetype='text/html')
 
-    if format:
-        url = doc.format_url(format)
-    else:
+    if doc.report_file and os.path.exists(doc.report_file.path):
         url = doc.url
+        if download:
+            return HttpResponseRedirect(url)
+        # compatible with old versions
+        elif url.endswith('.html'):
+            return HttpResponseRedirect(url)
 
-    if url:
-        return HttpResponseRedirect(url)
+        ctx['DOCUMENT'] = doc
+
+        lang = get_language()
+        if lang in REPORTAPI_LANGUAGES:
+            lang = '.' + lang
+        else:
+            lang = ''
+
+        return HttpResponseRedirect('%slib/ViewerJS/index%s.html#%s' %
+            (settings.STATIC_URL, lang, url))
+
+    ctx['remove_nav'] = True
 
     return render_to_response('reportapi/404.html', ctx,
                             context_instance=RequestContext(request,))
@@ -152,10 +181,7 @@ def _default_context(request):
     ctx = {}
     ctx['sections'] = site.get_sections(request)
     docs = Document.objects.permitted(request).all()
-    #~ docs_user = docs.filter(user=request.user)
-    ctx['last_docs'] = docs[:DOCS_PER_PAGE]
-    #~ ctx['last_docs_user'] = docs_user[:DOCS_PER_PAGE]
-    ctx['DEFAULT_FORMAT'] = REPORTAPI_DEFAULT_FORMAT
+    ctx['docs'] = docs[:DOCS_PER_PAGE]
     return ctx
 
 def create_document(request, report, document, filters):
@@ -187,6 +213,7 @@ def create_document(request, report, document, filters):
 def result(request, document, old=False):
     user = request.user
     result = {
+        'report_id': document.register_id,
         'id': document.id,
         'start': document.start,
         'end': document.end,

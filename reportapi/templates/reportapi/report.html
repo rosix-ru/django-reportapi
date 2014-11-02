@@ -1,112 +1,99 @@
 {% extends 'reportapi/base.html' %}
-{% load i18n l10n %}
+{% load i18n l10n %}{% load url from future %}
 
 {% block content %}
+
+<ol class="breadcrumb">
+    <li><a href="{% url 'reportapi:index' %}">{% trans 'Reporting' %}</a></li>
+    <li><a href="{% url 'reportapi:report_list' section.name %}">{{ section.label|capfirst }}</a></li>
+    <li class="active">{{ report.label }}</li>
+    <li><a href="{% url 'reportapi:documents_section_name' report.section report.name %}">
+        {% trans "Ready documents" %}</a>
+    </li>
+</ol>
+
 <legend>{{ report.label }}</legend>
-<div class="row">
-    {% for name, filter in report.filters_list %}
-        <div class="col-xs-12{% if report.filters_list|length > 4 %} col-lg-6{% endif %}">
-        {% if filter.type == 'boolean' %}
-            <table class="table table-bordered{% if not filter.required %} additional-filter{% endif %}"
-                {% if not filter.required %}style="display: none;"{% endif %}>
-                <tbody>
-                    <tr class="bg-warning">
-                        <td style="vertical-align: middle;">
-                            <label>
-                                <input id="value-{{ filter.name }}"
-                                    type="checkbox" name="{{ filter.name }}"
-                                    class="ace ace-switch ace-switch-4">
-                                <span class="lbl">&nbsp;<b>{{ filter.label|title }}</b></span>
-                            </label>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        {% else %}
-            <table class="table table-bordered table-striped{% if not filter.required %} additional-filter{% endif %}"
-                {% if not filter.required %}style="display: none;"{% endif %}>
-                <thead>
-                    <tr class="{% if filter.required %}bg-primary{% else %}bg-info{% endif %}">
-                        <th colspan="2">{{ filter.label|title }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="col-xs-4">
-                            <select class="form-control"
-                                id="condition-{{ filter.name }}"
-                                data-type="{{ filter.type }}"
-                                data-name="{{ filter.name }}">
-                                <option value="">&lt;{% trans 'no condition' %}&gt;</option>
-                                {% for cond, label in filter.conditions %}
-                                    <option value="{{ cond }}">{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                        <td id="valuebox-{{ filter.name }}" style="vertical-align: middle;">
-                            {% if filter.required %}
-                                <label class="text-danger">{% trans 'Filter required' %}</label>
-                            {% endif %}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        {% endif %}
-        </div>
-    {% endfor %}
-</div>
+<p></p>
+<table class="table table-condensed table-striped">
+    <tbody>
+{% for name, filter in report.filters_list %}
+    {% if filter.type == 'boolean' %}
+        <tr class="bg-warning">
+            <td colspan="3" style="vertical-align: middle;">
+                <label>
+                    <input id="value-{{ filter.name }}"
+                        type="checkbox" name="{{ filter.name }}"
+                        class="ace ace-switch ace-switch-4">
+                    <span class="lbl">&nbsp;<b>{{ filter.label|title }}</b></span>
+                </label>
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <th class="col-xs-2">{{ filter.label|title }}</th>
+            <td class="col-xs-2" style="vertical-align: middle;">
+                <select class="form-control"
+                    id="condition-{{ filter.name }}"
+                    data-type="{{ filter.type }}"
+                    data-name="{{ filter.name }}">
+                    <option value="">&lt;{% trans 'no condition' %}&gt;</option>
+                    {% for cond, label in filter.conditions %}
+                        <option value="{{ cond }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td id="valuebox-{{ filter.name }}" style="vertical-align: middle;">
+                {% if filter.required %}
+                    <label class="text-danger">{% trans 'Filter required' %}</label>
+                {% endif %}
+            </td>
+        </tr>
+    {% endif %}
+{% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="3">
+                <div class="progress" style="margin-bottom: 0px;">
+                    <div class="progress-bar" role="progressbar"
+                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+                        style="width: 0%;">
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                <div class="btn-group btn-group-justified">
+                    <a href="#" type="button" class="btn btn-default" disabled style="display: none; margin-top: 0px;"></a>
+                    <a href="#" type="button" class="btn btn-primary action-create-report" disabled role="button">
+                        {% trans 'Create document' %}
+                    </a>
+                    <a href="#" type="button" class="btn btn-danger action-recreate-report"
+                        style="display: none; margin-top: 0px;" disabled role="button">
+                        {% trans 'Recreate document' %}
+                    </a>
+                    <a href="#view-document-place" type="button"
+                        class="btn btn-default action-preview" disabled role="button">
+                        <i class="fa fa-search"></i>
+                        {% trans 'View' %}
+                    </a>
+                    <a href="#" type="button"
+                        class="btn btn-danger action-remove" disabled role="button">
+                        <i class="fa fa-times"></i>
+                        {% trans 'Remove' %}
+                    </a>
+                    <a href="#" type="button" class="btn btn-default" disabled style="display: none; margin-top: 0px;"></a>
+                </div>
+            </td>
+        </tr>
+        
+    </tfoot>
+</table>
 
-<div class="row">
-    <p class="col-xs-12 col-md-6">
-        <button type="button" class="btn btn-default btn-block btn-lg action-show-additional">
-            {% trans 'Show additional' %}
-        </button>
-        <button type="button" class="btn btn-default btn-block btn-lg action-hide-additional"
-            style="display: none; margin-top: 0px;">
-            {% trans 'Hide additional' %}
-        </button>
-    </p>
-    <p class="col-xs-12 col-md-6">
-        <button type="button" class="btn btn-primary btn-block btn-lg action-create-report" disabled>
-            {% trans 'Create document' %}
-        </button>
-        <button type="button" class="btn btn-danger btn-block btn-lg action-recreate-report"
-            style="display: none; margin-top: 0px;">
-            {% trans 'Recreate document' %}
-        </button>
-    </p>
+<div id="view-document-place" style="display:none; padding-top: 60px;">
+    <div class="embed-responsive embed-responsive-4by3"></div>
 </div>
-
-<div class="progress" style="display: none;">
-    <div class="progress-bar" role="progressbar"
-        aria-valuemin="0" aria-valuemax="100">
-    </div>
-</div>
-
-<div class="row">
-    <p class="col-xs-12 col-md-6">
-        <button 
-            class="btn btn-default btn-block action-preview" role="button"
-            style="display: none;">
-            <i class="fa fa-search"></i>
-            {% trans 'View' %}
-        </button>
-    </p>
-    <p class="col-xs-12 col-md-6">
-        <a href="#" class="btn btn-primary btn-block action-download" role="button"
-            style="display: none;">
-            <i class="fa fa-cloud-download"></i>
-            {% trans 'Download' %} {{ report.format|upper }}
-        </a>
-        <button
-            class="btn btn-danger btn-block action-remove" role="button"
-            style="display: none; margin-top: 0px;">
-            <i class="fa fa-times"></i>
-            {% trans 'Remove' %}
-        </button>
-    </p>
-</div>
-
 
 {% endblock %}
 

@@ -40,7 +40,7 @@ from django.utils.translation import ugettext_noop, ugettext_lazy as _
 from reportapi.filters import (FilterObject, FilterText, FilterNumber,
     FilterDateTime, FilterDate, FilterTime,
     FilterBoolean, FilterChoice, FilterMonth, FilterWeekDay,)
-from reportapi.models import Report
+from reportapi.models import Report, Spreadsheet
 from reportapi.sites import site
 from reportapi.conf import settings
 
@@ -69,7 +69,36 @@ class TestReport(Report):
         методе self.render(...)
         """
         import time
-        #~ time.sleep(30)
+        time.sleep(30) # for test progressbar
+
+        return {}
+
+@site.register
+class TestSpreadsheet(Spreadsheet):
+    title = ugettext_noop('Test spreadsheet')
+
+    filters = (
+        FilterObject(ugettext_noop('filter for objects'), manager='auth.User.objects', required=True),
+        FilterText(ugettext_noop('filter for text')),
+        FilterNumber(ugettext_noop('filter for number')),
+        FilterDateTime(ugettext_noop('filter for date and time'), True), # required=True as argument
+        FilterDate(ugettext_noop('filter for date')),
+        FilterTime(ugettext_noop('filter for time')),
+        FilterChoice(ugettext_noop('filter for choice'), options=((1, _('First')),(2, _('Second')))),
+        FilterMonth(ugettext_noop('filter for month')),
+        FilterWeekDay(ugettext_noop('filter for weekday')),
+        FilterBoolean(ugettext_noop('filter for boolean')),
+    )
+
+    def get_context(self, request, document, filters):
+        """
+        Этот метод должен быть переопределён в наследуемых классах.
+        Возвращать контекст нужно в виде словаря.
+        Параметр context['DOCUMENT'] будет установлен автоматически в
+        методе self.render(...)
+        """
+        import time
+        time.sleep(30) # for test progressbar
 
         return {}
 

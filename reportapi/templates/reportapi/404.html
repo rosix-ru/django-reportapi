@@ -1,6 +1,10 @@
 {% extends 'reportapi/base.html' %}
 {% load i18n l10n %}
 
+{% if remove_nav %}
+    {% block navbar %}{% endblock %}
+{% endif %}
+
 {% block content %}
     <div class="inner cover">
         <h1 class="cover-heading">404</h1>

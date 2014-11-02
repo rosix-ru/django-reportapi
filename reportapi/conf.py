@@ -42,23 +42,47 @@ REPORTAPI_ENABLE_THREADS = getattr(settings, 'REPORTAPI_ENABLE_THREADS', False)
 REPORTAPI_CODE_HASHLIB = getattr(settings, 'REPORTAPI_CODE_HASHLIB', 'md5')
 REPORTAPI_UPLOAD_HASHLIB = getattr(settings, 'REPORTAPI_UPLOAD_HASHLIB', 'md5')
 REPORTAPI_FILES_UNIDECODE = getattr(settings, 'REPORTAPI_FILES_UNIDECODE', False)
-REPORTAPI_PDFCONVERT_ARGS1 = getattr(settings, 'REPORTAPI_PDFCONVERT_ARGS1',
-            ['unoconv', '-f', 'pdf'])
-REPORTAPI_PDFCONVERT_ARGS2 = getattr(settings, 'REPORTAPI_PDFCONVERT_ARGS2', [])
-REPORTAPI_CONVERTOR_BACKEND = getattr(settings, 'REPORTAPI_CONVERTOR_BACKEND', None)
-
-
-REPORTAPI_DEFAULT_FORMAT = getattr(settings, 'REPORTAPI_DEFAULT_FORMAT', None)
-if not REPORTAPI_DEFAULT_FORMAT:
-    import subprocess
-
-    REPORTAPI_DEFAULT_FORMAT = 'odt'
-    try:
-        if subprocess.check_output(["which", "unoconv"]):
-            REPORTAPI_DEFAULT_FORMAT = 'pdf'
-    except:
-        pass
+REPORTAPI_LANGUAGES = getattr(settings, 'REPORTAPI_LANGUAGES', ['en', 'ru'])
 
 AUTH_USER_MODEL  = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
-#~ REPORTAPI_EXTERNAL_SUPPORT = getattr(settings, 'REPORTAPI_EXTERNAL_SUPPORT',  False)
-#~ REPORTAPI_DEFAULT_TIMEOUT = getattr(settings, 'REPORTAPI_DEFAULT_TIMEOUT', 2)
+
+class Header(object):
+    min_height      = getattr(settings, 'REPORTAPI_HEADER_MIN_HEIGHT', '0.1cm')
+    margin_top      = getattr(settings, 'REPORTAPI_HEADER_MARGIN_TOP', '0cm')
+    margin_bottom   = getattr(settings, 'REPORTAPI_HEADER_MARGIN_BOTTOM', '0cm')
+    margin_left     = getattr(settings, 'REPORTAPI_HEADER_MARGIN_LEFT', '0cm')
+    margin_right    = getattr(settings, 'REPORTAPI_HEADER_MARGIN_RIGHT', '0cm')
+    dynamic_spacing = getattr(settings, 'REPORTAPI_HEADER_DYNAMIC_SPACING', 'false')
+    auto_height     = getattr(settings, 'REPORTAPI_HEADER_AUTO_HEIGHT', 'false')
+
+class Footer(object):
+    min_height    = getattr(settings, 'REPORTAPI_FOOTER_MIN_HEIGHT', '1.2cm')
+    margin_top    = getattr(settings, 'REPORTAPI_FOOTER_MARGIN_TOP', '0.5cm')
+    margin_bottom = getattr(settings, 'REPORTAPI_FOOTER_MARGIN_BOTTOM', '0cm')
+    margin_left   = getattr(settings, 'REPORTAPI_FOOTER_MARGIN_LEFT', '0cm')
+    margin_right  = getattr(settings, 'REPORTAPI_FOOTER_MARGIN_RIGHT', '0cm')
+    border_top    = getattr(settings, 'REPORTAPI_FOOTER_BORDER_TOP', '0.002cm solid #000000')
+
+class Page(object):
+    style_name    = getattr(settings, 'REPORTAPI_PAGE_STYLE_NAME', 'A4')
+    width         = getattr(settings, 'REPORTAPI_PAGE_WIDTH', '21cm')
+    height        = getattr(settings, 'REPORTAPI_PAGE_HEIGHT', '29.7cm')
+    margin_top    = getattr(settings, 'REPORTAPI_PAGE_MARGIN_TOP', '0.6cm')
+    margin_bottom = getattr(settings, 'REPORTAPI_PAGE_MARGIN_BOTTOM', '0.6cm')
+    margin_left   = getattr(settings, 'REPORTAPI_PAGE_MARGIN_LEFT', '2.0cm')
+    margin_right  = getattr(settings, 'REPORTAPI_PAGE_MARGIN_RIGHT', '0.6cm')
+    num_format    = getattr(settings, 'REPORTAPI_PAGE_NUM_FORMAT', '1')
+    print_orientation   = getattr(settings, 'REPORTAPI_PAGE_PRINT_ORIENTATION', 'portrait')
+    footnote_max_height = getattr(settings, 'REPORTAPI_PAGE_FOOTNOTE_MAX_HEIGHT', '0cm')
+
+    header = Header()
+    footer = Footer()
+
+    def checked(self):
+        w = float(self.width.replace('cm', ''))
+        h = float(self.height.replace('cm', ''))
+        if self.print_orientation == 'landscape' and h > w:
+            self.width, self.height = self.height, self.width
+        elif h < w and self.print_orientation == 'portrait':
+            self.print_orientation == 'landscape'
+        return self

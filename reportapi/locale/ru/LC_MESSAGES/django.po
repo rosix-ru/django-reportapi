@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReportAPI\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-23 22:17+1100\n"
+"POT-Creation-Date: 2014-11-02 23:57+1000\n"
 "PO-Revision-Date: 2014-03-07 00:00+1100\n"
 "Last-Translator: Grigoriy Kramarenko <root@rosix.ru>\n"
 "Language-Team: \n"
@@ -19,7 +19,8 @@ msgstr ""
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)\n"
 
 #: __init__.py:28 sites.py:124 templates/reportapi/base.html:5
-#: templates/reportapi/base.html.py:52
+#: templates/reportapi/base.html.py:65 templates/reportapi/index.html:9
+#: templates/reportapi/report.html:7 templates/reportapi/report_list.html:7
 msgid "Reporting"
 msgstr "Отчётность"
 
@@ -27,7 +28,7 @@ msgstr "Отчётность"
 msgid "isnull"
 msgstr "пусто"
 
-#: filters.py:52 models.py:200
+#: filters.py:52 models.py:187
 msgid "empty"
 msgstr "пусто"
 
@@ -91,13 +92,11 @@ msgstr "конец"
 msgid "Object search"
 msgstr "Поиск объекта"
 
-#: filters.py:347 templates/reportapi/portrait.html:104
-#: templates/reportapi/flatxml/standard_text.html:275
+#: filters.py:347 templates/reportapi/flatxml/standard_text.html:275
 msgid "yes"
 msgstr "да"
 
-#: filters.py:347 templates/reportapi/portrait.html:104
-#: templates/reportapi/flatxml/standard_text.html:275
+#: filters.py:347 templates/reportapi/flatxml/standard_text.html:275
 msgid "no"
 msgstr "нет"
 
@@ -113,97 +112,196 @@ msgstr "Выберите день недели"
 msgid "Select month"
 msgstr "Выберите месяц"
 
-#: models.py:86
+#: filters.py:397
+msgid "Select period"
+msgstr "Выберите период"
+
+#: filters.py:399
+msgid "Today"
+msgstr "Сегодня"
+
+#: filters.py:400
+msgid "Tomorrow"
+msgstr "Завтра"
+
+#: filters.py:401
+msgid "Day after tomorrow"
+msgstr "Послезавтра"
+
+#: filters.py:402
+msgid "Yesterday"
+msgstr "Вчера"
+
+#: filters.py:403
+msgid "Two days ago"
+msgstr "Позавчера"
+
+#: filters.py:405
+msgid "Next two days"
+msgstr "Следующие 2 дня"
+
+#: filters.py:406
+msgid "Next three days"
+msgstr "Следующие 3 дня"
+
+#: filters.py:407
+msgid "Last two days"
+msgstr "Последние два дня"
+
+#: filters.py:408
+msgid "Last three days"
+msgstr "Последние три дня"
+
+#: filters.py:410
+msgid "Current week"
+msgstr "Текущая неделя"
+
+#: filters.py:411
+msgid "Next week"
+msgstr "Следующая неделя"
+
+#: filters.py:412
+msgid "Previous week"
+msgstr "Предыдущая неделя"
+
+#: filters.py:414
+msgid "Current month"
+msgstr "Текущий месяц"
+
+#: filters.py:415
+msgid "Next month"
+msgstr "Следующий месяц"
+
+#: filters.py:416
+msgid "Previous month"
+msgstr "Предыдущий месяц"
+
+#: filters.py:418
+msgid "First quarter"
+msgstr "Первый квартал"
+
+#: filters.py:419
+msgid "Second quarter"
+msgstr "Второй квартал"
+
+#: filters.py:420
+msgid "Third quarter"
+msgstr "Третий квартал"
+
+#: filters.py:421
+msgid "Fourth quarter"
+msgstr "Четвёртый квартал"
+
+#: filters.py:423
+msgid "First half year"
+msgstr "Первое полугодие"
+
+#: filters.py:424
+msgid "Second half year"
+msgstr "Второе полугодие"
+
+#: filters.py:426
+msgid "Current year"
+msgstr "Текущий год"
+
+#: filters.py:427
+msgid "Next year"
+msgstr "Следующий год"
+
+#: filters.py:428
+msgid "Previous year"
+msgstr "Предыдущий год"
+
+#: models.py:73
 msgid "main"
 msgstr "основные"
 
-#: models.py:200
+#: models.py:187
 msgid "no empty"
 msgstr "не пусто"
 
-#: models.py:207
+#: models.py:194
 #, python-format
 msgid "%(label)s: from %(cond0)s to %(cond1)s"
 msgstr "%(label)s: от %(cond0)s до %(cond1)s"
 
-#: models.py:234
+#: models.py:222
 msgid "Unspecified render error in template."
 msgstr "Неопределённая ошибка рендеринга шаблона."
 
-#: models.py:324
+#: models.py:317
 msgid "section"
 msgstr "раздел"
 
-#: models.py:325 templates/reportapi/portrait.html:93
-#: templates/reportapi/flatxml/standard_text.html:255
+#: models.py:318 templates/reportapi/flatxml/standard_text.html:255
 msgid "name"
 msgstr "имя"
 
-#: models.py:326
+#: models.py:319
 msgid "title without translation"
 msgstr "название без перевода"
 
-#: models.py:327
+#: models.py:320
 msgid "allow all users"
 msgstr "доступно всем пользователям"
 
-#: models.py:329
+#: models.py:322
 msgid "allow list users"
 msgstr "доступно списку пользователей"
 
-#: models.py:331
+#: models.py:324
 msgid "allow list groups"
 msgstr "доступно списку групп"
 
-#: models.py:332
+#: models.py:325
 msgid "max of timeout"
 msgstr "максимальное время ожидания"
 
-#: models.py:338 models.py:387
+#: models.py:331 models.py:380
 msgid "registered report"
 msgstr "зарегистрированный отчёт"
 
-#: models.py:339
+#: models.py:332
 msgid "registered reports"
 msgstr "зарегистрированные отчёты"
 
-#: models.py:389
+#: models.py:382
 msgid "user"
 msgstr "пользователь"
 
-#: models.py:390
+#: models.py:383
 msgid "process key"
 msgstr "ключ процесса"
 
-#: models.py:392
+#: models.py:385
 msgid "error message"
 msgstr "сообщение об ошибке"
 
-#: models.py:393
+#: models.py:386
 msgid "start create"
 msgstr "начало создания"
 
-#: models.py:394
+#: models.py:387
 msgid "end create"
 msgstr "конец создания"
 
-#: models.py:395
+#: models.py:388
 msgid "report file"
 msgstr "файл отчёта"
 
-#: models.py:397
+#: models.py:390
 msgid "description"
 msgstr "описание"
 
-#: models.py:398
+#: models.py:391
 msgid "details"
 msgstr "детали"
 
-#: models.py:407
+#: models.py:400
 msgid "generated report"
 msgstr "сгенерированный отчет"
 
-#: models.py:408
+#: models.py:401
 msgid "generated reports"
 msgstr "сгенерированные отчеты"
 
@@ -227,15 +325,15 @@ msgstr "Тип содержимого"
 msgid "Access denied"
 msgstr "Доступ запрещён"
 
-#: views.py:170
+#: views.py:199
 msgid "Error in template"
 msgstr "Ошибка в шаблоне"
 
-#: views.py:275
+#: views.py:305
 msgid "One or more filters filled in not correctly"
 msgstr "Один или более фильтров заполнены неверно"
 
-#: templates/reportapi/404.html:7
+#: templates/reportapi/404.html:11
 msgid "Excuse, the page isn't found."
 msgstr "Извините, страница не найдена."
 
@@ -247,92 +345,84 @@ msgstr "Внутренняя ошибка сервера"
 msgid "Project administrator will consider in the near future this a bug."
 msgstr "Администратор проекта рассмотрит ошибку в ближайшее время."
 
-#: templates/reportapi/base.html:45
+#: templates/reportapi/base.html:58
 msgid "Toggle navigation"
 msgstr "Переключение навигации"
 
-#: templates/reportapi/base.html:64
+#: templates/reportapi/base.html:77
 msgid "List reports"
 msgstr "Список отчётов"
 
-#: templates/reportapi/base.html:79
+#: templates/reportapi/base.html:92
 msgid "Home"
 msgstr "Главная"
 
-#: templates/reportapi/index.html:10
+#: templates/reportapi/base.html:127
+msgid "Grigoriy Kramarenko"
+msgstr "Григорий Крамаренко"
+
+#: templates/reportapi/index.html:12 templates/reportapi/index.html.py:52
+#: templates/reportapi/index.html:53
+msgid "Create New"
+msgstr "Создать новый"
+
+#: templates/reportapi/index.html:21
 msgid "Last formed documents"
 msgstr "Последние сформированные документы"
 
-#: templates/reportapi/index.html:25
+#: templates/reportapi/index.html:30
 msgid "in the making"
 msgstr "создаётся"
 
-#: templates/reportapi/index.html:40 templates/reportapi/report.html:92
-msgid "View"
-msgstr "Просмотр"
+#: templates/reportapi/index.html:38
+msgid "Author"
+msgstr "Автор"
 
-#: templates/reportapi/index.html:45
-msgid "New"
-msgstr "Новый"
-
-#: templates/reportapi/index.html:51 templates/reportapi/report.html:105
-msgid "Remove"
-msgstr "Удалить"
-
-#: templates/reportapi/index.html:57 templates/reportapi/index.html.py:61
-#: templates/reportapi/index.html:65 templates/reportapi/report.html:99
-msgid "Download"
-msgstr "Скачать"
-
-#: templates/reportapi/index.html:78
-msgid "Choose report and create document"
-msgstr "Выберите отчёт и создайте документ"
-
-#: templates/reportapi/portrait.html:80
-msgid "formed"
-msgstr "сформировано"
-
-#: templates/reportapi/portrait.html:89
+#: templates/reportapi/index.html:40
 #: templates/reportapi/flatxml/standard_text.html:244
 msgid "Filters"
 msgstr "Фильтры"
 
-#: templates/reportapi/portrait.html:94
-#: templates/reportapi/flatxml/standard_text.html:258
-msgid "condition"
-msgstr "условие"
+#: templates/reportapi/index.html:42
+msgid "Links"
+msgstr "Ссылки"
 
-#: templates/reportapi/portrait.html:95
-#: templates/reportapi/flatxml/standard_text.html:261
-msgid "value"
-msgstr "значение"
+#: templates/reportapi/index.html:47 templates/reportapi/index.html.py:48
+#: templates/reportapi/report.html:79
+msgid "View"
+msgstr "Просмотр"
 
-#: templates/reportapi/report.html:40
+#: templates/reportapi/index.html:58 templates/reportapi/index.html.py:59
+#: templates/reportapi/report.html:84
+msgid "Remove"
+msgstr "Удалить"
+
+#: templates/reportapi/index.html:73
+msgid "Choose report and create document"
+msgstr "Выберите отчёт и создайте документ"
+
+#: templates/reportapi/report.html:11
+msgid "Ready documents"
+msgstr "Готовые документы"
+
+#: templates/reportapi/report.html:39
 msgid "no condition"
 msgstr "нет условия"
 
-#: templates/reportapi/report.html:48
+#: templates/reportapi/report.html:47
 #: templates/reportapi/underscore_filter.html:6
 msgid "Filter required"
 msgstr "Фильтр обязателен"
 
-#: templates/reportapi/report.html:62
-msgid "Show additional"
-msgstr "Показать дополнительные"
-
-#: templates/reportapi/report.html:66
-msgid "Hide additional"
-msgstr "Скрыть дополнительные"
-
-#: templates/reportapi/report.html:71
+#: templates/reportapi/report.html:70
 msgid "Create document"
 msgstr "Создать документ"
 
-#: templates/reportapi/report.html:75
+#: templates/reportapi/report.html:74
 msgid "Recreate document"
 msgstr "Пересоздать документ"
 
-#: templates/reportapi/report_list.html:7
+#: templates/reportapi/report_list.html:14
 msgid "List of reports in section"
 msgstr "Список отчётов в разделе"
 
@@ -377,9 +467,29 @@ msgstr "ЧЧ:ММ:СС"
 msgid "HH:MM"
 msgstr "ЧЧ:ММ"
 
+#: templates/reportapi/flatxml/standard_spreadsheet.html:12
+#: templates/reportapi/flatxml/standard_spreadsheet.html:28
+#: templates/reportapi/flatxml/includes/master-styles.html:39
+msgid "Page"
+msgstr "Страница"
+
+#: templates/reportapi/flatxml/standard_spreadsheet.html:44
+#: templates/reportapi/flatxml/standard_spreadsheet.html:50
+#: templates/reportapi/flatxml/standard_spreadsheet.html:56
+msgid "Sheet"
+msgstr "Лист"
+
 #: templates/reportapi/flatxml/standard_text.html:246
 msgid "Table Filters"
 msgstr "Таблица фильтров"
+
+#: templates/reportapi/flatxml/standard_text.html:258
+msgid "condition"
+msgstr "условие"
+
+#: templates/reportapi/flatxml/standard_text.html:261
+msgid "value"
+msgstr "значение"
 
 #: templates/reportapi/flatxml/standard_text.html:294
 #: templates/reportapi/flatxml/standard_text.html:296
@@ -388,17 +498,17 @@ msgstr "Таблица данных"
 
 #: templates/reportapi/flatxml/standard_text.html:303
 #: templates/reportapi/flatxml/standard_text.html:312
-#: templates/reportapi/flatxml/standard_text.html:321
+#: templates/reportapi/flatxml/standard_text.html:322
 msgid "Please, replace block"
 msgstr "Пожалуйста, замените блок"
+
+#: templates/reportapi/flatxml/standard_text.html:312
+msgid "in your template..."
+msgstr "в вашем шаблоне..."
 
 #: templates/reportapi/flatxml/includes/master-styles.html:20
 msgid "Generated by ReportAPI"
 msgstr "Сгенерировано ReportAPI"
-
-#: templates/reportapi/flatxml/includes/master-styles.html:39
-msgid "Page"
-msgstr "Страница"
 
 #: templates/reportapi/flatxml/includes/master-styles.html:39
 msgid "of"
@@ -408,8 +518,20 @@ msgstr "из"
 msgid "Anonymous"
 msgstr "Аноним"
 
-#~ msgid "Create new"
-#~ msgstr "Создать новый"
+#~ msgid "New"
+#~ msgstr "Новый"
+
+#~ msgid "Download"
+#~ msgstr "Скачать"
+
+#~ msgid "formed"
+#~ msgstr "сформировано"
+
+#~ msgid "Show additional"
+#~ msgstr "Показать дополнительные"
+
+#~ msgid "Hide additional"
+#~ msgstr "Скрыть дополнительные"
 
 #~ msgid "Empty"
 #~ msgstr "Пусто"

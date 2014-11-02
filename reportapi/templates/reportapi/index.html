@@ -3,76 +3,71 @@
 
 {% block content %}
 
+{% block breadcrumbs %}
+{% if report %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'reportapi:index' %}">{% trans 'Reporting' %}</a></li>
+        <li><a href="{% url 'reportapi:report_list' section.name %}">{{ section.label|capfirst }}</a></li>
+        <li class="active">{{ report.label|capfirst }}</li>
+        <li><a href="{% url 'reportapi:report' report.section report.name %}">{% trans 'Create New' %}</a></li>
+    </ol>
+{% endif %}
+{% endblock %}
+
 {% block report_list %}{% endblock %}
 
-{% if last_docs %}
+{% if docs %}
 
 <h3>{% block page_legend %}{% trans 'Last formed documents' %}{% endblock %}</h3>
 
-<table class="table">
-    <tbody>
-        {% for doc in last_docs %}
-        <tr id="tr-document-{{ doc.pk }}" class="{% if doc.error %}bg-danger{% elif not doc.end %}bg-warning{% else %}bg-info{% endif %}">
-            <td class="col-xs-3">
-                <h4 class="text-center" title="{{ doc }}">{{ doc|truncatechars:25 }}</h4>
-                <p class="text-center">{{ doc.user.get_full_name|default:doc.user }}</p>
-                <p class="text-center">
+<div class="row">
+    {% for doc in docs %}
+    <div id="div-document-{{ doc.pk }}" class="col-xs-12 {% if doc.error %}bg-danger{% elif not doc.end %}bg-warning{% else %}{% endif %}">
+        <h4 class="page-header">
+            {{ doc }}
+            <small class="pull-right">
                 {% if not doc.end %}
-                    <span class="label label-danger">
-                    {% if doc.error %}
-                        {{ doc.error }}
-                    {% else %}
-                        {% trans 'in the making' %}
-                    {% endif %}
-                    </span>
+                    {% trans 'in the making' %}
                 {% else %}
-                    <span class="label label-default">{{ doc.end|default:'' }}</span>
+                    {{ doc.end|default:'' }}
                 {% endif %}
-                </p>
-            </td>
-            <td>{{ doc.description|linebreaks }}</td>
+            </small>
+        </h4>
 
-            <td class="col-xs-3">
-                <a href="#" onClick="handlerShowDocument('{% url 'reportapi:get_document' doc.pk %}', 'document-{{ doc.pk }}')" 
-                    class="btn {% if doc.error %}btn-warning{% else %}btn-success{% endif %} btn-block" role="button"
-                    {% if not doc.end %} disabled{% endif %}>
-                    <i class="fa {% if doc.error %}fa-bug{% else %}fa-search{% endif %}"></i>
-                    {% trans 'View' %}
+        <dl class="dl-horizontal">
+            <dt>{% trans 'Author' %}</dt>
+            <dd>{{ doc.user.get_full_name|default:doc.user }}</dd>
+            <dt>{% trans 'Filters' %}</dt>
+            <dd>{{ doc.description|linebreaks }}</dd>
+            <dt>{% trans 'Links' %}</dt>
+            <dd>
+            {% if doc.end %} 
+                <a href="#view-document-{{ doc.pk }}" onClick="handlerShowDocument('{% url 'reportapi:get_document' doc.pk %}', 'document-{{ doc.pk }}')" 
+                    class="btn btn-link btn-xs" role="button"
+                    title="{% trans 'View' %}">
+                    <i class="fa {% if doc.error %}fa-bug{% else %}fa-search{% endif %}"></i> {% trans 'View' %}
                 </a>
-            <div class="btn-group btn-group-justified">
-                <a href="{{ doc.register.get_absolute_url }}" class="btn btn-warning btn-block-" role="button">
-                    <i class="fa fa-gears"></i>
-                    {% trans 'New' %}
+            {% endif %}
+                <a href="{{ doc.register.get_absolute_url }}" class="btn btn-link btn-xs"
+                    role="button" title="{% trans 'Create New' %}">
+                    <i class="fa fa-gears"></i> {% trans 'Create New' %}
                 </a>
+            {% if user.is_superuser or user == doc.user %}
                 <a href="#" onClick="handlerRemoveDocument({{ doc.pk }}, true)" 
-                    class="btn btn-danger btn-block-" role="button"
-                    {% if not user.is_superuser and user != doc.user %}disabled{% endif %}>
-                    <i class="fa fa-times"></i>
-                    {% trans 'Remove' %}
+                    class="btn btn-link btn-xs" role="button"
+                    title="{% trans 'Remove' %}">
+                    <i class="fa fa-times"></i> {% trans 'Remove' %}
                 </a>
-            </div>
-                {% if DEFAULT_FORMAT|lower == 'odt' %}
-                    <a href="{% url 'reportapi:get_document_format' doc.pk DEFAULT_FORMAT %}" class="btn btn-primary btn-block" role="button"{% if not doc.end or doc.error %} disabled{% endif %}>
-                        <i class="fa fa-cloud-download"></i>
-                        {% trans 'Download' %} {{ DEFAULT_FORMAT|upper }}
-                    </a>
-                {% else %}
-                    <div class="btn-group btn-group-justified">
-                        <a href="{% url 'reportapi:get_document_format' doc.pk DEFAULT_FORMAT %}" title="{% trans 'Download' %}" class="btn btn-primary" role="button"{% if not doc.end or doc.error %} disabled{% endif %}>
-                            <i class="fa fa-cloud-download"></i>
-                           {{ DEFAULT_FORMAT|upper }}
-                        </a>
-                        <a href="{% url 'reportapi:get_document_format' doc.pk 'odt' %}" title="{% trans 'Download' %}" class="btn btn-primary" role="button"{% if not doc.end or doc.error %} disabled{% endif %}>
-                            <i class="fa fa-cloud-download"></i>
-                            ODT
-                        </a>
-                    </div>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+            {% endif %}
+            </dd>
+        </dl>
+        <div id="view-document-{{ doc.pk }}" class="row" style="display:none; padding-top: 60px;">
+            <div class="embed-responsive embed-responsive-4by3"></div>
+        </div>
+        <hr>
+    </div>
+    {% endfor %}
+</div>
 
 {% else %}
     <h1 class="text-center">{% trans 'Choose report and create document' %}</h1>
