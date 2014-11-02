@@ -428,10 +428,6 @@ class Document(models.Model):
             return self.report_file.url
         return None
 
-    def delete(self):
-        remove_dirs(os.path.dirname(self.report_file.path), withfiles=True)
-        super(Document, self).delete()
-
     def save(self):
         if self.id:
             old = Document.objects.get(id=self.id)
@@ -446,7 +442,7 @@ class Document(models.Model):
 
     def delete(self):
         if self.report_file:
-            remove_file(self.report_file.path)
+            remove_dirs(os.path.dirname(self.report_file.path), withfiles=True)
         super(Document, self).delete()
 
 
