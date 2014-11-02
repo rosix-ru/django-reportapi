@@ -258,12 +258,12 @@ function handlerCheckProcess() {
             // TODO: animation or 1-2 seconds after
             $pbar.removeClass('progress-striped active');
             //~ handlerSetProgress(0);
+    
+            $('.action-recreate-report').prop("disabled", false).removeAttr('disabled');
 
             if (window.REPORT.create_force) {
                 $('.action-create-report:visible').hide();
-                $('.action-recreate-report:hidden')
-                    .prop("disabled", false).removeAttr('disabled')
-                    .show();
+                $('.action-recreate-report:hidden').show();
             } else {
                 $('.action-create-report').prop("disabled", true).attr('disabled', 'disabled');
             };
@@ -490,8 +490,8 @@ function eventChangeValue(event) {
     filter = REPORT.filters[event.target.name];
     if (event.target.type == 'checkbox') {
         filter.value = event.target.checked;
-    } else if ($(event.target).attr('data-mask') !== undefined) {
-        filter.value = value ? filter.value : null;
+    //~ } else if ($(event.target).attr('data-mask') !== undefined) {
+        //~ filter.value = value ? value : null;
     } else {
         filter.value = value || null;
     };
