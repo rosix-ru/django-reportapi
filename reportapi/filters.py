@@ -357,8 +357,8 @@ class FilterChoice(BaseFilter):
     def __init__(self, name, options=None, **kwargs):
         if options:
             self._options = dict(options)
-        else:
-            self._options = self._options or {}
+        elif not hasattr(self, '_options'):
+            self._options = {}
         super(FilterChoice, self).__init__(name, **kwargs)
 
     @property
@@ -392,41 +392,45 @@ class FilterMonth(FilterChoice):
     placeholder = _('Select month')
     _options = MONTHS
 
+PERIODS = {
+        'today': _('Today'),
+        'tomorrow': _('Tomorrow'),
+        'tomorrow2': _('Day after tomorrow'),
+        'yesterday': _('Yesterday'),
+        'yesterday2': _('Two days ago'),
+
+        'next2days': _('Next two days'),
+        'next3days': _('Next three days'),
+        'last2days': _('Last two days'),
+        'last3days': _('Last three days'),
+
+        'week': _('Current week'),
+        'next_week': _('Next week'),
+        'previous_week': _('Previous week'),
+
+        'month': _('Current month'),
+        'next_month': _('Next month'),
+        'previous_month': _('Previous month'),
+
+        'quarter1': _('First quarter'),
+        'quarter2': _('Second quarter'),
+        'quarter3': _('Third quarter'),
+        'quarter4': _('Fourth quarter'),
+
+        'halfyear1': _('First half year'),
+        'halfyear2': _('Second half year'),
+
+        'year': _('Current year'),
+        'next_year': _('Next year'),
+        'previous_year': _('Previous year'),
+    }
+
 class FilterPeriod(FilterChoice):
     _type = 'period'
     placeholder = _('Select period')
-    _options = (
-        ('today', _('Today')),
-        ('tomorrow', _('Tomorrow')),
-        ('tomorrow2', _('Day after tomorrow')),
-        ('yesterday', _('Yesterday')),
-        ('yesterday2', _('Two days ago')),
-
-        ('next2days', _('Next two days')),
-        ('next3days', _('Next three days')),
-        ('last2days', _('Last two days')),
-        ('last3days', _('Last three days')),
-
-        ('week', _('Current week')),
-        ('next_week', _('Next week')),
-        ('previous_week', _('Previous week')),
-
-        ('month', _('Current month')),
-        ('next_month', _('Next month')),
-        ('previous_month', _('Previous month')),
-
-        ('quarter1', _('First quarter')),
-        ('quarter2', _('Second quarter')),
-        ('quarter3', _('Third quarter')),
-        ('quarter4', _('Fourth quarter')),
-
-        ('halfyear1', _('First half year')),
-        ('halfyear2', _('Second half year')),
-
-        ('year', _('Current year')),
-        ('next_year', _('Next year')),
-        ('previous_year', _('Previous year')),
-    )
+    conditions = ('exact',)
+    keytype = str
+    _options = PERIODS
 
 
 def _search_in_fields(queryset, fields, query):

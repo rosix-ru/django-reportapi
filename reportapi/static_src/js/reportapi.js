@@ -387,7 +387,10 @@ function handlerSetSelectizers($box) {
         }
     });
 
-    other = $box.find('select[data-type="choice"], select[data-type="month"], select[data-type="weekday"]');
+    other = $box.find('select[data-type="choice"],\
+                      select[data-type="month"],\
+                      select[data-type="weekday"],\
+                      select[data-type="period"]');
     $.each(other, function(index, select) {
 
         if (select.name) {

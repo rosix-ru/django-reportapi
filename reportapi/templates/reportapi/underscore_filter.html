@@ -13,7 +13,7 @@
         <span class="lbl"></span>
     </label>
 <% } else { %>
-    <% if (data.type in {'object':0, 'choice':0, 'month':0, 'weekday':0 }) { %>
+    <% if (data.type in {'object':0, 'choice':0, 'month':0, 'weekday':0, 'period':0 }) { %>
         <select
         <% if (data.condition in {'in':0, 'range':0}) { %>multiple<% } %>
         placeholder="<%= data.placeholder %>"
@@ -82,7 +82,7 @@
         placeholder="<%= data.placeholder %>"
     <% } %>
 
-    <% if (data.type in {'object':0, 'choice':0, 'month':0, 'weekday':0 }) { %>
+    <% if (data.type in {'object':0, 'choice':0, 'month':0, 'weekday':0, 'period':0 }) { %>
         ></select>
     <% } else { %>
         />
