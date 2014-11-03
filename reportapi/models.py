@@ -491,7 +491,7 @@ class Document(models.Model):
         if not os.path.exists(newpath):
             dwd = os.path.dirname(newpath)
             cwd = os.getcwd()
-            #~ os.chdir(dwd)
+            os.chdir(dwd)
 
             proc = [UNOCONV_EXE, '-f', format, os.path.basename(oldpath)]
 
