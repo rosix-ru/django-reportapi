@@ -200,13 +200,19 @@ def create_document(request, report, document, filters):
 
     document.end = timezone.now()
     document.save()
+
     if not document.error:
+        if document.autoconvert():
+            document.end = timezone.now()
+            document.save()
+
         delta = document.end - document.start
         ms = int(delta.total_seconds() *1000)
         register = document.register
         if register.timeout < ms:
             register.timeout = ms
             register.save()
+        
 
     return document
 

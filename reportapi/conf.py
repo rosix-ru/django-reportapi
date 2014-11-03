@@ -44,6 +44,11 @@ REPORTAPI_UPLOAD_HASHLIB = getattr(settings, 'REPORTAPI_UPLOAD_HASHLIB', 'md5')
 REPORTAPI_FILES_UNIDECODE = getattr(settings, 'REPORTAPI_FILES_UNIDECODE', False)
 REPORTAPI_LANGUAGES = getattr(settings, 'REPORTAPI_LANGUAGES', ['en', 'ru'])
 
+REPORTAPI_UNOCONV_TO_ODF = getattr(settings, 'REPORTAPI_UNOCONV_TO_ODF', False)
+REPORTAPI_UNOCONV_TO_PDF = getattr(settings, 'REPORTAPI_UNOCONV_TO_PDF', True)
+
+REPORTAPI_BRAND_TEXT = getattr(settings, 'REPORTAPI_BRAND_TEXT', '')
+
 AUTH_USER_MODEL  = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 class Header(object):

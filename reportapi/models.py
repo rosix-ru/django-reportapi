@@ -41,8 +41,22 @@ from reportapi.conf import (
     REPORTAPI_UPLOAD_HASHLIB,
     REPORTAPI_FILES_UNIDECODE,
     AUTH_USER_MODEL,
+    REPORTAPI_UNOCONV_TO_ODF,
+    REPORTAPI_UNOCONV_TO_PDF,
+    REPORTAPI_BRAND_TEXT,
     Header, Footer, Page
 )
+
+UNOCONV_EXE = "unoconv"
+
+if REPORTAPI_UNOCONV_TO_ODF or REPORTAPI_UNOCONV_TO_PDF:
+    import subprocess
+
+    try:
+        UNOCONV_EXE = subprocess.check_output(["which", "unoconv"]).replace('\n', '')
+    except:
+        REPORTAPI_UNOCONV_TO_ODF = False
+        REPORTAPI_UNOCONV_TO_PDF = False
 
 from reportapi.fields import JSONField
 
@@ -216,6 +230,8 @@ class Report(object):
         Формирование файла отчёта.
         """
         context = self.get_context(request, document, filters)
+        if not 'BRAND_TEXT' in context:
+            context['BRAND_TEXT'] = REPORTAPI_BRAND_TEXT
         document.mimetype   = self.mimetype
         context['PAGE']     = self.page.checked()
         context['DOCUMENT'] = document
@@ -407,6 +423,7 @@ class Document(models.Model):
         ordering = ['-start', '-end']
         verbose_name = _('generated report')
         verbose_name_plural = _('generated reports')
+        get_latest_by = 'end'
 
     def upload_to(self, filename):
         dt = timezone.now()
@@ -436,11 +453,72 @@ class Document(models.Model):
             return self.report_file.url
         return None
 
+    def autoconvert(self, remove=True):
+        """
+        Конвертирует из FlatXML в заданный формат если на сервере
+        установлен `unoconv`
+        Поддерживаются:
+            1. ODF (ODT, ODS, ODP)
+            2. PDF
+
+        Устанавливает путь к новому файлу относительно
+        расположения хранилища: self.report_file.name
+        
+        Возвращает булево исполнения операции.
+        """
+
+        location = self.report_file.storage.location
+        oldpath = self.report_file.path
+        oldname = self.report_file.name
+        basename, ext = os.path.splitext(oldname)
+        ext = ext.lower()
+
+        ExtODF = {'.fodt': '.odt', '.fods': '.ods', '.fodp': '.odp'}
+
+        if REPORTAPI_UNOCONV_TO_PDF and ext != '.pdf':
+            format = 'pdf'
+            newname = basename + '.pdf'
+        elif REPORTAPI_UNOCONV_TO_ODF and ext in ExtODF:
+            format = ExtODF[ext][1:]
+            newname = basename + ExtODF[ext]
+        else:
+            return False
+
+        newpath = os.path.join(location, newname)
+        if remove and os.path.exists(newpath):
+            remove_file(newpath)
+
+        if not os.path.exists(newpath):
+            dwd = os.path.dirname(newpath)
+            cwd = os.getcwd()
+            #~ os.chdir(dwd)
+
+            proc = [UNOCONV_EXE, '-f', format, os.path.basename(oldpath)]
+
+            out = 'out' if settings.DEBUG else "/dev/null"
+            err = 'err' if settings.DEBUG else "/dev/null"
+            p = subprocess.Popen(proc, shell=False,
+                    stdout=open(out, 'w+b'), 
+                    stderr=open(err, 'w+b'),
+                    cwd=dwd)
+            a = p.wait()
+
+            os.chdir(cwd)
+
+            if os.path.exists(newpath):
+                self.report_file.name = newname
+                if remove:
+                    remove_file(oldpath)
+                return True
+
+        return False
+
+
     def save(self):
         if self.id:
             old = Document.objects.get(id=self.id)
             try:
-                presave_obj.report_file.path
+                old.report_file.path
             except:
                 pass
             else:
