@@ -493,7 +493,7 @@ class Document(models.Model):
             cwd = os.getcwd()
             os.chdir(dwd)
 
-            proc = [UNOCONV_EXE, '-l', '-f', format, os.path.basename(oldpath)]
+            proc = [UNOCONV_EXE, '-f', format, os.path.basename(oldpath)]
 
             out = 'out' #if settings.DEBUG else "/dev/null"
             err = 'err' #if settings.DEBUG else "/dev/null"
