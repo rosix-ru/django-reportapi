@@ -495,8 +495,8 @@ class Document(models.Model):
 
             proc = [UNOCONV_EXE, '-f', format, os.path.basename(oldpath)]
 
-            out = 'out' if settings.DEBUG else "/dev/null"
-            err = 'err' if settings.DEBUG else "/dev/null"
+            out = 'out' #if settings.DEBUG else "/dev/null"
+            err = 'err' #if settings.DEBUG else "/dev/null"
             p = subprocess.Popen(proc, shell=False,
                     stdout=open(out, 'w+b'), 
                     stderr=open(err, 'w+b'),
