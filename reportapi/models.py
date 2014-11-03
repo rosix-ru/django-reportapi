@@ -123,7 +123,11 @@ class Report(object):
         """
         registers = Register.objects.filter(section=self.section, name=self.name)
         if registers:
-            return registers[0]
+            register = registers[0]
+            if register.title != self.title:
+                register.title = self.title
+                register.save()
+            return register
         # Если данный отчёт не зарегистрирован, то создаём его
         return Register.objects.create(
             section=self.section, name=self.name, title=self.title)
@@ -239,7 +243,11 @@ class Report(object):
         """
         Raise Exception from filter if not valid
         """
-        data = self.get_filters_data(filters)
+        try:
+            data = self.get_filters_data(filters)
+        except Exception as e:
+            print filters
+            raise e
         return True
 
     def get_filters_data(self, filters):

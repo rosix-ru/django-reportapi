@@ -40,7 +40,7 @@
 //                   КОНСТАНТЫ И ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ                //
 ////////////////////////////////////////////////////////////////////////
 var TIMEOUT_PROGRESS = 1000,
-    SERVER_TZ_OFFSET = window.SERVER_TZ_OFFSET || -240; // Europe/Moscow
+    SERVER_TZ_OFFSET = window.SERVER_TZ_OFFSET || -180; // Europe/Moscow
 
 // Глобальные хранилища-регистраторы
 window.TEMPLATES = {}; // Шаблоны
@@ -129,9 +129,9 @@ function jsonAPI(args, callback, to_console, sync, timeout) {
          * возврата на текущую страницу
          */
         if ((json.status >=300) && (json.status <400) && (json.data.Location != undefined)) {
-            redirect = function() {
-                location = json.data.Location
-                .replace(/\?.*$/, "?next=" + window.location.pathname);
+            var redirect = function() {
+                var location = json.data.Location
+                    .replace(/\?.*$/, "?next=" + window.location.pathname);
                 window.location.replace(location);
             }
             if (json.message) {
@@ -152,7 +152,7 @@ function jsonAPI(args, callback, to_console, sync, timeout) {
          */
         else {
             if (DEBUG) {
-                o = new Object;
+                var o = new Object;
                 $.extend(true, o, json.data);
                 //~ console.log(o);
                 console.log($.toJSON(json.message));
@@ -181,16 +181,13 @@ function handlerCreateReport(force) {
             window.REPORT.process_filters[item.name] = {condition:item.condition, value:item.value};
         };
     });
-    args = {
+    var args = {
         'method': 'reportapi.document_create',
         'section': window.REPORT.section,
         'name': window.REPORT.name,
         'filters': window.REPORT.process_filters,
-        'force': force,
-    };
-    cb = function(json, status, xhr) {
-        
-    };
+        'force': force},
+        cb = function(json, status, xhr) {};
 
     var jqxhr = jsonAPI(args, cb, null, false, window.REPORT.timeout);
     handlerStartProgress();
@@ -212,7 +209,7 @@ function eventRecreateReport(event) {
 /* Обработчик запуска ожидания создания отчёта */
 function handlerCheckProcess() {
     if (DEBUG) {console.log('function:'+'handlerCheckProcess')};
-    args = {
+    var args = {
         'method': 'reportapi.document_info',
         'id': window.REPORT.id || null,
         'section': window.REPORT.section,
@@ -220,7 +217,7 @@ function handlerCheckProcess() {
         'filters': window.REPORT.process_filters,
     };
 
-    cb = function(json, status, xhr) {
+    var cb = function(json, status, xhr) {
         var $pbar = $('.progress .progress-bar'),
             max = Number($pbar.attr('aria-valuemax')),
             now = Number($pbar.attr('aria-valuenow'));
@@ -327,7 +324,7 @@ function eventRemoveDocument(event) {
 /* Обработчик установки поиска-выбора для фильтров объектов */
 function handlerSetSelectizers($box) {
     if (DEBUG) {console.log('function:'+'handlerSetSelectizers')};
-    $box = $box || $('body');
+    var $box = $box || $('body');
 
     $.each($box.find('select[data-type="object"]'), function(index, select) {
 
@@ -387,7 +384,7 @@ function handlerSetSelectizers($box) {
         }
     });
 
-    other = $box.find('select[data-type="choice"],\
+    var other = $box.find('select[data-type="choice"],\
                       select[data-type="month"],\
                       select[data-type="weekday"],\
                       select[data-type="period"]');
@@ -422,7 +419,7 @@ function handlerSetSelectizers($box) {
 /* Обработчик установки масок для input */
 function handlerMaskInputs($box) {
     if (DEBUG) {console.log('function:'+'handlerMaskInputs')};
-    $box = $box || $('body');
+    var $box = $box || $('body');
 
     // Инициализация маски для дат
     $.mask.definitions['1']='[0-1]';
@@ -430,15 +427,16 @@ function handlerMaskInputs($box) {
     $.mask.definitions['3']='[0-3]';
     $.mask.definitions['5']='[0-5]';
     $.each($box.find('[data-mask]'), function(i, item) {
-        $item = $(item);
-        data = $(item).data();
+        var $item = $(item),
+            data = $(item).data();
         $item.mask(data.mask, {
             completed: function() {
-                filter = REPORT.filters[this.context.name];
+                var filter = REPORT.filters[this.context.name];
                 filter.value = this.val();
                 if (filter.condition == 'range') {
                     filter.value = filter.value.split(RANGE_SPLIT);
                 };
+                if (DEBUG) {console.log('function:'+'handlerMaskInputs:completed; filter=' + filter.value)};
             }
         });
     });
@@ -450,7 +448,7 @@ function handlerMaskInputs($box) {
 function handlerCheckRequiredValue() {
     if (DEBUG) {console.log('function:'+'handlerCheckRequiredValue')};//, event)};
 
-    completed = true;
+    var completed = true;
     $.each(REPORT.filters, function(key, item) {
         if ((item.required) && (item.value === null || item.value === undefined)) {
             completed = false;
@@ -486,12 +484,12 @@ function handlerAfterChanges() {
 /* Обработчик события изменения значения фильтра */
 function eventChangeValue(event) {
     if (DEBUG) {console.log('function:'+'eventChangeValue')};//, event)};
-    value = $(event.target).val();
-    filter = REPORT.filters[event.target.name];
+    var value = $(event.target).val(),
+        filter = REPORT.filters[event.target.name];
     if (event.target.type == 'checkbox') {
         filter.value = event.target.checked;
-    //~ } else if ($(event.target).attr('data-mask') !== undefined) {
-        //~ filter.value = value ? value : null;
+    } else if ($(event.target).attr('data-mask') !== undefined) {
+        filter.value = filter.value || null;
     } else {
         filter.value = value || null;
     };
@@ -502,8 +500,8 @@ function eventChangeValue(event) {
 function eventConditionChange(event) {
     if (DEBUG) {console.log('function:'+'eventConditionChange')};//, event)};
 
-    filter_name = $(event.target).data()['name'];
-    filter = REPORT.filters[filter_name];
+    var filter_name = $(event.target).data()['name'],
+        filter = REPORT.filters[filter_name];
     filter.condition = event.target.value || null;
     //~ console.log(filter.condition);
     if (filter.condition in {'isnull':0, 'empty':0}) {
@@ -513,7 +511,7 @@ function eventConditionChange(event) {
     } else {
         filter.value = $('#value-'+filter_name).val() || null;
     };
-    html = TEMPLATES.filter({ data: filter });
+    var html = TEMPLATES.filter({ data: filter });
     $('#valuebox-'+filter_name).html(html);
     handlerSetSelectizers($('#valuebox-'+filter_name));
     handlerMaskInputs($('#valuebox-'+filter_name));
@@ -541,7 +539,7 @@ function keyDownIsControl(event) {
 function eventKeyDownOnDateTime(event) {
     if (DEBUG) {console.log('function:'+'eventKeyDownOnDateTime')};//, event)};
 
-    prepare = function(event) {
+    var prepare = function(event) {
         value = event.target.value || '';
         //~ console.log(value, event.charCode);
     };
@@ -562,7 +560,7 @@ function eventKeyDownOnDateTime(event) {
 function eventKeyDownOnNumber(event) {
     //~ if (DEBUG) {console.log('function:'+'eventKeyDownOnNumber')};//, event)};
 
-    adddot = function(event) {
+    var adddot = function(event) {
         value = event.target.value || '';
         //~ console.log('search', value.search('.'));
         if (value.length < 1) {

@@ -303,6 +303,8 @@ class FilterDateTime(BaseFilter):
                 value = None
         if value is None:
             raise ValueError('One or more values not valid in `%s` filter.' % smart_text(self))
+        if condition == 'range':
+            value = [min(value), max(value)]
         return value
 
 class FilterDate(BaseFilter):
@@ -319,6 +321,8 @@ class FilterDate(BaseFilter):
                 value = None
         if value is None:
             raise ValueError('One or more values not valid in `%s` filter.' % smart_text(self))
+        if condition == 'range':
+            value = [min(value), max(value)]
         return value
 
 class FilterTime(BaseFilter):
@@ -336,6 +340,8 @@ class FilterTime(BaseFilter):
                 value = None
         if value is None:
             raise ValueError('One or more values not valid in `%s` filter.' % smart_text(self))
+        if condition == 'range':
+            value = [min(value), max(value)]
         return value
 
 class FilterBoolean(BaseFilter):
@@ -375,7 +381,10 @@ class FilterChoice(BaseFilter):
     def get_value(self, condition, value):
         dic = self._options
         if condition in ('range', 'in'):
-            return [ self.keytype(x) for x in set(list(value)) if self.keytype(x) in dic ]
+            value = [ self.keytype(x) for x in set(list(value)) if self.keytype(x) in dic ]
+            if condition == 'range':
+                value = [min(value), max(value)]
+            return value
         else:
             return self.keytype(value)
 
