@@ -35,6 +35,8 @@ from django.template import RequestContext, loader
 from django.template.defaultfilters import slugify
 from django.core.files.base import ContentFile
 
+from jsonfield import JSONField
+
 from reportapi.conf import (
     settings,
     REPORTAPI_CODE_HASHLIB,
@@ -58,7 +60,6 @@ if REPORTAPI_UNOCONV_TO_ODF or REPORTAPI_UNOCONV_TO_PDF:
         REPORTAPI_UNOCONV_TO_ODF = False
         REPORTAPI_UNOCONV_TO_PDF = False
 
-from reportapi.fields import JSONField
 
 User = get_model(*AUTH_USER_MODEL.split('.'))
 Group = User.groups.field.rel.to
@@ -87,6 +88,8 @@ class Report(object):
     section         = ugettext_noop('main')
     section_label   = None # do not change
     page            = Page()
+    convert_to_pdf  = True
+    convert_to_odf  = True
 
     def __init__(self, site=None, section=None, section_label=None, \
         filters=None, title=None, name=None, **kwargs):
@@ -232,7 +235,13 @@ class Report(object):
         context = self.get_context(request, document, filters)
         if not 'BRAND_TEXT' in context:
             context['BRAND_TEXT'] = REPORTAPI_BRAND_TEXT
-        document.mimetype   = self.mimetype
+
+        # set temporary properties for document
+        document.convert_to_pdf = self.convert_to_pdf
+        document.convert_to_odf = self.convert_to_odf
+        document.mimetype       = self.mimetype
+        document.details        = deep_to_dict(document.details, 'filters', filters)
+
         context['PAGE']     = self.page.checked()
         context['DOCUMENT'] = document
         context['FILTERS'] = self.get_filters_data(filters)
@@ -416,6 +425,10 @@ class Document(models.Model):
 
     objects = DocumentManager()
 
+    # default attributes for autoconvert
+    convert_to_pdf = REPORTAPI_UNOCONV_TO_PDF
+    convert_to_odf = REPORTAPI_UNOCONV_TO_ODF
+
     def __str__(self):
         return force_text(self.register)
 
@@ -453,7 +466,7 @@ class Document(models.Model):
             return self.report_file.url
         return None
 
-    def autoconvert(self, remove=True):
+    def autoconvert(self, remove_old=True, remove_log=True):
         """
         Конвертирует из FlatXML в заданный формат если на сервере
         установлен `unoconv`
@@ -475,17 +488,17 @@ class Document(models.Model):
 
         ExtODF = {'.fodt': '.odt', '.fods': '.ods', '.fodp': '.odp'}
 
-        if REPORTAPI_UNOCONV_TO_PDF and ext != '.pdf':
+        if self.convert_to_pdf and REPORTAPI_UNOCONV_TO_PDF and ext != '.pdf':
             format = 'pdf'
             newname = basename + '.pdf'
-        elif REPORTAPI_UNOCONV_TO_ODF and ext in ExtODF:
+        elif self.convert_to_odf and REPORTAPI_UNOCONV_TO_ODF and ext in ExtODF:
             format = ExtODF[ext][1:]
             newname = basename + ExtODF[ext]
         else:
             return False
 
         newpath = os.path.join(location, newname)
-        if remove and os.path.exists(newpath):
+        if remove_old and os.path.exists(newpath):
             remove_file(newpath)
 
         if not os.path.exists(newpath):
@@ -495,24 +508,43 @@ class Document(models.Model):
 
             proc = [UNOCONV_EXE, '-f', format, os.path.basename(oldpath)]
 
-            out = 'out' #if settings.DEBUG else "/dev/null"
-            err = 'err' #if settings.DEBUG else "/dev/null"
+            out = os.path.join(dwd, 'out') #if settings.DEBUG else "/dev/null"
+            err = os.path.join(dwd, 'err') #if settings.DEBUG else "/dev/null"
+
             p = subprocess.Popen(proc, shell=False,
                     stdout=open(out, 'w+b'), 
                     stderr=open(err, 'w+b'),
                     cwd=dwd)
-            a = p.wait()
+            p.wait()
+
+            f = open(err, 'r')
+            err_txt = f.read().decode('utf-8')
+            f.close()
+
+            f = open(out, 'r')
+            out_txt = f.read().decode('utf-8')
+            f.close()
 
             os.chdir(cwd)
 
             if os.path.exists(newpath):
                 self.report_file.name = newname
-                if remove:
+
+                self.details = deep_to_dict(self.details, 'sources', oldname, append_to_list=True)
+
+                deep_to_dict(self.details, 'autoconvert.err', err_txt)
+                deep_to_dict(self.details, 'autoconvert.out', out_txt)
+
+                if remove_log:
+                    remove_file(err)
+                    remove_file(out)
+
+                if remove_old:
                     remove_file(oldpath)
+
                 return True
 
         return False
-
 
     def save(self):
         if self.id:
@@ -531,6 +563,90 @@ class Document(models.Model):
             remove_dirs(os.path.dirname(self.report_file.path), withfiles=True)
         super(Document, self).delete()
 
+def deep_to_dict(dictionary, field, value, append_to_list=False):
+    """
+    Рекурсивное обновление поля словаря. Ключ значения может выглядеть как:
+    'field'
+    или
+    'field1.field2'
+    и так далее...
+
+    Заметьте, что (по умолчанию) списки поддерживаются только в
+    качестве готовых значений! Если нужно добавить в список, то
+    передавайте параметр `append_to_list=True`.
+    Тогда, если такого списка нет, то он создасться с переданным
+    значением внутри, если же есть и это действительно список,
+    то добавит в него. Если же назначение не список, то вызовет ошибку.
+
+    """
+    self = dictionary if isinstance(dictionary, dict) else {}
+    if not isinstance(field, (list, tuple)):
+        field = field.split('.')
+
+    s = self
+    length = len(field)
+    dest = length-1
+    for i in range(0, length):
+        key = field[i]
+        if not s.has_key(key):
+            if i == dest:
+                if append_to_list:
+                    s[key] = [value]
+                else:
+                    s[key] = value
+            else:
+                s[key] = {}
+                s = s[key]
+        elif i == dest:
+            if append_to_list:
+                s[key].append(value)
+            else:
+                s[key] = value
+        else:
+            s = s[key]
+
+    return self
+
+def deep_from_dict(dictionary, field, default=None, update=True, delete=False):
+    """
+    Рекурсивное получение поля словаря. Ключ значения может выглядеть как:
+    'field'
+    или
+    'field1.field2'
+    и так далее...
+    
+    Устанавливает значение по-умолчанию, если ничего не найдено и
+    разрешено обновление.
+    Если задано удаление, то удаляет этот ключ.
+    """
+    self = dictionary if isinstance(dictionary, dict) else {}
+
+    if not isinstance(field, (list, tuple)):
+        field = field.split('.')
+
+    s = self
+    value = default
+    length = len(field)
+    dest = length-1
+    for i in range(0, length):
+        key = field[i]
+        if not s.has_key(key):
+            if not update or delete:
+                return value
+            elif i == dest:
+                s[key] = value
+            else:
+                s[key] = {}
+                s = s[key]
+        elif i == dest:
+            if delete:
+                return s.pop(key)
+            else:
+                value = s[key] 
+        else:
+            s = s[key]
+
+    return value
 
 def remove_dirs(dirname, withfiles=False):
     """ Замалчивание ошибки удаления каталога """
