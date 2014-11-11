@@ -40,7 +40,7 @@
 //                   КОНСТАНТЫ И ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ                //
 ////////////////////////////////////////////////////////////////////////
 var TIMEOUT_PROGRESS = 1000,
-    SERVER_TZ_OFFSET = window.SERVER_TZ_OFFSET || -180; // Europe/Moscow
+    SERVER_TZ_OFFSET = (window.SERVER_TZ_OFFSET != undefined) ? window.SERVER_TZ_OFFSET : -180; // Europe/Moscow
 
 // Глобальные хранилища-регистраторы
 window.TEMPLATES = {}; // Шаблоны
@@ -359,7 +359,7 @@ function handlerSetSelectizers($box) {
                             'method': "reportapi.object_search",
                             'section': window.REPORT.section || null,
                             'name': window.REPORT.name,
-                            'filter_name': filter_name,
+                            'filter_name': filter.name,
                             'query': query,
                         },
                         success = function(res) {

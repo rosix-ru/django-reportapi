@@ -67,6 +67,11 @@ class BaseFilter(object):
     placeholder = None
     verbose_name = None
 
+    db_operators = {
+        'exact': '=', 'gt': '>', 'gte': '>=', 'lt': '<', 'lte': '<=',
+        'isnull': 'IS NULL', 'range': 'BETWEEN %s AND %s'
+    }
+
     def __str__(self):
         return '%s:%s' % (self.__class__.__name__, self.name)
 
@@ -78,19 +83,19 @@ class BaseFilter(object):
         self.name = slugify(name)
         self.verbose_name = self.verbose_name or _(name)
 
-    def get_value(self, condition, value):
+    def get_value(self, condition, value, request=None):
         return value
 
-    def get_value_range_label(self, condition, value):
+    def get_value_range_label(self, condition, value, request=None):
         if condition == 'range':
-            value = list(self.get_value_label(condition, value))
+            value = list(self.get_value_label(condition, value, request=request))
             return value[0], value[-1] 
         return None
 
-    def get_value_label(self, condition, value):
-        return self.get_value(condition, value)
+    def get_value_label(self, condition, value, request=None):
+        return self.get_value(condition, value, request=request)
 
-    def data(self, condition='truth', value=None, inverse=False, **options):
+    def data(self, condition='truth', value=None, inverse=False, request=None, **options):
         """
         Метод получения информации об установленном фильтре.
         """
@@ -100,10 +105,10 @@ class BaseFilter(object):
         options['inverse'] = inverse
         options['condition'] = condition
         options['condition_label'] = _(condition)
-        options['value'] = self.get_value(condition, value)
-        options['value_label'] = self.get_value_label(condition, value)
+        options['value'] = self.get_value(condition, value, request=request)
+        options['value_label'] = self.get_value_label(condition, value, request=request)
         if condition == 'range':
-            options['value_range_label'] = self.get_value_range_label(condition, value)
+            options['value_range_label'] = self.get_value_range_label(condition, value, request=request)
 
         return options
 
@@ -137,6 +142,11 @@ class BaseFilter(object):
 
         if hasattr(self, 'unicode_key'):
             D['unicode_key'] = self.unicode_key
+
+        if hasattr(self, 'default'):
+            D['default'] = self.default
+        elif hasattr(self, 'get_default'):
+            D['default'] = self.get_default()
 
         return self.name, D
 
@@ -222,12 +232,23 @@ class FilterObject(BaseFilter):
 
     @property
     def objects(self):
+        """
+        Возвращает все данные из менеждера модели
+        """
         return self.manager.all()
 
     @property
     def options(self):
         return serialize(self.manager.all()[:self.max_options],
             attrs=self.fields_search, unicode_key=self.unicode_key)
+
+    def get_queryset(self, request=None):
+        """
+        Этот метод может быть переопределён в наследуемых классах,
+        например, если требуется получить определённый набор данных в
+        зависимости от запроса.
+        """
+        return self.objects
 
     def get_paginator(self, queryset, per_page=25, orphans=0,
         allow_empty_first_page=True, **kwargs):
@@ -257,27 +278,29 @@ class FilterObject(BaseFilter):
             page_queryset = paginator.page(paginator.num_pages)
         return page_queryset
 
-    def search(self, query, page=1):
+    def search(self, query, page=1, request=None):
         """
         Регистронезависимый поиск по строковым полям, либо по полям с датой
         """
+        qs = self.get_queryset(request=request)
         if self.search_on_date:
-            qs = _date_search_in_fields(self.objects, self.fields_search, query)
+            qs = _date_search_in_fields(qs, self.fields_search, query)
         else:
-            qs = _search_in_fields(self.objects, self.fields_search, query)
+            qs = _search_in_fields(qs, self.fields_search, query)
         page_queryset = self.get_page_queryset(qs, page=page)
         return serialize(page_queryset, attrs=self.fields_search,
             unicode_key=self.unicode_key)
 
-    def get_value(self, condition, value):
+    def get_value(self, condition, value, request=None):
+        qs = self.get_queryset(request=request)
         if condition == 'isnull':
             return value
         elif condition == 'exact':
-            return self.objects.get(pk=value)
+            return qs.get(pk=value)
         elif condition == 'range':
-            return self.objects.filter(pk__gte=min(value), pk__lte=max(value)).order_by('pk')
+            return qs.filter(pk__gte=min(value), pk__lte=max(value)).order_by('pk')
         else:
-            return self.objects.filter(pk__in=list(value)).order_by('pk')
+            return qs.filter(pk__in=list(value)).order_by('pk')
 
 class FilterText(BaseFilter):
     _type = 'text'
@@ -292,7 +315,7 @@ class FilterDateTime(BaseFilter):
     _type = 'datetime'
     withseconds = False
 
-    def get_value(self, condition, value):
+    def get_value(self, condition, value, request=None):
         if isinstance(value, six.string_types):
             value = parse_datetime(value)
         elif isinstance(value, (list, tuple)):
@@ -310,7 +333,7 @@ class FilterDateTime(BaseFilter):
 class FilterDate(BaseFilter):
     _type = 'date'
 
-    def get_value(self, condition, value):
+    def get_value(self, condition, value, request=None):
         if isinstance(value, six.string_types):
             value = parse_date(value)
         elif isinstance(value, (list, tuple)):
@@ -329,7 +352,7 @@ class FilterTime(BaseFilter):
     _type = 'time'
     withseconds = False
 
-    def get_value(self, condition, value):
+    def get_value(self, condition, value, request=None):
         if isinstance(value, six.string_types):
             value = parse_time(value)
         elif isinstance(value, (list, tuple)):
@@ -371,14 +394,14 @@ class FilterChoice(BaseFilter):
     def options(self):
         return [ {'value':x,'label':y} for x,y in self._options.items() ]
 
-    def get_value_label(self, condition, value):
+    def get_value_label(self, condition, value, request=None):
         dic = self._options
         if condition in ('range', 'in'):
             return [ dic[self.keytype(x)] for x in set(list(value)) if self.keytype(x) in dic ]
         else:
             return dic.get(self.keytype(value), None)
 
-    def get_value(self, condition, value):
+    def get_value(self, condition, value, request=None):
         dic = self._options
         if condition in ('range', 'in'):
             value = [ self.keytype(x) for x in set(list(value)) if self.keytype(x) in dic ]

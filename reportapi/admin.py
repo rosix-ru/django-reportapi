@@ -34,7 +34,7 @@ class RegisterAdmin(admin.ModelAdmin):
 admin.site.register(Register, RegisterAdmin)
 
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ('register', 'id')
+    list_display = ('register', 'user', 'start', 'end', 'id')
     search_fields = ['register__title', 'id']
     list_filter = ('register__section', 'register__title')
     raw_id_fields = ('register', 'user')

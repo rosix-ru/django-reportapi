@@ -160,6 +160,7 @@
             window.DEBUG = {% filter lower %}{% SETTINGS 'DEBUG' %}{% endfilter %};
             window.LANGUAGE_CODE = "{{ LANGUAGE_CODE }}" || undefined;
             window.RANGE_SPLIT = " - ";
+            window.SERVER_TZ_OFFSET = {% SETTINGS 'SERVER_TZ_OFFSET' %};
         </script>
     {% endblock %}
     <!-- END: block jsglobalvars -->

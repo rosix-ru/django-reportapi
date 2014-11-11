@@ -21,9 +21,11 @@
 #  
 #  
 from __future__ import unicode_literals, print_function, division
+from datetime import datetime
+
 from django.utils.encoding import smart_text, python_2_unicode_compatible
 from django.utils import six
-
+from django.utils.timezone import get_default_timezone
 from django.conf import settings
 from django import VERSION as django_version
 from reportapi import __version__ as reportapi_version
@@ -32,24 +34,27 @@ from quickapi import __version__ as quickapi_version
 SITE_ID = settings.SITE_ID
 DEBUG   = settings.DEBUG
 
-DJANGO_VERSION          = '.'.join([str(x) for x in django_version[:2]])
-REPORTAPI_VERSION       = reportapi_version
-QUICKAPI_VERSION        = quickapi_version
-REPORTAPI_DEBUG = getattr(settings, 'REPORTAPI_DEBUG', settings.DEBUG)
-REPORTAPI_ROOT = getattr(settings, 'REPORTAPI_ROOT', '%s/reports/' % settings.MEDIA_ROOT.rstrip('/'))
-REPORTAPI_URL  = getattr(settings, 'REPORTAPI_URL',  '%s/reports/' % settings.MEDIA_URL.rstrip('/'))
-REPORTAPI_ENABLE_THREADS = getattr(settings, 'REPORTAPI_ENABLE_THREADS', False)
-REPORTAPI_CODE_HASHLIB = getattr(settings, 'REPORTAPI_CODE_HASHLIB', 'md5')
-REPORTAPI_UPLOAD_HASHLIB = getattr(settings, 'REPORTAPI_UPLOAD_HASHLIB', 'md5')
-REPORTAPI_FILES_UNIDECODE = getattr(settings, 'REPORTAPI_FILES_UNIDECODE', False)
-REPORTAPI_LANGUAGES = getattr(settings, 'REPORTAPI_LANGUAGES', ['en', 'ru'])
+DJANGO_VERSION    = '.'.join([str(x) for x in django_version[:2]])
+REPORTAPI_VERSION = reportapi_version
+QUICKAPI_VERSION  = quickapi_version
 
-REPORTAPI_UNOCONV_TO_PDF = getattr(settings, 'REPORTAPI_UNOCONV_TO_PDF', True)
-REPORTAPI_UNOCONV_TO_ODF = getattr(settings, 'REPORTAPI_UNOCONV_TO_ODF', True)
+AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+
+REPORTAPI_DEBUG           = getattr(settings, 'REPORTAPI_DEBUG', settings.DEBUG)
+REPORTAPI_ROOT            = getattr(settings, 'REPORTAPI_ROOT', '%sreports/' % settings.MEDIA_ROOT)
+REPORTAPI_URL             = getattr(settings, 'REPORTAPI_URL',  '%sreports/' % settings.MEDIA_URL)
+REPORTAPI_ENABLE_THREADS  = getattr(settings, 'REPORTAPI_ENABLE_THREADS', False)
+REPORTAPI_CODE_HASHLIB    = getattr(settings, 'REPORTAPI_CODE_HASHLIB', 'md5')
+REPORTAPI_UPLOAD_HASHLIB  = getattr(settings, 'REPORTAPI_UPLOAD_HASHLIB', 'md5')
+REPORTAPI_FILES_UNIDECODE = getattr(settings, 'REPORTAPI_FILES_UNIDECODE', False)
+REPORTAPI_LANGUAGES       = getattr(settings, 'REPORTAPI_LANGUAGES', ['en', 'ru'])
+
+REPORTAPI_UNOCONV_TO_PDF  = getattr(settings, 'REPORTAPI_UNOCONV_TO_PDF', True)
+REPORTAPI_UNOCONV_TO_ODF  = getattr(settings, 'REPORTAPI_UNOCONV_TO_ODF', True)
+REPORTAPI_UNOCONV_SERVERS = getattr(settings, 'REPORTAPI_UNOCONV_SERVERS', [])
 
 REPORTAPI_BRAND_TEXT = getattr(settings, 'REPORTAPI_BRAND_TEXT', '')
 
-AUTH_USER_MODEL  = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 class Header(object):
     min_height      = getattr(settings, 'REPORTAPI_HEADER_MIN_HEIGHT', '0.1cm')
@@ -91,3 +96,6 @@ class Page(object):
         elif h < w and self.print_orientation == 'portrait':
             self.print_orientation == 'landscape'
         return self
+
+SERVER_TZ        = get_default_timezone()
+SERVER_TZ_OFFSET = int(SERVER_TZ.utcoffset(datetime.now()).total_seconds() / 60 * -1)

@@ -29,6 +29,7 @@ from django.utils.crypto import get_random_string
 from django.utils import six
 from django.db import models
 from django.db.models import Q, get_model
+from django.db.models.manager import EmptyManager
 from django.utils.translation import ugettext_noop, ugettext, ugettext_lazy as _
 from django.utils import timezone
 from django.template import RequestContext, loader
@@ -45,6 +46,7 @@ from reportapi.conf import (
     AUTH_USER_MODEL,
     REPORTAPI_UNOCONV_TO_ODF,
     REPORTAPI_UNOCONV_TO_PDF,
+    REPORTAPI_UNOCONV_SERVERS,
     REPORTAPI_BRAND_TEXT,
     Header, Footer, Page
 )
@@ -64,6 +66,11 @@ if REPORTAPI_UNOCONV_TO_ODF or REPORTAPI_UNOCONV_TO_PDF:
 User = get_model(*AUTH_USER_MODEL.split('.'))
 Group = User.groups.field.rel.to
 
+if hasattr(User, 'permissions'):
+    Permission = User.permissions.field.rel.to
+else:
+    Permission = User.user_permissions.field.rel.to
+
 if REPORTAPI_FILES_UNIDECODE:
     from unidecode import unidecode
     prep_filename = lambda x: unidecode(x).replace(' ', '_').replace("'", "")
@@ -71,6 +78,65 @@ else:
     prep_filename = lambda x: x
 
 REPORTAPI_CODE_LENGTH = len(hashlib.new(REPORTAPI_CODE_HASHLIB).hexdigest())
+
+@python_2_unicode_compatible
+class SystemUser(object):
+    id = None
+    pk = None
+    username = _('system user')
+    is_staff = True
+    is_active = True
+    is_superuser = True
+    groups = Group.objects
+    user_permissions = Permission.objects
+
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        return force_text(self.username)
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return 1  # instances always return the same hash value
+
+    def save(self):
+        raise NotImplementedError
+
+    def delete(self):
+        raise NotImplementedError
+
+    def set_password(self, raw_password):
+        raise NotImplementedError
+
+    def check_password(self, raw_password):
+        raise NotImplementedError
+
+    def get_group_permissions(self, obj=None):
+        return self.groups.all()
+
+    def get_all_permissions(self, obj=None):
+        return self.user_permissions.all()
+
+    def has_perm(self, perm, obj=None):
+        return True
+
+    def has_perms(self, perm_list, obj=None):
+        return True
+
+    def has_module_perms(self, module):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def is_authenticated(self):
+        return False
 
 class Report(object):
     enable_threads  = True
@@ -184,7 +250,7 @@ class Report(object):
         filename = prep_filename(filename)
         return filename
 
-    def get_context(self, request, document, filters):
+    def get_context(self, document, filters, request=None):
         """
         Этот метод должен быть переопределён в наследуемых классах.
         Возвращать контекст нужно в виде словаря.
@@ -222,17 +288,17 @@ class Report(object):
             L.append(s)
         return ';\n'.join(L)
 
-    def get_details(self, request, document, filters):
+    def get_details(self, *args, **kwargs):
         """
         Этот метод может быть переопределён в наследуемых классах.
         """
         return {}
 
-    def render(self, request, document, filters, save=False):
+    def render(self, document, filters, save=False, request=None):
         """
         Формирование файла отчёта.
         """
-        context = self.get_context(request, document, filters)
+        context = self.get_context(document, filters, request=request)
         if not 'BRAND_TEXT' in context:
             context['BRAND_TEXT'] = REPORTAPI_BRAND_TEXT
 
@@ -244,7 +310,7 @@ class Report(object):
 
         context['PAGE']     = self.page.checked()
         context['DOCUMENT'] = document
-        context['FILTERS'] = self.get_filters_data(filters)
+        context['FILTERS'] = self.get_filters_data(filters, request=request)
         content = loader.render_to_string(self.template_name, context,
                             context_instance=RequestContext(request,))
         _file = ContentFile(content.encode('utf-8') or \
@@ -264,40 +330,40 @@ class Report(object):
     def filters_list(self):
         return [ x.serialize() for x in self.filters ]
 
-    def validate_filters(self, filters):
+    def validate_filters(self, filters, request=None):
         """
         Raise Exception from filter if not valid
         """
         try:
-            data = self.get_filters_data(filters)
+            data = self.get_filters_data(filters, request=request)
         except Exception as e:
             print filters
             raise e
         return True
 
-    def get_filters_data(self, filters):
+    def get_filters_data(self, filters, request=None):
         L = []
         for key,dic in filters.items():
             f = self.get_filter(key)
             if f:
-                L.append(f.data(**dic))
+                L.append(f.data(request=request, **dic))
         return L
 
-    def get_filter_data(self, name, filters):
+    def get_filter_data(self, name, filters, request=None):
         f = self.get_filter(name)
         kw = filters.get(self.slugify(name), None)
         if f and kw:
-            return f.data(**kw)
+            return f.data(request=request, **kw)
         return None
 
-    def get_filter_clean_value(self, name, filters):
-        data = self.get_filter_data(name, filters)
+    def get_filter_clean_value(self, name, filters, request=None):
+        data = self.get_filter_data(name, filters, request=request)
         if data:
             return data.get('value', None)
         return None
 
     def get_filter(self, name):
-        return self._filters.get(self.slugify(name), None)
+        return self._filters.get(self.slugify(name), {})
 
     def get_scheme(self, request=None):
         SCHEME = {
@@ -506,7 +572,9 @@ class Document(models.Model):
             cwd = os.getcwd()
             os.chdir(dwd)
 
-            proc = [UNOCONV_EXE, '-f', format, os.path.basename(oldpath)]
+            proc = [UNOCONV_EXE]
+            proc.extend(random_unoconv_con(document=self))
+            proc.extend(['-f', format, os.path.basename(oldpath)])
 
             out = os.path.join(dwd, 'out') #if settings.DEBUG else "/dev/null"
             err = os.path.join(dwd, 'err') #if settings.DEBUG else "/dev/null"
@@ -562,6 +630,30 @@ class Document(models.Model):
         if self.report_file:
             remove_dirs(os.path.dirname(self.report_file.path), withfiles=True)
         super(Document, self).delete()
+
+def random_unoconv_con(document=None):
+    """
+    Возвращает настройки соединения с сервером конвертации
+    Пример
+    REPORTAPI_UNOCONV_SERVERS = (
+        ('-p', '2002'), # localhost on port 2002
+        ('-p', '2003'), # localhost on port 2003
+        ('-p', '2004'), # localhost on port 2004
+        ('-s', '10.10.10.1', '-p', '2002'), # external server
+        ('-s', '10.10.10.1', '-p', '2003'), # external server
+    )
+    """
+    if not REPORTAPI_UNOCONV_SERVERS:
+        return []
+
+    count = len(REPORTAPI_UNOCONV_SERVERS)
+
+    if document and document.pk:
+        n = ((document.pk % count) or count) - 1
+    else:
+        n = 0
+
+    return list(REPORTAPI_UNOCONV_SERVERS[n])
 
 def deep_to_dict(dictionary, field, value, append_to_list=False):
     """
