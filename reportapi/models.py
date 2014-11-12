@@ -308,7 +308,8 @@ class Report(object):
         document.mimetype       = self.mimetype
         document.details        = deep_to_dict(document.details, 'filters', filters)
 
-        context['PAGE']     = self.page.checked()
+        if self.page:
+            context['PAGE'] = self.page.checked()
         context['DOCUMENT'] = document
         context['FILTERS'] = self.get_filters_data(filters, request=request)
         content = loader.render_to_string(self.template_name, context,
@@ -396,6 +397,11 @@ class Spreadsheet(Report):
     mimetype      = "application/vnd.oasis.opendocument.spreadsheet"
     format        = 'fods'
     template_name = 'reportapi/flatxml/standard_spreadsheet.html'
+
+class HtmlReport(Report):
+    mimetype      = "text/html"
+    format        = 'html'
+    template_name = 'reportapi/html/portrait.html'
 
 class RegisterManager(models.Manager):
     use_for_related_fields = True
@@ -557,7 +563,7 @@ class Document(models.Model):
         basename, ext = os.path.splitext(oldname)
         ext = ext.lower()
 
-        ExtODF = {'.fodt': '.odt', '.fods': '.ods', '.fodp': '.odp'}
+        ExtODF = {'.fodt': '.odt', '.fods': '.ods', '.fodp': '.odp', '.html': '.odt'}
 
         if self.convert_to_pdf and REPORTAPI_UNOCONV_TO_PDF and ext != '.pdf':
             format = 'pdf'
