@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReportAPI\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-02 23:56+1000\n"
+"POT-Creation-Date: 2014-11-12 16:15+1000\n"
 "PO-Revision-Date: 2014-11-02 00:00+1100\n"
 "Last-Translator: Grigoriy Kramarenko <root@rosix.ru>\n"
 "Language-Team: \n"
@@ -26,58 +26,62 @@ msgstr "Русский"
 msgid "English"
 msgstr "Английский"
 
-#: test/reports.py:49
+#: test/reports.py:33
 msgid "Test report"
 msgstr "Тестовый отчёт"
 
-#: test/reports.py:52 test/reports.py:81
+#: test/reports.py:36 test/reports.py:66
+msgid "timeout"
+msgstr "таймаут"
+
+#: test/reports.py:37 test/reports.py:67
 msgid "filter for objects"
 msgstr "фильтр для объектов"
 
-#: test/reports.py:53 test/reports.py:82
+#: test/reports.py:38 test/reports.py:68
 msgid "filter for text"
 msgstr "фильтр для текста"
 
-#: test/reports.py:54 test/reports.py:83
+#: test/reports.py:39 test/reports.py:69
 msgid "filter for number"
 msgstr "фильтр для чисел"
 
-#: test/reports.py:55 test/reports.py:84
+#: test/reports.py:40 test/reports.py:70
 msgid "filter for date and time"
 msgstr "фильтр для даты-времени"
 
-#: test/reports.py:56 test/reports.py:85
+#: test/reports.py:41 test/reports.py:71
 msgid "filter for date"
 msgstr "фильтр для дат"
 
-#: test/reports.py:57 test/reports.py:86
+#: test/reports.py:42 test/reports.py:72
 msgid "filter for time"
 msgstr "фильтр для времени"
 
-#: test/reports.py:58 test/reports.py:87
+#: test/reports.py:43 test/reports.py:73
 msgid "filter for choice"
 msgstr "фильтр для выбора"
 
-#: test/reports.py:58 test/reports.py:87
+#: test/reports.py:43 test/reports.py:73
 msgid "First"
 msgstr "Первый"
 
-#: test/reports.py:58 test/reports.py:87
+#: test/reports.py:43 test/reports.py:73
 msgid "Second"
 msgstr "Второй"
 
-#: test/reports.py:59 test/reports.py:88
+#: test/reports.py:44 test/reports.py:74
 msgid "filter for month"
 msgstr "фильтр для месяцев"
 
-#: test/reports.py:60 test/reports.py:89
+#: test/reports.py:45 test/reports.py:75
 msgid "filter for weekday"
 msgstr "фильтр для дней недели"
 
-#: test/reports.py:61 test/reports.py:90
+#: test/reports.py:46 test/reports.py:76
 msgid "filter for boolean"
 msgstr "фильтр для истинности"
 
-#: test/reports.py:78
+#: test/reports.py:63
 msgid "Test spreadsheet"
 msgstr "Тестовая электронная таблица"
