@@ -22,7 +22,7 @@
 #  
 from __future__ import unicode_literals
 from django.utils.encoding import smart_text, python_2_unicode_compatible
-from django.utils import six
+from django.utils import six, timezone
 from django.db import models
 from django.db.models import Q, get_model
 from django.utils.dates import WEEKDAYS, MONTHS
@@ -66,6 +66,7 @@ class BaseFilter(object):
     conditions = ('isnull', 'exact', 'gt', 'gte', 'lt', 'lte', 'range')
     placeholder = None
     verbose_name = None
+    boolean_labels = {'TRUE': _('yes'), 'FALSE': _('no'), 'NONE': _('any')}
 
     db_operators = {
         'exact': '=', 'gt': '>', 'gte': '>=', 'lt': '<', 'lte': '<=',
@@ -75,13 +76,27 @@ class BaseFilter(object):
     def __str__(self):
         return '%s:%s' % (self.__class__.__name__, self.name)
 
-    def __init__(self, name, required=False, conditions=None):
+    def __init__(self, name, required=False, conditions=None,
+        default=None, verbose_name=None, placeholder=None, **kwargs):
+
         if self.required is None:
             self.required = required
+        
         if conditions:
             self.conditions = conditions
+
+        if not default is None:
+            self.default = default
+
         self.name = slugify(name)
-        self.verbose_name = self.verbose_name or _(name)
+
+        if not verbose_name is None:
+            self.verbose_name = verbose_name
+        else:
+            self.verbose_name = self.verbose_name or _(name)
+
+        if not placeholder is None:
+            self.placeholder = placeholder
 
     def get_value(self, condition, value, request=None):
         return value
@@ -93,6 +108,10 @@ class BaseFilter(object):
         return None
 
     def get_value_label(self, condition, value, request=None):
+        if condition == 'truth':
+            return self.boolean_labels.get(str(value).upper(), _('any'))
+        elif condition in ('isnull', 'empty'):
+            return self.boolean_labels.get(str(bool(value)).upper())
         return self.get_value(condition, value, request=request)
 
     def data(self, condition='truth', value=None, inverse=False, request=None, **options):
@@ -122,6 +141,7 @@ class BaseFilter(object):
             'label': self.verbose_name,
             'type': self._type,
             'conditions': self.condition_list(),
+            'boolean_labels': self.boolean_labels,
         }
 
         if self.placeholder:
@@ -144,9 +164,9 @@ class BaseFilter(object):
             D['unicode_key'] = self.unicode_key
 
         if hasattr(self, 'default'):
-            D['default'] = self.default
+            D['default_value'] = self.default
         elif hasattr(self, 'get_default'):
-            D['default'] = self.get_default()
+            D['default_value'] = self.get_default()
 
         return self.name, D
 
@@ -169,7 +189,7 @@ class FilterObject(BaseFilter):
         'app.model.objects'
         так и готовым экземпляром менеджера модели
         """
-        super(FilterObject, self).__init__(name, **kwargs)
+        super(FilterObject, self).__init__(name=name, **kwargs)
 
         manager = manager or getattr(self, 'manager', None)
         model = model or getattr(self, 'model', None)
@@ -294,7 +314,7 @@ class FilterObject(BaseFilter):
     def get_value(self, condition, value, request=None):
         qs = self.get_queryset(request=request)
         if condition == 'isnull':
-            return value
+            return bool(value)
         elif condition == 'exact':
             return qs.get(pk=value)
         elif condition == 'range':
@@ -371,11 +391,6 @@ class FilterBoolean(BaseFilter):
     _type = 'boolean'
     conditions = None
 
-    def serialize(self):
-        name, dic = super(FilterBoolean, self).serialize()
-        dic['YESNO'] = _('yes'), _('no')
-        return name, dic
-
 class FilterChoice(BaseFilter):
     _type = 'choice'
     conditions = ('exact', 'gt', 'gte', 'lt', 'lte', 'range', 'in')
@@ -388,7 +403,7 @@ class FilterChoice(BaseFilter):
             self._options = dict(options)
         elif not hasattr(self, '_options'):
             self._options = {}
-        super(FilterChoice, self).__init__(name, **kwargs)
+        super(FilterChoice, self).__init__(name=name, **kwargs)
 
     @property
     def options(self):

@@ -194,18 +194,6 @@ function handlerCreateReport(force) {
     return jqxhr;
 };
 
-/* Обработчик события создания отчёта */
-function eventCreateReport(event) {
-    if (DEBUG) {console.log('function:'+'eventCreateReport')};
-    handlerCreateReport();
-};
-
-/* Обработчик события пересоздания отчёта */
-function eventRecreateReport(event) {
-    if (DEBUG) {console.log('function:'+'eventRecreateReport')};
-    handlerCreateReport(true);
-};
-
 /* Обработчик запуска ожидания создания отчёта */
 function handlerCheckProcess() {
     if (DEBUG) {console.log('function:'+'handlerCheckProcess')};
@@ -302,12 +290,28 @@ function handlerRemoveDocument(id, refresh) {
             success = function() {
                 $('#div-document-'+id).remove();
                 $('#view-document-place').hide();
-                handlerAfterChanges();
-                if (refresh) { window.location.reload() };
+                if (refresh) window.location.reload()
+                else handlerAfterChanges();
             };
         new jsonAPI(args, success);
     };
     
+};
+
+// События
+
+/* Обработчик события создания отчёта */
+function eventCreateReport(event) {
+    if (DEBUG) {console.log('function:'+'eventCreateReport')};
+    handlerCreateReport();
+    event.preventDefault();
+};
+
+/* Обработчик события пересоздания отчёта */
+function eventRecreateReport(event) {
+    if (DEBUG) {console.log('function:'+'eventRecreateReport')};
+    handlerCreateReport(true);
+    event.preventDefault();
 };
 
 /* Обработчик события удаления отчёта */
@@ -315,6 +319,7 @@ function eventRemoveDocument(event) {
     if (DEBUG) {console.log('function:'+'eventRemoveDocument')};
     var id = null;
     handlerRemoveDocument(id);
+    event.preventDefault();
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -478,18 +483,20 @@ function handlerAfterChanges() {
     handlerCheckRequiredValue();
 };
 
-// События
 
+// События
 
 /* Обработчик события изменения значения фильтра */
 function eventChangeValue(event) {
     if (DEBUG) {console.log('function:'+'eventChangeValue')};//, event)};
-    var value = $(event.target).val(),
-        filter = REPORT.filters[event.target.name];
-    if (event.target.type == 'checkbox') {
-        filter.value = event.target.checked;
-    } else if ($(event.target).attr('data-mask') !== undefined) {
-        filter.value = filter.value || null;
+    var value = this.value,
+        filter = REPORT.filters[this.name];
+    if (this.type == 'radio') {
+        // Для радио-кнопок с булевыми значениями
+        filter.value = (value == 'true') ? true : (value == 'false') ? false : null;
+    } else if ($(this).attr('data-mask') !== undefined && value != filter.value) {
+        // Значение не подошло под маску
+        filter.value = null;
     } else {
         filter.value = value || null;
     };
@@ -500,21 +507,42 @@ function eventChangeValue(event) {
 function eventConditionChange(event) {
     if (DEBUG) {console.log('function:'+'eventConditionChange')};//, event)};
 
-    var filter_name = $(event.target).data()['name'],
-        filter = REPORT.filters[filter_name];
-    filter.condition = event.target.value || null;
-    //~ console.log(filter.condition);
-    if (filter.condition in {'isnull':0, 'empty':0}) {
-        filter.value = false;
-    } else if (!filter.condition || filter.condition in {'range':0,'in':0} || filter.type == 'object') {
+    var filter = REPORT.filters[$(this).data()['name']],
+        prev_condition = filter.condition,
+        prev_value     = filter.value;
+
+    filter.condition = this.value || null;
+
+    if (!filter.condition || filter.type in {'object':0, 'choice':0, 'month':0, 'weekday':0, 'period':0 }) {
+        // Объекты, булевы значения и списки выбора сбрасываются
         filter.value = null;
+    } else if (filter.condition in {'isnull':0, 'empty':0}) {
+        // Для условия "пусто" значение по-умолчанию истинно
+        filter.value = true;
+    } else if (filter.condition in {'range':0,'in':0}) {
+        // Для этих условий заполняем одним значением
+        if ($.type(prev_value) != 'array') {
+            if (prev_value != null) {
+                filter.value = (filter.condition == 'range') ? [prev_value, prev_value] : [prev_value]
+            } else if (filter.default_value != undefined) {
+                filter.value = [filter.default_value, filter.default_value]
+            }
+        } else if (prev_condition == 'in' && filter.condition == 'range') {
+            filter.value = prev_value.slice(0, 2);
+            if (filter.value.length < 2) {filter.value[1] = filter.value[0]}
+        }
     } else {
-        filter.value = $('#value-'+filter_name).val() || null;
+        // Любые другие условия
+        if (prev_condition in {'range':0,'in':0}) {
+            filter.value = prev_value[0]
+        } else if ((prev_value == null) && (filter.default_value != undefined)) {
+            filter.value = filter.default_value
+        }
     };
     var html = TEMPLATES.filter({ data: filter });
-    $('#valuebox-'+filter_name).html(html);
-    handlerSetSelectizers($('#valuebox-'+filter_name));
-    handlerMaskInputs($('#valuebox-'+filter_name));
+    $('#valuebox-'+filter.name).html(html);
+    handlerSetSelectizers($('#valuebox-'+filter.name));
+    handlerMaskInputs($('#valuebox-'+filter.name));
 
     handlerAfterChanges();
 
@@ -582,6 +610,79 @@ function eventKeyDownOnNumber(event) {
     }
 
     return false;
+};
+
+////////////////////////////////////////////////////////////////////////
+//                Магические обработчики дат и времени                //
+////////////////////////////////////////////////////////////////////////
+
+/* Обработчик значения времени */
+function dateToArray(date) {
+    if (DEBUG) {console.log('function:'+'dateToArray')};
+    var addzero = function(v) {
+        if (v > 9) return ''+v;
+        return '0'+v; 
+    }
+    return [
+        '' + (1900 + date.getYear()), '-',
+        addzero(date.getMonth()), '-',
+        addzero(date.getDate()), ' ',
+        addzero(date.getHours()), ':',
+        addzero(date.getMinutes()), ':',
+        addzero(date.getSeconds())
+    ]
+}
+
+/* Обработчик установки магических значений */
+function handlerMagicSet(filter, date, date2) {
+    if (DEBUG) {console.log('function:'+'handlerMagicSet', filter.name)};
+    var value, value2 = null;
+
+    if (filter.type == 'datetime') {
+        if (filter.withseconds) {
+            value = date.join();
+            if (date2) value2 = date2.join();
+        }
+        else {
+            value = date.slice(0, 9).join();
+            if (date2) value2 = date2.slice(0, 9).join();
+        }
+
+    } else if (filter.type == 'date') {
+        value = date.slice(0, 5).join();
+        if (date2) value2 = date2.slice(0, 5).join();
+    } else if (filter.type == 'time') {
+        if (filter.withseconds) {
+            value = date.slice(6).join();
+            if (date2) value2 = date2.slice(6).join();
+        }
+        else {
+            value = date.slice(6, 9).join();
+            if (date2) value2 = date2.slice(6, 9).join();
+        }
+    }
+
+    if (filter.condition == 'range') {
+        filter.value = [value, value2 || value]
+    } else {
+        filter.value = value
+    }
+    
+    if (filter.condition == 'range') {
+        $('#value-'+filter.name).val(filter.value[0]+RANGE_SPLIT+filter.value[1]);
+    } else {
+        $('#value-'+filter.name).val(filter.value);
+    }
+
+    handlerSetSelectizers($('#valuebox-'+filter.name));
+    handlerMaskInputs($('#valuebox-'+filter.name));
+    handlerAfterChanges();
+};
+
+/* Обработчик установки значения текущего времени или даты */
+function handlerMagicNow(filter) {
+    if (DEBUG) {console.log('function:'+'handlerMagicNow', filter.name)};
+    handlerMagicSet(filter, dateToArray(new Date()));
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -660,6 +761,7 @@ function handlerBindinds() {
     $('body').on('change', 'select[id^="condition-"]', eventConditionChange);
     $('body').on('keydown', 'input[data-validate="number"]', eventKeyDownOnNumber);
     $('body').on('change', 'input[id^="value-"]', eventChangeValue);
+
     $('body').on('click', '.action-hide-additional', handlerHideAdditionalFilters);
     $('body').on('click', '.action-show-additional', handlerShowAdditionalFilters);
     $('body').on('click', '.action-create-report', eventCreateReport);

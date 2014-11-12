@@ -233,7 +233,7 @@ class Report(object):
     def has_permission(self, request):
         return bool(self.permitted_register(request))
 
-    def get_code(self, request, filters):
+    def get_code(self, filters, request=None):
         """
         Этот метод может быть переопределён для тех отчётов, где 
         уникальный код следует генерировать иначе.
@@ -298,7 +298,7 @@ class Report(object):
         """
         Формирование файла отчёта.
         """
-        context = self.get_context(document, filters, request=request)
+        context = self.get_context(document=document, filters=filters, request=request)
         if not 'BRAND_TEXT' in context:
             context['BRAND_TEXT'] = REPORTAPI_BRAND_TEXT
 
@@ -330,6 +330,12 @@ class Report(object):
     def filters_list(self):
         return [ x.serialize() for x in self.filters ]
 
+    def prepare_filters(self, filters, request=None):
+        """
+        Это место можно переопределить для установки фильтров по-умолчанию.
+        """
+        return filters
+
     def validate_filters(self, filters, request=None):
         """
         Raise Exception from filter if not valid
@@ -337,7 +343,6 @@ class Report(object):
         try:
             data = self.get_filters_data(filters, request=request)
         except Exception as e:
-            print filters
             raise e
         return True
 
@@ -354,7 +359,7 @@ class Report(object):
         kw = filters.get(self.slugify(name), None)
         if f and kw:
             return f.data(request=request, **kw)
-        return None
+        return {}
 
     def get_filter_clean_value(self, name, filters, request=None):
         data = self.get_filter_data(name, filters, request=request)
@@ -742,7 +747,7 @@ def deep_from_dict(dictionary, field, default=None, update=True, delete=False):
 
 def remove_dirs(dirname, withfiles=False):
     """ Замалчивание ошибки удаления каталога """
-    if withfiles:
+    if withfiles and os.path.exists(dirname):
         for f in os.listdir(dirname):
             remove_file(os.path.join(dirname, f))
     try:

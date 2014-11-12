@@ -270,7 +270,9 @@ def API_document_create(request, section, name, filters=None, force=False, fake=
     if not report or not register:
         raise PermissionError()
 
-    code = report.get_code(request, filters)
+    
+    filters = report.prepare_filters(filters, request)
+    code = report.get_code(filters, request)
     expired = timezone.now() - timezone.timedelta(seconds=report.expiration_time)
 
     all_documents = register.document_set.filter(code=code, error='')

@@ -6,13 +6,26 @@
         <label class="text-danger">{% trans 'Filter required' %}</label>
     <% } %>
 <% } else if (data.condition in {'isnull':0, 'empty':0}) { %>
-    <label>
-        <input class="ace ace-switch ace-switch-4" data-type="<%= data.type %>" type="checkbox"
-            id="value-<%= data.name %>"
-            name="<%= data.name %>" />
-        <span class="lbl"></span>
-    </label>
+    <div class="btn-group" data-toggle="buttons">
+        <label class="btn btn-default active">
+            <input type="radio" name="<%= data.name %>"
+                id="value-<%= data.name %>-true"
+                data-type="<%= data.type %>"
+                value="true" checked>
+            <%= data.boolean_labels.TRUE %>
+        </label>
+        <label class="btn btn-default">
+            <input type="radio" name="<%= data.name %>"
+                id="value-<%= data.name %>-false"
+                data-type="<%= data.type %>"
+                value="false">
+            <%= data.boolean_labels.FALSE %>
+        </label>
+    </div>
 <% } else { %>
+    <% if (data.type in {'datetime':0, 'date':0, 'time':0}) { %>
+        <div class="input-group">
+    <% } %>
     <% if (data.type in {'object':0, 'choice':0, 'month':0, 'weekday':0, 'period':0 }) { %>
         <select
         <% if (data.condition in {'in':0, 'range':0}) { %>multiple<% } %>
@@ -86,6 +99,15 @@
         ></select>
     <% } else { %>
         />
+        <% if (data.type in {'datetime':0, 'date':0, 'time':0}) { %>
+            <span class="input-group-btn">
+                <button class="btn btn-default" id="magic-<%= data.name %>-now" type="button"
+                    onclick="handlerMagicNow(REPORT.filters['<%= data.name %>'])">
+                    <i class="fa fa-magic"></i>
+                </button>
+            </span>
+        </div>
+        <% } %>
     <% } %>
 
 <% } %>

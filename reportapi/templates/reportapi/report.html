@@ -19,13 +19,31 @@
 {% for name, filter in report.filters_list %}
     {% if filter.type == 'boolean' %}
         <tr class="bg-warning">
-            <td colspan="3" style="vertical-align: middle;">
-                <label>
-                    <input id="value-{{ filter.name }}"
-                        type="checkbox" name="{{ filter.name }}"
-                        class="ace ace-switch ace-switch-4">
-                    <span class="lbl">&nbsp;<b>{{ filter.label|title }}</b></span>
-                </label>
+            <th class="col-xs-2">{{ filter.label|title }}</th>
+            <td colspan="2" style="vertical-align: middle;">
+                <div class="btn-group" data-toggle="buttons">
+                    <label class="btn btn-default active">
+                        <input type="radio" name="{{ filter.name }}"
+                            id="value-{{ filter.name }}-none"
+                            data-type="boolean"
+                            value="null" checked>
+                         {{ filter.boolean_labels.NONE }}
+                    </label>
+                    <label class="btn btn-default">
+                        <input type="radio" name="{{ filter.name }}"
+                            id="value-{{ filter.name }}-true"
+                            data-type="boolean"
+                            value="true">
+                        {{ filter.boolean_labels.TRUE }}
+                    </label>
+                    <label class="btn btn-default">
+                        <input type="radio" name="{{ filter.name }}"
+                            id="value-{{ filter.name }}-false"
+                            data-type="boolean"
+                            value="false">
+                        {{ filter.boolean_labels.FALSE }}
+                    </label>
+                </div>
             </td>
         </tr>
     {% else %}

@@ -1,41 +1,25 @@
 # -*- coding: utf-8 -*-
-"""
-###############################################################################
-# Copyright 2014 Grigoriy Kramarenko.
-###############################################################################
-# This file is part of ReportAPI.
 #
-#    ReportAPI is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    ReportAPI is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with ReportAPI.  If not, see <http://www.gnu.org/licenses/>.
-#
-# Этот файл — часть ReportAPI.
-#
-#   ReportAPI - свободная программа: вы можете перераспространять ее и/или
-#   изменять ее на условиях Стандартной общественной лицензии GNU в том виде,
-#   в каком она была опубликована Фондом свободного программного обеспечения;
-#   либо версии 3 лицензии, либо (по вашему выбору) любой более поздней
-#   версии.
-#
-#   ReportAPI распространяется в надежде, что она будет полезной,
-#   но БЕЗО ВСЯКИХ ГАРАНТИЙ; даже без неявной гарантии ТОВАРНОГО ВИДА
-#   или ПРИГОДНОСТИ ДЛЯ ОПРЕДЕЛЕННЫХ ЦЕЛЕЙ. Подробнее см. в Стандартной
-#   общественной лицензии GNU.
-#
-#   Вы должны были получить копию Стандартной общественной лицензии GNU
-#   вместе с этой программой. Если это не так, см.
-#   <http://www.gnu.org/licenses/>.
-###############################################################################
-"""
+#  django-reportapi/example/project/test/reports.py
+#  
+#  Copyright 2014 Grigoriy Kramarenko <root@rosix.ru>
+#  
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 3 of the License, or
+#  (at your option) any later version.
+#  
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#  
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+#  MA 02110-1301, USA.
+#  
+#  
 from django.utils.translation import ugettext_noop, ugettext_lazy as _
 from reportapi.filters import (FilterObject, FilterText, FilterNumber,
     FilterDateTime, FilterDate, FilterTime,
@@ -49,6 +33,7 @@ class TestReport(Report):
     title = ugettext_noop('Test report')
 
     filters = (
+        FilterNumber(ugettext_noop('timeout'), required=True, default=30, conditions=['exact']),
         FilterObject(ugettext_noop('filter for objects'), manager='auth.User.objects', required=True),
         FilterText(ugettext_noop('filter for text')),
         FilterNumber(ugettext_noop('filter for number')),
@@ -61,7 +46,7 @@ class TestReport(Report):
         FilterBoolean(ugettext_noop('filter for boolean')),
     )
 
-    def get_context(self, request, document, filters):
+    def get_context(self, document, filters, request=None):
         """
         Этот метод должен быть переопределён в наследуемых классах.
         Возвращать контекст нужно в виде словаря.
@@ -69,7 +54,7 @@ class TestReport(Report):
         методе self.render(...)
         """
         import time
-        time.sleep(30) # for test progressbar
+        time.sleep(int(self.get_filter_data('timeout', filters)['value'])) # for test progressbar
 
         return {}
 
@@ -78,6 +63,7 @@ class TestSpreadsheet(Spreadsheet):
     title = ugettext_noop('Test spreadsheet')
 
     filters = (
+        FilterNumber(ugettext_noop('timeout'), required=True),
         FilterObject(ugettext_noop('filter for objects'), manager='auth.User.objects', required=True),
         FilterText(ugettext_noop('filter for text')),
         FilterNumber(ugettext_noop('filter for number')),
@@ -90,7 +76,7 @@ class TestSpreadsheet(Spreadsheet):
         FilterBoolean(ugettext_noop('filter for boolean')),
     )
 
-    def get_context(self, request, document, filters):
+    def get_context(self, document, filters, request=None):
         """
         Этот метод должен быть переопределён в наследуемых классах.
         Возвращать контекст нужно в виде словаря.
@@ -98,7 +84,7 @@ class TestSpreadsheet(Spreadsheet):
         методе self.render(...)
         """
         import time
-        time.sleep(30) # for test progressbar
+        time.sleep(int(self.get_filter_data('timeout', filters)['value'])) # for test progressbar
 
         return {}
 
