@@ -245,7 +245,16 @@ class Report(object):
         code.update(getattr(request, 'LANGUAGE_CODE', settings.LANGUAGE_CODE))
         return code.hexdigest()
 
+    def get_document_title(self, document):
+        """
+        Формирует название отчёта. Для переопределения в наследуемых классах.
+        """
+        return force_text(document)
+
     def get_filename(self):
+        """
+        Формирует имя файла отчёта. Для переопределения в наследуемых классах.
+        """
         filename = smart_text(self.verbose_name) + '.' + self.format
         filename = prep_filename(filename)
         return filename
@@ -307,6 +316,9 @@ class Report(object):
         document.convert_to_odf = self.convert_to_odf
         document.mimetype       = self.mimetype
         document.details        = deep_to_dict(document.details, 'filters', filters)
+        
+        # create title
+        document.title = self.get_document_title(document)
 
         if self.page:
             context['PAGE'] = self.page.checked()
@@ -492,7 +504,7 @@ class Document(models.Model):
 
     register    = models.ForeignKey(Register, editable=False, verbose_name=_('registered report'))
     user        = models.ForeignKey(User, editable=False, null=True, verbose_name=_('user'))
-    restriction = models.IntegerField(_('restriction'), editable=False, null=True, index=True)
+    restriction = models.IntegerField(_('restriction'), editable=False, null=True, db_index=True)
     code        = models.CharField(_('process key'), editable=False, blank=True, db_index=True,
                                     max_length=REPORTAPI_CODE_LENGTH)
 
@@ -513,7 +525,7 @@ class Document(models.Model):
     convert_to_odf = REPORTAPI_UNOCONV_TO_ODF
 
     def __str__(self):
-        return force_text(self.register)
+        return self.title or force_text(self.register)
 
     class Meta:
         ordering = ['-start', '-end']
