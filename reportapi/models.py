@@ -414,6 +414,8 @@ class HtmlReport(Report):
     mimetype      = "text/html"
     format        = 'html'
     template_name = 'reportapi/html/statdard.html'
+    convert_to_pdf = False
+    convert_to_odf = False
 
 class RegisterManager(models.Manager):
     use_for_related_fields = True
