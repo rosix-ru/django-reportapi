@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReportAPI\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-12 16:12+1000\n"
+"POT-Creation-Date: 2014-11-13 16:09+1000\n"
 "PO-Revision-Date: 2014-03-07 00:00+1100\n"
 "Last-Translator: Grigoriy Kramarenko <root@rosix.ru>\n"
 "Language-Team: \n"
@@ -28,7 +28,7 @@ msgstr "Отчётность"
 msgid "Abstract error"
 msgstr ""
 
-#: exceptions.py:48
+#: exceptions.py:51
 msgid "Access denied"
 msgstr "Доступ запрещён"
 
@@ -36,7 +36,7 @@ msgstr "Доступ запрещён"
 msgid "isnull"
 msgstr "пусто"
 
-#: filters.py:52 models.py:274
+#: filters.py:52 models.py:283
 msgid "empty"
 msgstr "пусто"
 
@@ -232,92 +232,101 @@ msgstr "системный пользователь"
 msgid "main"
 msgstr "основные"
 
-#: models.py:274
+#: models.py:283
 msgid "no empty"
 msgstr "не пусто"
 
-#: models.py:281
+#: models.py:290
 #, python-format
 msgid "%(label)s: from %(cond0)s to %(cond1)s"
 msgstr "%(label)s: от %(cond0)s до %(cond1)s"
 
-#: models.py:317
+#: models.py:330
 msgid "Unspecified render error in template."
 msgstr "Неопределённая ошибка рендеринга шаблона."
 
-#: models.py:421
+#: models.py:441
 msgid "section"
 msgstr "раздел"
 
-#: models.py:422 templates/reportapi/flatxml/standard_text.html:291
+#: models.py:442 templates/reportapi/flatxml/standard_text.html:291
+#: templates/reportapi/html/standard.html:112
 msgid "name"
 msgstr "имя"
 
-#: models.py:423
+#: models.py:443
 msgid "title without translation"
 msgstr "название без перевода"
 
-#: models.py:424
+#: models.py:444
 msgid "allow all users"
 msgstr "доступно всем пользователям"
 
-#: models.py:426
+#: models.py:446
 msgid "allow list users"
 msgstr "доступно списку пользователей"
 
-#: models.py:428
+#: models.py:448
 msgid "allow list groups"
 msgstr "доступно списку групп"
 
-#: models.py:429
+#: models.py:449
 msgid "max of timeout"
 msgstr "максимальное время ожидания"
 
-#: models.py:435 models.py:484
+#: models.py:455 models.py:507
 msgid "registered report"
 msgstr "зарегистрированный отчёт"
 
-#: models.py:436
+#: models.py:456
 msgid "registered reports"
 msgstr "зарегистрированные отчёты"
 
-#: models.py:486
+#: models.py:508
 msgid "user"
 msgstr "пользователь"
 
-#: models.py:487
+#: models.py:509
+msgid "restriction"
+msgstr "ограничение"
+
+#: models.py:510
 msgid "process key"
 msgstr "ключ процесса"
 
-#: models.py:489
+#: models.py:513
 msgid "error message"
 msgstr "сообщение об ошибке"
 
-#: models.py:490
+#: models.py:514
 msgid "start create"
 msgstr "начало создания"
 
-#: models.py:491
+#: models.py:515
 msgid "end create"
 msgstr "конец создания"
 
-#: models.py:492
+#: models.py:516
 msgid "report file"
 msgstr "файл отчёта"
 
-#: models.py:494
+#: models.py:519
+msgid "title"
+msgstr "название"
+
+#: models.py:520
 msgid "description"
 msgstr "описание"
 
-#: models.py:495
+#: models.py:521
 msgid "details"
 msgstr "детали"
 
-#: models.py:508
+#: models.py:534
 msgid "generated report"
 msgstr "сгенерированный отчет"
 
-#: models.py:509
+#: models.py:535
 msgid "generated reports"
 msgstr "сгенерированные отчеты"
 
@@ -337,11 +346,11 @@ msgstr "Сайты"
 msgid "Content types"
 msgstr "Тип содержимого"
 
-#: views.py:178
+#: views.py:181
 msgid "Error in template"
 msgstr "Ошибка в шаблоне"
 
-#: views.py:292
+#: views.py:295
 msgid "One or more filters filled in not correctly"
 msgstr "Один или более фильтров заполнены неверно"
 
@@ -392,6 +401,7 @@ msgstr "Автор"
 
 #: templates/reportapi/index.html:40
 #: templates/reportapi/flatxml/standard_text.html:280
+#: templates/reportapi/html/standard.html:108
 msgid "Filters"
 msgstr "Фильтры"
 
@@ -434,7 +444,7 @@ msgstr "Создать документ"
 msgid "Recreate document"
 msgstr "Пересоздать документ"
 
-#: templates/reportapi/report_list.html:14
+#: templates/reportapi/report_list.html:13
 msgid "List of reports in section"
 msgstr "Список отчётов в разделе"
 
@@ -496,10 +506,12 @@ msgid "Table Filters"
 msgstr "Таблица фильтров"
 
 #: templates/reportapi/flatxml/standard_text.html:294
+#: templates/reportapi/html/standard.html:113
 msgid "condition"
 msgstr "условие"
 
 #: templates/reportapi/flatxml/standard_text.html:297
+#: templates/reportapi/html/standard.html:114
 msgid "value"
 msgstr "значение"
 
@@ -526,6 +538,14 @@ msgstr "Сгенерировано «ReportAPI»"
 msgid "of"
 msgstr "из"
 
+#: templates/reportapi/html/standard.html:94
+msgid "Print"
+msgstr "Печать"
+
+#: templates/reportapi/html/standard.html:100
+msgid "formed"
+msgstr "сформировано"
+
 #: templatetags/reportapi_base.py:84 templatetags/reportapi_base.py:92
 msgid "Anonymous"
 msgstr "Аноним"
@@ -535,9 +555,6 @@ msgstr "Аноним"
 
 #~ msgid "Download"
 #~ msgstr "Скачать"
-
-#~ msgid "formed"
-#~ msgstr "сформировано"
 
 #~ msgid "Show additional"
 #~ msgstr "Показать дополнительные"
