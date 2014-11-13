@@ -485,20 +485,26 @@ class Document(models.Model):
     после создания модели в базе данных, то в базу нужно будет вручную
     внести соотвествующие изменения.
 
+    Поле `restriction` является дополнительным ограничением для
+    отображения списка доступных документов конкретному пользователю.
+
     """
-    register = models.ForeignKey(Register, editable=False,
-        verbose_name=_('registered report'))
-    user = models.ForeignKey(User, editable=False, null=True,
-        verbose_name=_('user'))
-    code  = models.CharField(_('process key'), editable=False,
-        blank=True, db_index=True, max_length=REPORTAPI_CODE_LENGTH)
-    error = models.TextField(_('error message'), editable=False, blank=True)
-    start = models.DateTimeField(_('start create'), auto_now_add=True)
-    end   = models.DateTimeField(_('end create'), null=True, blank=True)
-    report_file = models.FileField(_('report file'), blank=True,
-        upload_to=lambda x,y: x.upload_to(y), max_length=512)
+
+    register    = models.ForeignKey(Register, editable=False, verbose_name=_('registered report'))
+    user        = models.ForeignKey(User, editable=False, null=True, verbose_name=_('user'))
+    restriction = models.IntegerField(_('restriction'), editable=False, null=True, index=True)
+    code        = models.CharField(_('process key'), editable=False, blank=True, db_index=True,
+                                    max_length=REPORTAPI_CODE_LENGTH)
+
+    error       = models.TextField(_('error message'), editable=False, blank=True)
+    start       = models.DateTimeField(_('start create'), auto_now_add=True)
+    end         = models.DateTimeField(_('end create'), null=True, blank=True)
+    report_file = models.FileField(_('report file'), blank=True, upload_to=lambda x,y: x.upload_to(y),
+                                    max_length=512)
+
+    title       = models.CharField(_('title'), max_length=255, blank=True)
     description = models.TextField(_('description'), blank=True)
-    details = JSONField(_('details'), null=True, blank=True)
+    details     = JSONField(_('details'), null=True, blank=True)
 
     objects = DocumentManager()
 
@@ -635,6 +641,10 @@ class Document(models.Model):
             else:
                 if self.report_file != old.report_file:
                     remove_file(old.report_file.path)
+
+        if not self.title:
+            self.title = force_text(self)
+
         super(Document, self).save()
 
     def delete(self):

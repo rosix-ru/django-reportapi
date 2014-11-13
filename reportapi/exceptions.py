@@ -36,13 +36,16 @@ class AbstractError(Exception):
         self.value   = value
         self.message = message or self.message
 
+    def message_str(self):
+        return force_text(self.message).encode('utf-8')
+
     def __str__(self):
-        return force_text(self.message)
+        return self.message_str()
 
     def __repr__(self):
         if self.value is None:
-            return repr(force_text(self.message))
-        return repr(force_text(self.message), self.value)
+            return repr(self.message_str())
+        return repr(self.message_str(), self.value)
 
 class PermissionError(AbstractError):
     message = _('Access denied')
