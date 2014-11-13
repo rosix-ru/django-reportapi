@@ -10,7 +10,6 @@
 {% endblock %}
 
 {% block report_list %}
-{% cache 1 report_list section.name request.user.id LANGUAGE_CODE '1' %}
 <h3>{% trans 'List of reports in section' %} &laquo;{{ section.label|title }}&raquo;</h3>
 
 <table class="table">
@@ -27,5 +26,4 @@
     </tbody>
 </table>
 
-{% endcache %}
 {% endblock %}
