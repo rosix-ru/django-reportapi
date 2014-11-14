@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReportAPI\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-13 16:09+1000\n"
+"POT-Creation-Date: 2014-11-14 19:01+1000\n"
 "PO-Revision-Date: 2014-03-07 00:00+1100\n"
 "Last-Translator: Grigoriy Kramarenko <root@rosix.ru>\n"
 "Language-Team: \n"
@@ -32,195 +32,200 @@ msgstr ""
 msgid "Access denied"
 msgstr "Доступ запрещён"
 
-#: filters.py:52
+#: filters.py:54
 msgid "isnull"
 msgstr "пусто"
 
-#: filters.py:52 models.py:283
+#: filters.py:54 models.py:293
 msgid "empty"
 msgstr "пусто"
 
-#: filters.py:53
+#: filters.py:55
 msgid "exact"
 msgstr "равно"
 
-#: filters.py:53
+#: filters.py:55
 msgid "iexact"
 msgstr "равно (без регистра)"
 
-#: filters.py:54
+#: filters.py:56
 msgid "gt"
 msgstr "больше чем"
 
-#: filters.py:54
+#: filters.py:56
 msgid "gte"
 msgstr "больше или равно"
 
-#: filters.py:55
+#: filters.py:57
 msgid "lt"
 msgstr "меньше чем"
 
-#: filters.py:55
+#: filters.py:57
 msgid "lte"
 msgstr "меньше или равно"
 
-#: filters.py:56
+#: filters.py:58
 msgid "range"
 msgstr "диапазон"
 
-#: filters.py:56
+#: filters.py:58
 msgid "in"
 msgstr "в списке"
 
-#: filters.py:57
+#: filters.py:59
 msgid "contains"
 msgstr "содержит (с регистром)"
 
-#: filters.py:57
+#: filters.py:59
 msgid "icontains"
 msgstr "содержит"
 
-#: filters.py:58
+#: filters.py:60
 msgid "startswith"
 msgstr "начало (с регистром)"
 
-#: filters.py:58
+#: filters.py:60
 msgid "istartswith"
 msgstr "начало"
 
-#: filters.py:59
+#: filters.py:61
 msgid "endswith"
 msgstr "конец (с регистром)"
 
-#: filters.py:59
+#: filters.py:61
 msgid "iendswith"
 msgstr "конец"
 
-#: filters.py:69
+#: filters.py:76
 msgid "yes"
 msgstr "да"
 
-#: filters.py:69
+#: filters.py:76
 msgid "no"
 msgstr "нет"
 
-#: filters.py:69 filters.py:112
+#: filters.py:76 filters.py:116
 msgid "any"
 msgstr "любое"
 
-#: filters.py:180
+#: filters.py:184
 msgid "Object search"
 msgstr "Поиск объекта"
 
-#: filters.py:397
+#: filters.py:401
 msgid "Choice"
 msgstr "Выберите"
 
-#: filters.py:434
+#: filters.py:438
 msgid "Select weekday"
 msgstr "Выберите день недели"
 
-#: filters.py:439
+#: filters.py:443
 msgid "Select month"
 msgstr "Выберите месяц"
 
-#: filters.py:443
+#: filters.py:447
 msgid "Today"
 msgstr "Сегодня"
 
-#: filters.py:444
+#: filters.py:448
 msgid "Tomorrow"
 msgstr "Завтра"
 
-#: filters.py:445
+#: filters.py:449
 msgid "Day after tomorrow"
 msgstr "Послезавтра"
 
-#: filters.py:446
+#: filters.py:450
 msgid "Yesterday"
 msgstr "Вчера"
 
-#: filters.py:447
+#: filters.py:451
 msgid "Two days ago"
 msgstr "Позавчера"
 
-#: filters.py:449
+#: filters.py:453
 msgid "Next two days"
 msgstr "Следующие 2 дня"
 
-#: filters.py:450
+#: filters.py:454
 msgid "Next three days"
 msgstr "Следующие 3 дня"
 
-#: filters.py:451
+#: filters.py:455
 msgid "Last two days"
 msgstr "Последние два дня"
 
-#: filters.py:452
+#: filters.py:456
 msgid "Last three days"
 msgstr "Последние три дня"
 
-#: filters.py:454
+#: filters.py:458
 msgid "Current week"
 msgstr "Текущая неделя"
 
-#: filters.py:455
+#: filters.py:459
 msgid "Next week"
 msgstr "Следующая неделя"
 
-#: filters.py:456
+#: filters.py:460
 msgid "Previous week"
 msgstr "Предыдущая неделя"
 
-#: filters.py:458
+#: filters.py:462
 msgid "Current month"
 msgstr "Текущий месяц"
 
-#: filters.py:459
+#: filters.py:463
 msgid "Next month"
 msgstr "Следующий месяц"
 
-#: filters.py:460
+#: filters.py:464
 msgid "Previous month"
 msgstr "Предыдущий месяц"
 
-#: filters.py:462
+#: filters.py:466
 msgid "First quarter"
 msgstr "Первый квартал"
 
-#: filters.py:463
+#: filters.py:467
 msgid "Second quarter"
 msgstr "Второй квартал"
 
-#: filters.py:464
+#: filters.py:468
 msgid "Third quarter"
 msgstr "Третий квартал"
 
-#: filters.py:465
+#: filters.py:469
 msgid "Fourth quarter"
 msgstr "Четвёртый квартал"
 
-#: filters.py:467
+#: filters.py:471
 msgid "First half year"
 msgstr "Первое полугодие"
 
-#: filters.py:468
+#: filters.py:472
 msgid "Second half year"
 msgstr "Второе полугодие"
 
-#: filters.py:470
+#: filters.py:474
 msgid "Current year"
 msgstr "Текущий год"
 
-#: filters.py:471
+#: filters.py:475
 msgid "Next year"
 msgstr "Следующий год"
 
-#: filters.py:472
+#: filters.py:476
 msgid "Previous year"
 msgstr "Предыдущий год"
 
-#: filters.py:477
+#: filters.py:482
+#, python-format
+msgid "Function `%s` not found in reportapi.utils.periods"
+msgstr "Функция `%s` не обнаружена в reportapi.utils.periods"
+
+#: filters.py:486
 msgid "Select period"
 msgstr "Выберите период"
 
@@ -232,101 +237,101 @@ msgstr "системный пользователь"
 msgid "main"
 msgstr "основные"
 
-#: models.py:283
+#: models.py:293
 msgid "no empty"
 msgstr "не пусто"
 
-#: models.py:290
+#: models.py:300
 #, python-format
 msgid "%(label)s: from %(cond0)s to %(cond1)s"
 msgstr "%(label)s: от %(cond0)s до %(cond1)s"
 
-#: models.py:330
+#: models.py:342
 msgid "Unspecified render error in template."
 msgstr "Неопределённая ошибка рендеринга шаблона."
 
-#: models.py:441
+#: models.py:478
 msgid "section"
 msgstr "раздел"
 
-#: models.py:442 templates/reportapi/flatxml/standard_text.html:291
+#: models.py:479 templates/reportapi/flatxml/standard_text.html:291
 #: templates/reportapi/html/standard.html:112
 msgid "name"
 msgstr "имя"
 
-#: models.py:443
+#: models.py:480
 msgid "title without translation"
 msgstr "название без перевода"
 
-#: models.py:444
+#: models.py:481
 msgid "allow all users"
 msgstr "доступно всем пользователям"
 
-#: models.py:446
+#: models.py:483
 msgid "allow list users"
 msgstr "доступно списку пользователей"
 
-#: models.py:448
+#: models.py:485
 msgid "allow list groups"
 msgstr "доступно списку групп"
 
-#: models.py:449
+#: models.py:486
 msgid "max of timeout"
 msgstr "максимальное время ожидания"
 
-#: models.py:455 models.py:507
+#: models.py:492 models.py:544
 msgid "registered report"
 msgstr "зарегистрированный отчёт"
 
-#: models.py:456
+#: models.py:493
 msgid "registered reports"
 msgstr "зарегистрированные отчёты"
 
-#: models.py:508
+#: models.py:545
 msgid "user"
 msgstr "пользователь"
 
-#: models.py:509
+#: models.py:546
 msgid "restriction"
 msgstr "ограничение"
 
-#: models.py:510
+#: models.py:547
 msgid "process key"
 msgstr "ключ процесса"
 
-#: models.py:513
+#: models.py:550
 msgid "error message"
 msgstr "сообщение об ошибке"
 
-#: models.py:514
+#: models.py:551
 msgid "start create"
 msgstr "начало создания"
 
-#: models.py:515
+#: models.py:552
 msgid "end create"
 msgstr "конец создания"
 
-#: models.py:516
+#: models.py:553
 msgid "report file"
 msgstr "файл отчёта"
 
-#: models.py:519
+#: models.py:556
 msgid "title"
 msgstr "название"
 
-#: models.py:520
+#: models.py:557
 msgid "description"
 msgstr "описание"
 
-#: models.py:521
+#: models.py:558
 msgid "details"
 msgstr "детали"
 
-#: models.py:534
+#: models.py:571
 msgid "generated report"
 msgstr "сгенерированный отчет"
 
-#: models.py:535
+#: models.py:572
 msgid "generated reports"
 msgstr "сгенерированные отчеты"
 

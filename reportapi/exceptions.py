@@ -50,6 +50,9 @@ class AbstractError(Exception):
 class PermissionError(AbstractError):
     message = _('Access denied')
 
+class PeriodsError(AbstractError):
+    pass
+
 class ExceptionReporterExt(ExceptionReporter):
     """
     Расширение класса отчёта об ошибках

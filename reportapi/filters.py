@@ -35,6 +35,8 @@ import operator, re
 
 from reportapi import conf
 from reportapi.python_serializer import serialize
+from reportapi.utils import periods
+from reportapi.exceptions import PeriodsError
 
 DEFAULT_SEARCH_FIELDS = getattr(conf, 'DEFAULT_SEARCH_FIELDS',
     (# Основные классы, от которых наследуются другие
@@ -59,6 +61,11 @@ __conditions__ = (ugettext_noop('isnull'), ugettext_noop('empty'),# ugettext_noo
     ugettext_noop('endswith'), ugettext_noop('iendswith')
 )
 
+DB_OPERATORS = {
+        'exact': '=', 'gt': '>', 'gte': '>=', 'lt': '<', 'lte': '<=',
+        'isnull': 'IS NULL', 'range': 'BETWEEN %s AND %s'
+    }
+
 @python_2_unicode_compatible
 class BaseFilter(object):
     required = None
@@ -68,10 +75,7 @@ class BaseFilter(object):
     verbose_name = None
     boolean_labels = {'TRUE': _('yes'), 'FALSE': _('no'), 'NONE': _('any')}
 
-    db_operators = {
-        'exact': '=', 'gt': '>', 'gte': '>=', 'lt': '<', 'lte': '<=',
-        'isnull': 'IS NULL', 'range': 'BETWEEN %s AND %s'
-    }
+    db_operators = DB_OPERATORS
 
     def __str__(self):
         return '%s:%s' % (self.__class__.__name__, self.name)
@@ -472,13 +476,32 @@ PERIODS = {
         'previous_year': _('Previous year'),
     }
 
+# test
+for x in PERIODS.keys():
+    if not hasattr(periods, x):
+        raise PeriodsError(_('Function `%s` not found in reportapi.utils.periods') % x)
+
 class FilterPeriod(FilterChoice):
     _type = 'period'
     placeholder = _('Select period')
-    conditions = ('exact',)
+    conditions = ('range',)
     keytype = str
     _options = PERIODS
+    withtime = True
 
+    def get_value_label(self, condition, value, request=None):
+        return self._options.get(self.keytype(value), None)
+
+    def get_value(self, condition, value, request=None):
+        """
+        Если периоды втроенные, то для них есть функции получения
+        объектов datetime. Если нет, то программист должен сам
+        обработать это значение при формировании отчёта.
+        """
+        if value in PERIODS:
+            f = getattr(periods, value)
+            return f(withtime=self.withtime)
+        return value
 
 def _search_in_fields(queryset, fields, query):
     """ Фильтрация """
