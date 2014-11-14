@@ -160,8 +160,9 @@ class Report(object):
     def __init__(self, site=None, section=None, section_label=None, \
         filters=None, title=None, name=None, **kwargs):
         """
-        Установка значений по-умолчанию
+        Установка или замена значений по-умолчанию
         """
+
         class_name = self.__class__.__name__
 
         self.site = site or getattr(self, 'site', None) or raise_set_site(class_name)
@@ -194,10 +195,16 @@ class Report(object):
         self.verbose_name = _(self.title)
 
     def slugify(self, name):
+        """
+        Преобразовывает имя фильтра или отчёта в унифицированное
+        """ 
         return slugify(name)
 
     @property
     def label(self):
+        """
+        Псевдоним свойства `verbose_name`
+        """
         return self.verbose_name
 
     def create_register(self):
@@ -231,6 +238,9 @@ class Report(object):
         return None
     
     def has_permission(self, request):
+        """
+        Возвращает истинность наличия прав доступа к данному отчёту
+        """
         return bool(self.permitted_register(request))
 
     def get_code(self, filters, request=None):
@@ -273,7 +283,7 @@ class Report(object):
         Получаем описание из фильтров
         """
 
-        filters = self.get_filters_data(filters)
+        filters = self.get_filters_data(filters).values()
         L = []
         for f in filters:
             label = (f['label']).lower()
@@ -310,6 +320,8 @@ class Report(object):
         context = self.get_context(document=document, filters=filters, request=request)
         if not 'BRAND_TEXT' in context:
             context['BRAND_TEXT'] = REPORTAPI_BRAND_TEXT
+        if not request:
+            context['user'] = SystemUser()
 
         # set temporary properties for document
         document.convert_to_pdf = self.convert_to_pdf
@@ -323,7 +335,7 @@ class Report(object):
         if self.page:
             context['PAGE'] = self.page.checked()
         context['DOCUMENT'] = document
-        context['FILTERS'] = self.get_filters_data(filters, request=request)
+        context['FILTERS'] = self.get_filters_data(filters, request=request).values()
         content = loader.render_to_string(self.template_name, context,
                             context_instance=RequestContext(request,))
         _file = ContentFile(content.encode('utf-8') or \
@@ -332,6 +344,9 @@ class Report(object):
         return document
 
     def filters_to_string(self, filters):
+        """
+        Сериализуем фильтры в строку. 
+        """
         if not isinstance(filters, dict):
             return str(filters)
 
@@ -341,6 +356,9 @@ class Report(object):
         return smart_text(filters)
 
     def filters_list(self):
+        """
+        Возвращает список сериализованных фильтров
+        """
         return [ x.serialize() for x in self.filters ]
 
     def prepare_filters(self, filters, request=None):
@@ -360,14 +378,20 @@ class Report(object):
         return True
 
     def get_filters_data(self, filters, request=None):
-        L = []
+        """
+        Возвращает словарь с данными всех фильтров
+        """
+        D = {}
         for key,dic in filters.items():
             f = self.get_filter(key)
             if f:
-                L.append(f.data(request=request, **dic))
-        return L
+                D[key] = f.data(request=request, **dic)
+        return D
 
     def get_filter_data(self, name, filters, request=None):
+        """
+        Возвращает данные одного фильтра в виде словаря.
+        """
         f = self.get_filter(name)
         kw = filters.get(self.slugify(name), None)
         if f and kw:
@@ -375,15 +399,24 @@ class Report(object):
         return {}
 
     def get_filter_clean_value(self, name, filters, request=None):
+        """
+        Возвращает только чистое значение фильтра или None.
+        """
         data = self.get_filter_data(name, filters, request=request)
         if data:
             return data.get('value', None)
         return None
 
     def get_filter(self, name):
+        """
+        Преобразует имя в подходящее и возвращает экземпляр фильтра
+        """
         return self._filters.get(self.slugify(name), {})
 
     def get_scheme(self, request=None):
+        """
+        Возвращает полную схему отчёта для сериализации в JavaScript.
+        """
         SCHEME = {
             'name': self.name,
             'section': self.section,
@@ -403,6 +436,10 @@ class Report(object):
 
     @property
     def timeout(self):
+        """
+        Возвращает время ожидания отчёта, сохранённое последний раз в
+        базе данных
+        """
         return self.create_register().timeout
 
 class Spreadsheet(Report):
