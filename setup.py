@@ -11,9 +11,7 @@ def read(fname):
 setup(
     name='django-reportapi',
     version=reportapi.__version__,
-    description='Is an easy way to setup mechanism building and \
-                getting reports for Django projects.',
-    long_description=read('README.md'),
+    description='Easy mechanism building reports in Django projects.',
     author='Grigoriy Kramarenko',
     author_email='root@rosix.ru',
     url='https://bitbucket.org/rosix/django-reportapi/',
@@ -22,9 +20,9 @@ setup(
     zip_safe=False,
     packages=find_packages(),
     include_package_data = True,
-    install_requires=['django-quickapi'],
+    install_requires=['django-quickapi', 'jsonfield'],
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Framework :: Django',
         'Intended Audience :: Developers',
