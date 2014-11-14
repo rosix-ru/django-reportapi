@@ -180,13 +180,10 @@ def create_document(request, report, document, filters):
         else:
             document.error = '%s:\n%s' % (smart_text(_('Error in template')), msg)
 
-    document.end = timezone.now()
-    document.save()
-
     if not document.error:
-        if document.autoconvert():
-            document.end = timezone.now()
-            document.save()
+        document.autoconvert()
+        document.end = timezone.now()
+        document.save()
 
         delta = document.end - document.start
         ms = int(delta.total_seconds() *1000)
@@ -194,6 +191,9 @@ def create_document(request, report, document, filters):
         if register.timeout < ms:
             register.timeout = ms
             register.save()
+    else:
+        document.end = timezone.now()
+        document.save()
 
     return document
 

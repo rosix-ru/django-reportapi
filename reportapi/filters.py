@@ -484,7 +484,7 @@ for x in PERIODS.keys():
 class FilterPeriod(FilterChoice):
     _type = 'period'
     placeholder = _('Select period')
-    conditions = ('range',)
+    conditions = ('exact',)
     keytype = str
     _options = PERIODS
     withtime = True

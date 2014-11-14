@@ -144,7 +144,7 @@ function jsonAPI(args, callback, to_console, sync, timeout) {
             handlerShowAlert(json.message, 'alert-danger');
             clearInterval(window.REPORT.process);
             window.REPORT.process = undefined;
-            $('.progress .progress-bar').removeClass('progress-striped active');
+            $('.progress .progress-bar').removeClass('progress-bar-striped active');
             handlerSetProgress(0);
         }
         /* При нормальном возврате в debug-режиме выводим в консоль
@@ -241,7 +241,7 @@ function handlerCheckProcess() {
             };
 
             // TODO: animation or 1-2 seconds after
-            $pbar.removeClass('progress-striped active');
+            $pbar.removeClass('progress-bar-striped active');
             //~ handlerSetProgress(0);
     
             $('.action-recreate-report').prop("disabled", false).removeAttr('disabled');
@@ -254,10 +254,10 @@ function handlerCheckProcess() {
             };
         } else if (now >= max){
             // report not ready and count request to server >= maximum request
-            $pbar.addClass('progress-striped active');
+            $pbar.addClass('progress-bar-striped active');
         } else {
             // report not ready
-            console.log(TIMEOUT_PROGRESS + now);
+            //~ console.log(TIMEOUT_PROGRESS + now);
             handlerSetProgress(TIMEOUT_PROGRESS + now);
         };
     };
