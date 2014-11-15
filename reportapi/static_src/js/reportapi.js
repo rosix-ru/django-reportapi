@@ -625,7 +625,7 @@ function dateToArray(date) {
     }
     return [
         '' + (1900 + date.getYear()), '-',
-        addzero(date.getMonth()), '-',
+        addzero(1 + date.getMonth()), '-',
         addzero(date.getDate()), ' ',
         addzero(date.getHours()), ':',
         addzero(date.getMinutes()), ':',
