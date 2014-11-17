@@ -49,6 +49,11 @@ REPORTAPI_UPLOAD_HASHLIB  = getattr(settings, 'REPORTAPI_UPLOAD_HASHLIB', 'md5')
 REPORTAPI_FILES_UNIDECODE = getattr(settings, 'REPORTAPI_FILES_UNIDECODE', False)
 REPORTAPI_LANGUAGES       = getattr(settings, 'REPORTAPI_LANGUAGES', ['en', 'ru'])
 
+# LibreOffice refuses to convert large files
+# therefore exhibited an approximate value as 50 megabyte
+REPORTAPI_MAXSIZE_TYPES   = getattr(settings, 'REPORTAPI_MAXSIZE_TYPES', {})
+REPORTAPI_MAXSIZE_ALL     = getattr(settings, 'REPORTAPI_MAXSIZE_ALL', 1048576*50) # 50 мегабайт
+
 REPORTAPI_UNOCONV_TO_PDF  = getattr(settings, 'REPORTAPI_UNOCONV_TO_PDF', True)
 REPORTAPI_UNOCONV_TO_ODF  = getattr(settings, 'REPORTAPI_UNOCONV_TO_ODF', True)
 REPORTAPI_UNOCONV_SERVERS = getattr(settings, 'REPORTAPI_UNOCONV_SERVERS', [])
