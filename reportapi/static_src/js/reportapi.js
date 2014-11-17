@@ -640,25 +640,25 @@ function handlerMagicSet(filter, date, date2) {
 
     if (filter.type == 'datetime') {
         if (filter.withseconds) {
-            value = date.join();
-            if (date2) value2 = date2.join();
+            value = date.join('');
+            if (date2) value2 = date2.join('');
         }
         else {
-            value = date.slice(0, 9).join();
-            if (date2) value2 = date2.slice(0, 9).join();
+            value = date.slice(0, 9).join('');
+            if (date2) value2 = date2.slice(0, 9).join('');
         }
 
     } else if (filter.type == 'date') {
-        value = date.slice(0, 5).join();
-        if (date2) value2 = date2.slice(0, 5).join();
+        value = date.slice(0, 5).join('');
+        if (date2) value2 = date2.slice(0, 5).join('');
     } else if (filter.type == 'time') {
         if (filter.withseconds) {
-            value = date.slice(6).join();
-            if (date2) value2 = date2.slice(6).join();
+            value = date.slice(6).join('');
+            if (date2) value2 = date2.slice(6).join('');
         }
         else {
-            value = date.slice(6, 9).join();
-            if (date2) value2 = date2.slice(6, 9).join();
+            value = date.slice(6, 9).join('');
+            if (date2) value2 = date2.slice(6, 9).join('');
         }
     }
 
