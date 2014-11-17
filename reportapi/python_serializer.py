@@ -177,7 +177,7 @@ class SerializerWrapper(object):
                 elif attr in many_to_many:
                     field = opts.many_to_many[many_to_many.index(attr)]
                     self.handle_m2m_field(obj, field)
-                elif not attr in ('pk', '__unicode__'):
+                elif not attr in ('pk', '__unicode__', '__str__'):
                     self.handle_property(obj, attr)
 
             self.end_object(obj)

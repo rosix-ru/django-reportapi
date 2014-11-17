@@ -327,9 +327,11 @@ function eventRemoveDocument(event) {
 ////////////////////////////////////////////////////////////////////////
 
 /* Обработчик установки поиска-выбора для фильтров объектов */
-function handlerSetSelectizers($box) {
+function handlerSetSelectizers(filter) {
     if (DEBUG) {console.log('function:'+'handlerSetSelectizers')};
-    var $box = $box || $('body');
+    var $box = $('#valuebox-'+filter.name);
+
+    if ($box.size() <1) return false;
 
     $.each($box.find('select[data-type="object"]'), function(index, select) {
 
@@ -419,32 +421,38 @@ function handlerSetSelectizers($box) {
             });
         }
     });
+
+    return true;
 };
 
-/* Обработчик установки масок для input */
-function handlerMaskInputs($box) {
-    if (DEBUG) {console.log('function:'+'handlerMaskInputs')};
-    var $box = $box || $('body');
 
-    // Инициализация маски для дат
-    $.mask.definitions['1']='[0-1]';
-    $.mask.definitions['2']='[0-2]';
-    $.mask.definitions['3']='[0-3]';
-    $.mask.definitions['5']='[0-5]';
-    $.each($box.find('[data-mask]'), function(i, item) {
-        var $item = $(item),
-            data = $(item).data();
-        $item.mask(data.mask, {
-            completed: function() {
-                var filter = REPORT.filters[this.context.name];
-                filter.value = this.val();
-                if (filter.condition == 'range') {
-                    filter.value = filter.value.split(RANGE_SPLIT);
-                };
-                if (DEBUG) {console.log('function:'+'handlerMaskInputs:completed; filter=' + filter.value)};
-            }
-        });
-    });
+/* Обработчик установки datetime для input */
+function handlerSetDatetimePickers(filter) {
+    if (DEBUG) {console.log('function:'+'handlerSetDatetimePickers')};
+    if (!filter || !(filter.type in {'datetime':'','date':'','time':''})) return false;
+
+    if (filter.condition == 'range') {
+        $('#datetime-'+ filter.name +'-range1')
+            .datetimepicker({
+                format: "dd MM yyyy - hh:ii",
+                autoclose: true,
+                todayBtn: true,
+            })
+            .on('changeDate', function(ev){
+                console.log(1, ev.date);
+            });
+        $('#datetime-'+ filter.name +'-range2')
+            .datetimepicker({format: "dd MM yyyy - hh:ii"})
+            .on('changeDate', function(ev){
+                console.log(2, ev.date);
+            });
+    } else {
+        $('#datetime-'+ filter.name)
+            .datetimepicker({format: "dd MM yyyy - hh:ii"})
+            .on('changeDate', function(ev){
+                console.log(0, ev.date);
+            });
+    }
 
     return true;
 };
@@ -455,9 +463,14 @@ function handlerCheckRequiredValue() {
 
     var completed = true;
     $.each(REPORT.filters, function(key, item) {
-        if ((item.required) && (item.value === null || item.value === undefined)) {
-            completed = false;
-        };
+        if (item.required) {
+            if (item.value === null || item.value === undefined) {
+                completed = false;
+            } else if (item.condition == 'range' &&
+                (item.value.length < 2 || item.value[0] === null || item.value[1] === null)) {
+                completed = false;
+            };
+        }
     });
     if (completed) {
         $('.action-create-report').prop("disabled", false).removeAttr("disabled");
@@ -513,12 +526,15 @@ function eventConditionChange(event) {
 
     filter.condition = this.value || null;
 
-    if (!filter.condition || filter.type in {'object':0, 'choice':0, 'month':0, 'weekday':0, 'period':0 }) {
-        // Объекты, булевы значения и списки выбора сбрасываются
-        filter.value = null;
+    if (filter.type  == 'boolean') {
+        // Булевы значения устанавливаются в дефолтное значение
+        filter.value = filter.default_value;
     } else if (filter.condition in {'isnull':0, 'empty':0}) {
         // Для условия "пусто" значение по-умолчанию истинно
         filter.value = true;
+    } else if (filter.type in {'object':0, 'choice':0, 'month':0, 'weekday':0, 'period':0 }) {
+        // Объекты и списки выбора сбрасываются
+        filter.value = null;
     } else if (filter.condition in {'range':0,'in':0}) {
         // Для этих условий заполняем одним значением
         if ($.type(prev_value) != 'array') {
@@ -534,15 +550,18 @@ function eventConditionChange(event) {
     } else {
         // Любые другие условия
         if (prev_condition in {'range':0,'in':0}) {
-            filter.value = prev_value[0]
+            filter.value = prev_value ? prev_value[0] : null;
         } else if ((prev_value == null) && (filter.default_value != undefined)) {
             filter.value = filter.default_value
         }
     };
+
     var html = TEMPLATES.filter({ data: filter });
+
     $('#valuebox-'+filter.name).html(html);
-    handlerSetSelectizers($('#valuebox-'+filter.name));
-    handlerMaskInputs($('#valuebox-'+filter.name));
+
+    handlerSetSelectizers(filter);
+    handlerSetDatetimePickers(filter);
 
     handlerAfterChanges();
 
@@ -564,6 +583,7 @@ function keyDownIsControl(event) {
 };
 
 /* Обработчик события нажатия клавиши на поле ввода дат и времени */
+/*
 function eventKeyDownOnDateTime(event) {
     if (DEBUG) {console.log('function:'+'eventKeyDownOnDateTime')};//, event)};
 
@@ -582,7 +602,7 @@ function eventKeyDownOnDateTime(event) {
 
     return false;
 };
-
+*/
 
 /* Обработчик события нажатия клавиши на поле ввода чисел */
 function eventKeyDownOnNumber(event) {
@@ -610,79 +630,6 @@ function eventKeyDownOnNumber(event) {
     }
 
     return false;
-};
-
-////////////////////////////////////////////////////////////////////////
-//                Магические обработчики дат и времени                //
-////////////////////////////////////////////////////////////////////////
-
-/* Обработчик значения времени */
-function dateToArray(date) {
-    if (DEBUG) {console.log('function:'+'dateToArray')};
-    var addzero = function(v) {
-        if (v > 9) return ''+v;
-        return '0'+v; 
-    }
-    return [
-        '' + (1900 + date.getYear()), '-',
-        addzero(1 + date.getMonth()), '-',
-        addzero(date.getDate()), ' ',
-        addzero(date.getHours()), ':',
-        addzero(date.getMinutes()), ':',
-        addzero(date.getSeconds())
-    ]
-}
-
-/* Обработчик установки магических значений */
-function handlerMagicSet(filter, date, date2) {
-    if (DEBUG) {console.log('function:'+'handlerMagicSet', filter.name)};
-    var value, value2 = null;
-
-    if (filter.type == 'datetime') {
-        if (filter.withseconds) {
-            value = date.join();
-            if (date2) value2 = date2.join();
-        }
-        else {
-            value = date.slice(0, 9).join();
-            if (date2) value2 = date2.slice(0, 9).join();
-        }
-
-    } else if (filter.type == 'date') {
-        value = date.slice(0, 5).join();
-        if (date2) value2 = date2.slice(0, 5).join();
-    } else if (filter.type == 'time') {
-        if (filter.withseconds) {
-            value = date.slice(6).join();
-            if (date2) value2 = date2.slice(6).join();
-        }
-        else {
-            value = date.slice(6, 9).join();
-            if (date2) value2 = date2.slice(6, 9).join();
-        }
-    }
-
-    if (filter.condition == 'range') {
-        filter.value = [value, value2 || value]
-    } else {
-        filter.value = value
-    }
-    
-    if (filter.condition == 'range') {
-        $('#value-'+filter.name).val(filter.value[0]+RANGE_SPLIT+filter.value[1]);
-    } else {
-        $('#value-'+filter.name).val(filter.value);
-    }
-
-    handlerSetSelectizers($('#valuebox-'+filter.name));
-    handlerMaskInputs($('#valuebox-'+filter.name));
-    handlerAfterChanges();
-};
-
-/* Обработчик установки значения текущего времени или даты */
-function handlerMagicNow(filter) {
-    if (DEBUG) {console.log('function:'+'handlerMagicNow', filter.name)};
-    handlerMagicSet(filter, dateToArray(new Date()));
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -720,26 +667,6 @@ function handlerShowDocument(href, name, inwindow) {
     }
 };
 
-/* Обработчик отображения дополнительных фильтров */
-function handlerShowAdditionalFilters() {
-    if (DEBUG) {console.log('function:'+'handlerShowAdditionalFilters')};
-    $('.additional-filter').show();
-    $('.action-hide-additional').show();
-    $('.action-show-additional').hide();
-
-    return true;
-};
-
-/* Обработчик сокрытия дополнительных фильтров */
-function handlerHideAdditionalFilters() {
-    if (DEBUG) {console.log('function:'+'handlerHideAdditionalFilters')};
-    $('.additional-filter').hide();
-    $('.action-hide-additional').hide();
-    $('.action-show-additional').show();
-    return true;
-};
-
-
 /* Обработчик установки шаблонов */
 function handlerTemplates() {
     if (DEBUG) {console.log('function:'+'handlerTemplates')};
@@ -762,8 +689,6 @@ function handlerBindinds() {
     $('body').on('keydown', 'input[data-validate="number"]', eventKeyDownOnNumber);
     $('body').on('change', 'input[id^="value-"]', eventChangeValue);
 
-    $('body').on('click', '.action-hide-additional', handlerHideAdditionalFilters);
-    $('body').on('click', '.action-show-additional', handlerShowAdditionalFilters);
     $('body').on('click', '.action-create-report', eventCreateReport);
     $('body').on('click', '.action-recreate-report', eventRecreateReport);
 
@@ -793,7 +718,6 @@ $(document).ready(function($) {
     handlerBindinds();
 
     // Прочее
-    handlerMaskInputs();
-    handlerHideAdditionalFilters();
+    //~ handlerMaskInputs();
 
 });

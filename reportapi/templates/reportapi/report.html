@@ -22,25 +22,27 @@
             <th class="col-xs-2">{{ filter.label|title }}</th>
             <td colspan="2" style="vertical-align: middle;">
                 <div class="btn-group" data-toggle="buttons">
-                    <label class="btn btn-default active">
+                {% if filter.usenone %}
+                    <label class="btn btn-default {{ filter.default_value|yesno:',,active' }}">
                         <input type="radio" name="{{ filter.name }}"
                             id="value-{{ filter.name }}-none"
                             data-type="boolean"
-                            value="null" checked>
+                            value="null" {{ filter.default_value|yesno:',,checked' }}>
                          {{ filter.boolean_labels.NONE }}
                     </label>
-                    <label class="btn btn-default">
+                {% endif %}
+                    <label class="btn btn-default {{ filter.default_value|yesno:'active,,' }}">
                         <input type="radio" name="{{ filter.name }}"
                             id="value-{{ filter.name }}-true"
                             data-type="boolean"
-                            value="true">
+                            value="true" {{ filter.default_value|yesno:'checked,,' }}>
                         {{ filter.boolean_labels.TRUE }}
                     </label>
-                    <label class="btn btn-default">
+                    <label class="btn btn-default {{ filter.default_value|yesno:',active,' }}">
                         <input type="radio" name="{{ filter.name }}"
                             id="value-{{ filter.name }}-false"
                             data-type="boolean"
-                            value="false">
+                            value="false" {{ filter.default_value|yesno:',checked,' }}>
                         {{ filter.boolean_labels.FALSE }}
                     </label>
                 </div>

@@ -1,30 +1,76 @@
 {# Шаблон Underscore #}{% load i18n l10n %}
 
-<% if (!data.condition && data.type != 'boolean') { %>
-    <!-- not condition -->
+<% if (!data.condition) { %>
+    <!-- Нет условия -->
     <% if (data.required) { %>
         <label class="text-danger">{% trans 'Filter required' %}</label>
     <% } %>
 <% } else if (data.condition in {'isnull':0, 'empty':0}) { %>
+    <!-- Условие на признак пустоты принимает всего 2 значения истинности -->
     <div class="btn-group" data-toggle="buttons">
-        <label class="btn btn-default active">
+        <!-- Кнопка "истина" -->
+        <label class="btn btn-default<% if (data.value) { %>active<% } %>">
             <input type="radio" name="<%= data.name %>"
                 id="value-<%= data.name %>-true"
                 data-type="<%= data.type %>"
-                value="true" checked>
+                value="true" <% if (data.value) { %>checked<% } %>>
             <%= data.boolean_labels.TRUE %>
         </label>
-        <label class="btn btn-default">
+        <!-- Кнопка "ложь" -->
+        <label class="btn btn-default<% if (!data.value) { %>active<% } %>">
             <input type="radio" name="<%= data.name %>"
                 id="value-<%= data.name %>-false"
                 data-type="<%= data.type %>"
-                value="false">
+                value="false" <% if (!data.value) { %>checked<% } %>>
             <%= data.boolean_labels.FALSE %>
         </label>
     </div>
+<% } else if (data.type in {'datetime':0, 'date':0, 'time':0} && data.condition == 'range') { %>
+    <!-- Диапазоны дат и времени -->
+    <div class="row">
+        <div class="col-xs-6">
+            <div id="datetime-<%= data.name %>-range1" class="input-group date">
+                <span class="input-group-btn">
+                    <button id="btn-datetime-<%= data.name %>-range1" class="btn btn-default" type="button">
+                        <i class="fa fa-calendar"></i>
+                        {% trans 'from' %}
+                    </button>
+                </span>
+                <input
+                    id="value-<%= data.name %>-range1"
+                    type="text"
+                    name="<%= data.name %>"
+                    value="<% if (data.value) { %><%= data.value[0] %><% } %>"
+                    class="form-control"
+                    data-type="<%= data.type %>"
+                    placeholder="{% trans 'press and select' %}"
+                    readonly>
+            </div>
+        </div>
+        <div class="col-xs-6">
+            <div id="datetime-<%= data.name %>-range2" class="input-group date">
+                <span class="input-group-btn">
+                    <button id="btn-datetime-<%= data.name %>-range2" class="btn btn-default" type="button">
+                        <i class="fa-calendar" style="display:none"></i>
+                        {% trans 'to' %}
+                    </button>
+                </span>
+                <input
+                    id="value-<%= data.name %>-range2"
+                    type="text"
+                    name="<%= data.name %>"
+                    value="<% if (data.value) { %><%= data.value[1] %><% } %>"
+                    class="form-control"
+                    data-type="<%= data.type %>"
+                    placeholder="{% trans 'press and select' %}"
+                    readonly>
+            </div>
+        </div>
+    </div>
 <% } else { %>
+    <!-- Остальные условия -->
     <% if (data.type in {'datetime':0, 'date':0, 'time':0}) { %>
-        <div class="input-group">
+        <div id="datetime-<%= data.name %>" class="input-group date">
     <% } %>
     <% if (data.type in {'object':0, 'choice':0, 'month':0, 'weekday':0, 'period':0 }) { %>
         <select
@@ -41,72 +87,24 @@
     class="form-control"
     data-type="<%= data.type %>"
 
-    <% if (data.type == 'datetime' && data.withseconds) { %>
-        <% if (data.condition == 'range') { %>
-            data-mask="9999-19-39 29:59:59<%= RANGE_SPLIT %>9999-19-39 29:59:59"
-            placeholder="{% trans 'yyyy-mm-dd HH:MM:SS' %}<%= RANGE_SPLIT %>{% trans 'yyyy-mm-dd HH:MM:SS' %}"
-        <% } else { %>
-            data-mask="9999-19-39 29:59:59"
-            placeholder="{% trans 'yyyy-mm-dd HH:MM:SS' %}"
-        <% } %>
+    <% if (data.type == 'number') { %>data-validate="number"<% } %>
 
-    <% } else if (data.type == 'datetime') { %>
-        <% if (data.condition == 'range') { %>
-            data-mask="9999-19-39 29:59<%= RANGE_SPLIT %>9999-19-39 29:59"
-            placeholder="{% trans 'yyyy-mm-dd HH:MM' %}<%= RANGE_SPLIT %>{% trans 'yyyy-mm-dd HH:MM' %}"
-        <% } else { %>
-            data-mask="9999-19-39 29:59"
-            placeholder="{% trans 'yyyy-mm-dd HH:MM' %}"
-        <% } %>
-
-    <% } else if (data.type == 'date') { %>
-        <% if (data.condition == 'range') { %>
-            data-mask="9999-19-39<%= RANGE_SPLIT %>9999-19-39"
-            placeholder="{% trans 'yyyy-mm-dd' %}<%= RANGE_SPLIT %>{% trans 'yyyy-mm-dd' %}"
-        <% } else { %>
-            data-mask="9999-19-39"
-            placeholder="{% trans 'yyyy-mm-dd' %}"
-        <% } %>
-
-    <% } else if (data.type == 'time' && data.withseconds) { %>
-        <% if (data.condition == 'range') { %>
-            data-mask="29:59:59<%= RANGE_SPLIT %>29:59:59"
-            placeholder="{% trans 'HH:MM:SS' %}<%= RANGE_SPLIT %>{% trans 'HH:MM:SS' %}"
-        <% } else { %>
-            data-mask="29:59:59"
-            placeholder="{% trans 'HH:MM:SS' %}"
-        <% } %>
-
-    <% } else if (data.type == 'time') { %>
-        <% if (data.condition == 'range') { %>
-            data-mask="29:59<%= RANGE_SPLIT %>29:59"
-            placeholder="{% trans 'HH:MM' %}<%= RANGE_SPLIT %>{% trans 'HH:MM' %}"
-        <% } else { %>
-            data-mask="29:59"
-            placeholder="{% trans 'HH:MM' %}"
-        <% } %>
-
-    <% } else if (data.type == 'number') { %>
-        data-validate="number"
-        <% if (data.placeholder) { %>
-            placeholder="<%= data.placeholder %>"
-        <% } %>
-    <% } else if (data.placeholder) { %>
-        placeholder="<%= data.placeholder %>"
-    <% } %>
+    <% if (data.placeholder) { %>placeholder="<%= data.placeholder %>"<% } %>
 
     <% if (data.type in {'object':0, 'choice':0, 'month':0, 'weekday':0, 'period':0 }) { %>
         ></select>
     <% } else { %>
-        />
+        
         <% if (data.type in {'datetime':0, 'date':0, 'time':0}) { %>
+            readonly />
             <span class="input-group-btn">
-                <button class="btn btn-default" id="magic-<%= data.name %>-now" type="button"
-                    onclick="handlerMagicNow(REPORT.filters['<%= data.name %>'])">
-                    <i class="fa fa-magic"></i>
+                <button class="btn btn-default" id="datetime-btn-<%= data.name %>" type="button">
+                    <i class="fa fa-calendar"></i>
                 </button>
             </span>
         </div>
+        <% } else { %>
+            />
         <% } %>
     <% } %>
 

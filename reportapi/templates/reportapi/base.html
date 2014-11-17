@@ -10,8 +10,8 @@
     <!-- START: block style -->
     {% block style %}
     <link rel="stylesheet" href="{{ STATIC_URL}}css/bootstrap/3.3.0/bootstrap{% mini_library %}.css">
+    <link rel="stylesheet" href="{{ STATIC_URL}}css/bootstrap/datetimepicker/2.3.0/bootstrap-datetimepicker{% mini_library %}.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome/4.0.3/css/font-awesome{% mini_library %}.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/pygments/1.5/pygments{% mini_library %}.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}css/selectize/0.8.5/selectize.bootstrap3.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}css/reportapi/{% SETTINGS 'REPORTAPI_VERSION' %}/reportapi{% mini_library %}.css">
 
@@ -134,7 +134,7 @@
 
 <!-- START: block jstemplates -->
     {% block jstemplates %}
-    {% cache 600 jstemplates LANGUAGE_CODE %}
+    {% cache 0 jstemplates LANGUAGE_CODE %}
     <!-- underscore -->
     <script type="text/x-underscore" id="underscore-alert">
         {% include "reportapi/underscore_alert.html" %}
@@ -171,12 +171,11 @@
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="{{ STATIC_URL}}js/jquery/2.1.0/jquery{% mini_library %}.js"></script>
     <script src="{{ STATIC_URL }}js/jquery/json/2.4/jquery.json{% mini_library %}.js"></script>
-    <script src="{{ STATIC_URL }}js/jquery/maskedinput/1.3.1/jquery.maskedinput{% mini_library %}.js"></script>
     <script src="{{ STATIC_URL }}js/underscore/1.4.4/underscore{% mini_library %}.js"></script>
     <script src="{{ STATIC_URL }}js/underscore/string/2.3.0/underscore.string{% mini_library %}.js"></script>
     <script src="{{ STATIC_URL }}js/django/{% SETTINGS 'DJANGO_VERSION' %}/django-ajax-csrf{% mini_library %}.js"></script>
     <script src="{{ STATIC_URL}}js/bootstrap/3.3.0/bootstrap{% mini_library %}.js"></script>
-    <script src="{{ STATIC_URL}}js/moment/2.5.1/moment-with-langs{% mini_library %}.js"></script>
+    <script src="{{ STATIC_URL}}js/bootstrap/datetimepicker/2.3.0/bootstrap-datetimepicker{% mini_library %}.js"></script>
     <script src="{{ STATIC_URL}}js/selectize/0.8.5/standalone/selectize{% mini_library %}.js"></script>
     <script src="{{ STATIC_URL}}js/reportapi/{% SETTINGS 'REPORTAPI_VERSION' %}/reportapi{% mini_library %}.js"></script>
     {% endblock %}

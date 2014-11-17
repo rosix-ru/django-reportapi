@@ -167,8 +167,16 @@ class BaseFilter(object):
         if hasattr(self, 'unicode_key'):
             D['unicode_key'] = self.unicode_key
 
+        if hasattr(self, 'usenone'):
+            D['usenone'] = self.usenone
+
+        if hasattr(self, 'default_condition'):
+            D['default_condition'] = self.default_condition
+
         if hasattr(self, 'default'):
             D['default_value'] = self.default
+        elif hasattr(self, 'default_value'):
+            D['default_value'] = self.default_value
         elif hasattr(self, 'get_default'):
             D['default_value'] = self.get_default()
 
@@ -394,6 +402,8 @@ class FilterTime(BaseFilter):
 class FilterBoolean(BaseFilter):
     _type = 'boolean'
     conditions = None
+    usenone = True
+    default = None
 
 class FilterChoice(BaseFilter):
     _type = 'choice'
