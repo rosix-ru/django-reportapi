@@ -435,14 +435,7 @@ function handlerMaskInputs($box) {
         var $item = $(item),
             data = $(item).data();
         $item.mask(data.mask, {
-            completed: function() {
-                var filter = REPORT.filters[this.context.name];
-                filter.value = this.val();
-                if (filter.condition == 'range') {
-                    filter.value = filter.value.split(RANGE_SPLIT);
-                };
-                if (DEBUG) {console.log('function:'+'handlerMaskInputs:completed; filter=' + filter.value)};
-            }
+            completed: function() { $(this).change() }
         });
     });
 
@@ -494,9 +487,15 @@ function eventChangeValue(event) {
     if (this.type == 'radio') {
         // Для радио-кнопок с булевыми значениями
         filter.value = (value == 'true') ? true : (value == 'false') ? false : null;
-    } else if ($(this).attr('data-mask') !== undefined && value != filter.value) {
-        // Значение не подошло под маску
-        filter.value = null;
+    } else if ($(this).attr('data-mask') !== undefined) {
+        // Для масок
+        if (!value) { 
+            filter.value = null
+        } else if (filter.condition == 'range') {
+            filter.value = value.split(RANGE_SPLIT)
+        } else {
+            filter.value = value
+        }
     } else {
         filter.value = value || null;
     };
