@@ -118,7 +118,7 @@ class BaseFilter(object):
             return self.boolean_labels.get(str(bool(value)).upper())
         return self.get_value(condition, value, request=request)
 
-    def data(self, condition='truth', value=None, inverse=False, request=None, **options):
+    def data(self, condition=ugettext_noop('truth'), value=None, inverse=False, request=None, **options):
         """
         Метод получения информации об установленном фильтре.
         """

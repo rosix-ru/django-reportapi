@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReportAPI\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-14 19:01+1000\n"
+"POT-Creation-Date: 2014-11-18 15:58+1000\n"
 "PO-Revision-Date: 2014-03-07 00:00+1100\n"
 "Last-Translator: Grigoriy Kramarenko <root@rosix.ru>\n"
 "Language-Team: \n"
@@ -107,6 +107,10 @@ msgstr "нет"
 #: filters.py:76 filters.py:116
 msgid "any"
 msgstr "любое"
+
+#: filters.py:121
+msgid "truth"
+msgstr "истина"
 
 #: filters.py:184
 msgid "Object search"
