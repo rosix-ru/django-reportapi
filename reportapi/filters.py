@@ -138,7 +138,7 @@ class BaseFilter(object):
     def condition_list(self):
         return [(x, _(x)) for x in self.conditions or ()]
 
-    def serialize(self):
+    def serialize(self, request=None, **kwargs):
         D = {
             'required': self.required or False,
             'name': self.name,
@@ -153,7 +153,10 @@ class BaseFilter(object):
 
         if hasattr(self, 'options'):
             o = self.options
-            D['options'] = o() if callable(o) else o
+            if callable(o):
+                D['options'] = o(request=request)
+            else:
+                D['options'] = o
 
         if hasattr(self, 'withseconds'):
             D['withseconds'] = self.withseconds
@@ -261,12 +264,11 @@ class FilterObject(BaseFilter):
         """
         return self.manager.all()
 
-    @property
-    def options(self):
-        return serialize(self.manager.all()[:self.max_options],
+    def options(self, request=None, **kwargs):
+        return serialize(self.get_queryset(request=request, **kwargs)[:self.max_options],
             attrs=self.fields_search, unicode_key=self.unicode_key)
 
-    def get_queryset(self, request=None):
+    def get_queryset(self, request=None, **kwargs):
         """
         Этот метод может быть переопределён в наследуемых классах,
         например, если требуется получить определённый набор данных в

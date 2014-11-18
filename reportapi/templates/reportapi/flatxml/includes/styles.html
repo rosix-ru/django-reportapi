@@ -110,8 +110,8 @@
         <style:paragraph-properties
             fo:padding-top="0.20cm"
             fo:padding-bottom="0.20cm"
-            fo:border-top="0.002cm solid #000000"
-            fo:border-bottom="0.002cm solid #000000"/>
+            fo:border-top="0.002cm solid {{ BRAND_COLOR|default:'#303030' }}"
+            fo:border-bottom="0.002cm solid {{ BRAND_COLOR|default:'#303030' }}"/>
         <style:text-properties style:font-name="Lucida Console"/>
     </style:style>
 
@@ -122,7 +122,7 @@
         <style:paragraph-properties
             fo:padding-top="0.20cm"
             fo:padding-bottom="0.20cm"
-            fo:border-left="0.2cm solid #000000"/>
+            fo:border-left="0.2cm solid {{ BRAND_COLOR|default:'#303030' }}"/>
         <style:text-properties/>
     </style:style>
 
@@ -134,7 +134,7 @@
             fo:padding-top="0.20cm"
             fo:padding-bottom="0.20cm"
             fo:background-color=""
-            fo:border-left="0.2cm solid #000000"/>
+            fo:border-left="0.2cm solid {{ BRAND_COLOR|default:'#303030' }}"/>
         <style:text-properties/>
     </style:style>
 
@@ -198,7 +198,7 @@
         style:list-style-name="ListHeadings"
         style:default-outline-level="1">
         <style:paragraph-properties text:line-number="1" fo:margin-top="0.6cm" fo:margin-bottom="0.0cm"/>
-        <style:text-properties fo:font-size="140%"/>
+        <style:text-properties fo:font-size="200%"/>
     </style:style>
 
     <style:style style:name="Heading2" style:family="paragraph"
@@ -208,7 +208,7 @@
         style:list-style-name="ListHeadings"
         style:default-outline-level="2">
         <style:paragraph-properties text:line-number="2" fo:margin-top="0.6cm" fo:margin-bottom="0.0cm"/>
-        <style:text-properties fo:font-size="130%"/>
+        <style:text-properties fo:font-size="180%"/>
     </style:style>
 
     <style:style style:name="Heading3" style:family="paragraph"
@@ -218,7 +218,7 @@
         style:list-style-name="ListHeadings"
         style:default-outline-level="3">
         <style:paragraph-properties text:line-number="3" fo:margin-top="0.6cm" fo:margin-bottom="0.0cm"/>
-        <style:text-properties fo:font-size="120%"/>
+        <style:text-properties fo:font-size="160%"/>
     </style:style>
 
     <style:style style:name="Heading4" style:family="paragraph"
@@ -228,7 +228,27 @@
         style:list-style-name="ListHeadings"
         style:default-outline-level="4">
         <style:paragraph-properties text:line-number="4" fo:margin-top="0.6cm" fo:margin-bottom="0.0cm"/>
-        <style:text-properties fo:font-size="110%"/>
+        <style:text-properties fo:font-size="140%"/>
+    </style:style>
+
+    <style:style style:name="Heading5" style:family="paragraph"
+        style:parent-style-name="Heading"
+        style:display-name="Heading 5"
+        style:class="text"
+        style:list-style-name="ListHeadings"
+        style:default-outline-level="5">
+        <style:paragraph-properties text:line-number="5" fo:margin-top="0.6cm" fo:margin-bottom="0.0cm"/>
+        <style:text-properties fo:font-size="120%"/>
+    </style:style>
+
+    <style:style style:name="Heading6" style:family="paragraph"
+        style:parent-style-name="Heading"
+        style:display-name="Heading 6"
+        style:class="text"
+        style:list-style-name="ListHeadings"
+        style:default-outline-level="6">
+        <style:paragraph-properties text:line-number="6" fo:margin-top="0.6cm" fo:margin-bottom="0.0cm"/>
+        <style:text-properties fo:font-size="100%"/>
     </style:style>
 
     <style:style style:name="Headings" style:family="paragraph"
@@ -282,8 +302,18 @@
 
     <style:style style:name="THContent" style:family="paragraph"
         style:parent-style-name="TableContents">
-        <style:text-properties fo:font-weight="bold" fo:color="#303030"/>
+        <style:text-properties fo:font-weight="bold" fo:color="{{ BRAND_COLOR|default:'#303030' }}"/>
         <style:paragraph-properties fo:text-align="center"/>
+    </style:style>
+
+    <style:style style:name="THContentLeft" style:family="paragraph"
+        style:parent-style-name="THContent">
+        <style:paragraph-properties fo:text-align="left"/>
+    </style:style>
+
+    <style:style style:name="THContentRight" style:family="paragraph"
+        style:parent-style-name="THContent">
+        <style:paragraph-properties fo:text-align="right"/>
     </style:style>
 
     <style:style style:name="TDContent" style:family="paragraph"

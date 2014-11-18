@@ -54,6 +54,7 @@ REPORTAPI_UNOCONV_TO_ODF  = getattr(settings, 'REPORTAPI_UNOCONV_TO_ODF', True)
 REPORTAPI_UNOCONV_SERVERS = getattr(settings, 'REPORTAPI_UNOCONV_SERVERS', [])
 
 REPORTAPI_BRAND_TEXT = getattr(settings, 'REPORTAPI_BRAND_TEXT', '')
+REPORTAPI_BRAND_COLOR = getattr(settings, 'REPORTAPI_BRAND_COLOR', '#303030')
 
 
 class Header(object):

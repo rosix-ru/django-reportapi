@@ -48,6 +48,7 @@ from reportapi.conf import (
     REPORTAPI_UNOCONV_TO_PDF,
     REPORTAPI_UNOCONV_SERVERS,
     REPORTAPI_BRAND_TEXT,
+    REPORTAPI_BRAND_COLOR,
     Header, Footer, Page
 )
 
@@ -320,6 +321,8 @@ class Report(object):
         context = self.get_context(document=document, filters=filters, request=request)
         if not 'BRAND_TEXT' in context:
             context['BRAND_TEXT'] = REPORTAPI_BRAND_TEXT
+        if not 'BRAND_COLOR' in context:
+            context['BRAND_COLOR'] = REPORTAPI_BRAND_COLOR
         if not request:
             context['user'] = SystemUser()
 
@@ -355,11 +358,11 @@ class Report(object):
                 filters[k] = list(set(v))
         return smart_text(filters)
 
-    def filters_list(self):
+    def filters_list(self, request=None):
         """
         Возвращает список сериализованных фильтров
         """
-        return [ x.serialize() for x in self.filters ]
+        return [ x.serialize(request=request) for x in self.filters ]
 
     def prepare_filters(self, filters, request=None):
         """
@@ -428,7 +431,7 @@ class Report(object):
             'expiration_time': self.expiration_time,
             'timeout': self.timeout,
         }
-        filters_list = self.filters_list()
+        filters_list = self.filters_list(request=request)
         SCHEME['filters'] = dict(filters_list)
         SCHEME['filters_list'] = [ x[0] for x in filters_list ]
 
