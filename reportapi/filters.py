@@ -36,7 +36,7 @@ import operator, re
 from reportapi import conf
 from reportapi.python_serializer import serialize
 from reportapi.utils import periods
-from reportapi.exceptions import PeriodsError
+from reportapi.exceptions import PeriodsError, ObjectFoundError
 
 DEFAULT_SEARCH_FIELDS = getattr(conf, 'DEFAULT_SEARCH_FIELDS',
     (# Основные классы, от которых наследуются другие
@@ -322,11 +322,20 @@ class FilterObject(BaseFilter):
         if condition == 'isnull':
             return bool(value)
         elif condition == 'exact':
-            return qs.get(pk=value)
+            try:
+                return qs.get(pk=value)
+            except:
+                raise ObjectFoundError()
         elif condition == 'range':
-            return qs.filter(pk__gte=min(value), pk__lte=max(value)).order_by('pk')
+            qs = qs.filter(pk__in=value).order_by('pk')
+            if len(qs) != 2:
+                raise ObjectFoundError()
+            return qs[0], qs[1]
         else:
-            return qs.filter(pk__in=list(value)).order_by('pk')
+            qs = qs.filter(pk__in=list(value)).order_by('pk')
+            if not qs:
+                raise ObjectFoundError()
+            return qs
 
 class FilterText(BaseFilter):
     _type = 'text'
