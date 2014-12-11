@@ -29,6 +29,7 @@ from django.utils.dates import WEEKDAYS, MONTHS
 from django.utils.translation import ugettext_noop, ugettext_lazy as _
 from django.core.paginator import Paginator, Page, PageNotAnInteger, EmptyPage
 from django.utils.dateparse import parse_datetime, parse_date, parse_time
+from django.utils.dateformat import format as date_format
 from django.template.defaultfilters import slugify
 from datetime import timedelta
 import operator, re
@@ -36,7 +37,7 @@ import operator, re
 from reportapi import conf
 from reportapi.python_serializer import serialize
 from reportapi.utils import periods
-from reportapi.exceptions import PeriodsError
+from reportapi.exceptions import PeriodsError, ObjectFoundError
 
 DEFAULT_SEARCH_FIELDS = getattr(conf, 'DEFAULT_SEARCH_FIELDS',
     (# Основные классы, от которых наследуются другие
@@ -81,16 +82,26 @@ class BaseFilter(object):
         return '%s:%s' % (self.__class__.__name__, self.name)
 
     def __init__(self, name, required=False, conditions=None,
-        default=None, verbose_name=None, placeholder=None, **kwargs):
+        verbose_name=None, placeholder=None, **kwargs):
 
         if self.required is None:
             self.required = required
-        
+
         if conditions:
             self.conditions = conditions
 
-        if not default is None:
-            self.default = default
+        if 'default_condition' in kwargs:
+            self.default_condition = kwargs['default_condition']
+
+        if 'default_value' in kwargs:
+            default_value = kwargs['default_value']
+            if callable(default_value):
+                self.default_value = lambda s: default_value()
+            else:
+                self.default_value = default_value
+
+            if not hasattr(self, 'default_condition'):
+                self.default_condition = self.conditions[0] if self.conditions else 'truth'
 
         self.name = slugify(name)
 
@@ -118,7 +129,7 @@ class BaseFilter(object):
             return self.boolean_labels.get(str(bool(value)).upper())
         return self.get_value(condition, value, request=request)
 
-    def data(self, condition='truth', value=None, inverse=False, request=None, **options):
+    def data(self, condition=ugettext_noop('truth'), value=None, inverse=False, request=None, **options):
         """
         Метод получения информации об установленном фильтре.
         """
@@ -138,7 +149,7 @@ class BaseFilter(object):
     def condition_list(self):
         return [(x, _(x)) for x in self.conditions or ()]
 
-    def serialize(self):
+    def serialize(self, request=None, **kwargs):
         D = {
             'required': self.required or False,
             'name': self.name,
@@ -153,10 +164,35 @@ class BaseFilter(object):
 
         if hasattr(self, 'options'):
             o = self.options
-            D['options'] = o() if callable(o) else o
+            if callable(o):
+                D['options'] = o(request=request)
+            else:
+                D['options'] = o
 
-        if hasattr(self, 'withseconds'):
-            D['withseconds'] = self.withseconds
+        if hasattr(self, 'get_default_value'):
+            # для получения доступных пользователю объектов передаём request
+            try:
+                D['value'] = self.get_default_value(request=request)
+            except:
+                pass
+            # для datetime, date, time
+            if hasattr(self, 'get_default_server_value'):
+                try:
+                    D['server_value'] = self.get_default_server_value()
+                except:
+                    pass
+
+            if hasattr(self, 'default_condition'):
+                D['condition'] = self.default_condition
+
+        elif hasattr(self, 'default_value'):
+            if callable(self.default_value):
+                D['value'] = self.default_value(request=request)
+            else:
+                D['value'] = self.default_value
+
+            if hasattr(self, 'default_condition'):
+                D['condition'] = self.default_condition
 
         if hasattr(self, 'search_on_date'):
             D['search_on_date'] = self.search_on_date
@@ -170,15 +206,20 @@ class BaseFilter(object):
         if hasattr(self, 'usenone'):
             D['usenone'] = self.usenone
 
-        if hasattr(self, 'default_condition'):
-            D['default_condition'] = self.default_condition
+        if hasattr(self, 'format'):
+            D['format'] = self.format
 
-        if hasattr(self, 'default'):
-            D['default_value'] = self.default
-        elif hasattr(self, 'default_value'):
-            D['default_value'] = self.default_value
-        elif hasattr(self, 'get_default'):
-            D['default_value'] = self.get_default()
+        if hasattr(self, 'formatDate'):
+            D['formatDate'] = self.formatDate
+
+        if hasattr(self, 'formatTime'):
+            D['formatTime'] = self.formatTime
+
+        if hasattr(self, 'use_tz'):
+            D['use_tz'] = self.use_tz
+
+        if hasattr(self, 'use_mask'):
+            D['use_mask'] = self.use_mask
 
         return self.name, D
 
@@ -269,12 +310,11 @@ class FilterObject(BaseFilter):
         """
         return self.manager.all()
 
-    @property
-    def options(self):
-        return serialize(self.manager.all()[:self.max_options],
+    def options(self, request=None, **kwargs):
+        return serialize(self.get_queryset(request=request, **kwargs)[:self.max_options],
             attrs=self.fields_search, unicode_key=self.unicode_key)
 
-    def get_queryset(self, request=None):
+    def get_queryset(self, request=None, **kwargs):
         """
         Этот метод может быть переопределён в наследуемых классах,
         например, если требуется получить определённый набор данных в
@@ -328,11 +368,20 @@ class FilterObject(BaseFilter):
         if condition == 'isnull':
             return bool(value)
         elif condition == 'exact':
-            return qs.get(pk=value)
+            try:
+                return qs.get(pk=value)
+            except:
+                raise ObjectFoundError()
         elif condition == 'range':
-            return qs.filter(pk__gte=min(value), pk__lte=max(value)).order_by('pk')
+            qs = qs.filter(pk__in=value).order_by('pk')
+            if len(qs) != 2:
+                raise ObjectFoundError()
+            return qs[0], qs[1]
         else:
-            return qs.filter(pk__in=list(value)).order_by('pk')
+            qs = qs.filter(pk__in=list(value)).order_by('pk')
+            if not qs:
+                raise ObjectFoundError()
+            return qs
 
 class FilterText(BaseFilter):
     _type = 'text'
@@ -343,9 +392,85 @@ class FilterNumber(BaseFilter):
     _type = 'number'
     conditions = ('exact', 'gt', 'gte', 'lt', 'lte')
 
-class FilterDateTime(BaseFilter):
+# Translated date and time formats
+DATE_FORMAT         = _('Y-m-d')
+TIME_FORMAT         = _('H:i')
+TIME_FORMAT_SEC     = _('H:i:s')
+DATETIME_FORMAT     = _('Y-m-d H:i')
+DATETIME_FORMAT_SEC = _('Y-m-d H:i:s')
+
+class BaseDateTime(BaseFilter):
+    use_mask = True
+    default_condition = 'exact'
+
+    def time_replace(self, value):
+        def _replace(v):
+            v = timezone.localtime(v)
+            if hasattr(v, 'second'):
+                v = v.replace(microsecond=0)
+                if not getattr(self, 'withseconds', False):
+                    v = v.replace(second=0)
+            return v
+
+        if isinstance(value, (list, tuple)):
+            return [_replace(x) for x in value]
+
+        return _replace(value)
+
+    def get_default_value(self, **kwargs):
+        if callable(self.default_value):
+            value = self.default_value()
+        else:
+            value = self.default_value
+
+        value = self.time_replace(value)
+
+        cond = getattr(self, 'default_condition', None)
+
+        if cond and cond == 'range':
+            if not isinstance(value, (list, tuple)):
+                value = date_format(value, '%s' % self.format)
+                return (value, value)
+
+        return date_format(value, '%s' % self.format)
+
+    def get_default_server_value(self, **kwargs):
+        if callable(self.default_value):
+            value = self.default_value()
+        else:
+            value = self.default_value
+
+        value = self.time_replace(value)
+
+        cond = getattr(self, 'default_condition', None)
+
+        if cond and cond == 'range':
+            if not isinstance(value, (list, tuple)):
+                return (value, value)
+            else:
+                return value
+        return value
+
+class FilterDateTime(BaseDateTime):
     _type = 'datetime'
     withseconds = False
+    use_tz = conf.settings.USE_TZ
+
+    default_value = lambda s: timezone.now()
+
+    formatDate = DATE_FORMAT
+
+    @property
+    def format(self):
+        if self.withseconds:
+            return DATETIME_FORMAT_SEC
+        return DATETIME_FORMAT
+
+    @property
+    def formatTime(self):
+        if self.withseconds:
+            return TIME_FORMAT_SEC
+        return TIME_FORMAT
 
     def get_value(self, condition, value, request=None):
         if isinstance(value, six.string_types):
@@ -362,8 +487,10 @@ class FilterDateTime(BaseFilter):
             value = [min(value), max(value)]
         return value
 
-class FilterDate(BaseFilter):
+class FilterDate(BaseDateTime):
     _type = 'date'
+    format = DATE_FORMAT
+    default_value = lambda s: timezone.localtime(timezone.now()).date()
 
     def get_value(self, condition, value, request=None):
         if isinstance(value, six.string_types):
@@ -380,9 +507,16 @@ class FilterDate(BaseFilter):
             value = [min(value), max(value)]
         return value
 
-class FilterTime(BaseFilter):
+class FilterTime(BaseDateTime):
     _type = 'time'
     withseconds = False
+    default_value = lambda s: timezone.localtime(timezone.now()).time()
+
+    @property
+    def format(self):
+        if self.withseconds:
+            return TIME_FORMAT_SEC
+        return TIME_FORMAT
 
     def get_value(self, condition, value, request=None):
         if isinstance(value, six.string_types):
@@ -403,7 +537,16 @@ class FilterBoolean(BaseFilter):
     _type = 'boolean'
     conditions = None
     usenone = True
-    default = None
+    default_value = None
+    default_condition = 'truth'
+
+    def __init__(self, name, usenone=None, **kwargs):
+        super(FilterBoolean, self).__init__(name=name, **kwargs)
+
+        if not usenone is None:
+            self.usenone = usenone
+            if self.default_value is None:
+                self.required = True
 
 class FilterChoice(BaseFilter):
     _type = 'choice'
@@ -535,7 +678,7 @@ def _search_in_fields(queryset, fields, query):
 
     return queryset
 
-def _date_search_in_fields(queryset, fields, query):
+def _date_search_in_fields(queryset, fields, query, format=None):
     """ Фильтрация по дате"""
     if fields:
         query = query.strip()

@@ -3,13 +3,13 @@
 <% if (!data.condition) { %>
     <!-- Нет условия -->
     <% if (data.required) { %>
-        <label class="text-danger">{% trans 'Filter required' %}</label>
+        <label class="text-danger" style="padding-top: 6px;">{% trans 'filter required' %}</label>
     <% } %>
 <% } else if (data.condition in {'isnull':0, 'empty':0}) { %>
     <!-- Условие на признак пустоты принимает всего 2 значения истинности -->
     <div class="btn-group" data-toggle="buttons">
         <!-- Кнопка "истина" -->
-        <label class="btn btn-default<% if (data.value) { %>active<% } %>">
+        <label class="btn btn-default <% if (data.value) { %>active<% } %>">
             <input type="radio" name="<%= data.name %>"
                 id="value-<%= data.name %>-true"
                 data-type="<%= data.type %>"
@@ -17,7 +17,7 @@
             <%= data.boolean_labels.TRUE %>
         </label>
         <!-- Кнопка "ложь" -->
-        <label class="btn btn-default<% if (!data.value) { %>active<% } %>">
+        <label class="btn btn-default <% if (!data.value) { %>active<% } %>">
             <input type="radio" name="<%= data.name %>"
                 id="value-<%= data.name %>-false"
                 data-type="<%= data.type %>"
@@ -30,47 +30,33 @@
     <div class="row">
         <div class="col-xs-6">
             <div id="datetime-<%= data.name %>-range1" class="input-group date">
-                <span class="input-group-btn">
-                    <button id="btn-datetime-<%= data.name %>-range1" class="btn btn-default" type="button">
-                        <i class="fa fa-calendar"></i>
-                        {% trans 'from' %}
-                    </button>
-                </span>
+                <span class="input-group-addon">{% trans 'from' %}</span>
                 <input
                     id="value-<%= data.name %>-range1"
                     type="text"
                     name="<%= data.name %>"
                     value="<% if (data.value) { %><%= data.value[0] %><% } %>"
                     class="form-control"
-                    data-type="<%= data.type %>"
-                    placeholder="{% trans 'press and select' %}"
-                    readonly>
+                    data-type="<%= data.type %>">
             </div>
         </div>
         <div class="col-xs-6">
             <div id="datetime-<%= data.name %>-range2" class="input-group date">
-                <span class="input-group-btn">
-                    <button id="btn-datetime-<%= data.name %>-range2" class="btn btn-default" type="button">
-                        <i class="fa-calendar" style="display:none"></i>
-                        {% trans 'to' %}
-                    </button>
-                </span>
+                <span class="input-group-addon">{% trans 'to' %}</span>
                 <input
                     id="value-<%= data.name %>-range2"
                     type="text"
                     name="<%= data.name %>"
                     value="<% if (data.value) { %><%= data.value[1] %><% } %>"
                     class="form-control"
-                    data-type="<%= data.type %>"
-                    placeholder="{% trans 'press and select' %}"
-                    readonly>
+                    data-type="<%= data.type %>">
             </div>
         </div>
     </div>
 <% } else { %>
     <!-- Остальные условия -->
     <% if (data.type in {'datetime':0, 'date':0, 'time':0}) { %>
-        <div id="datetime-<%= data.name %>" class="input-group date">
+        <div id="datetime-<%= data.name %>" class="input-group-">
     <% } %>
     <% if (data.type in {'object':0, 'choice':0, 'month':0, 'weekday':0, 'period':0 }) { %>
         <select
@@ -94,18 +80,7 @@
     <% if (data.type in {'object':0, 'choice':0, 'month':0, 'weekday':0, 'period':0 }) { %>
         ></select>
     <% } else { %>
-        
-        <% if (data.type in {'datetime':0, 'date':0, 'time':0}) { %>
-            readonly />
-            <span class="input-group-btn">
-                <button class="btn btn-default" id="datetime-btn-<%= data.name %>" type="button">
-                    <i class="fa fa-calendar"></i>
-                </button>
-            </span>
-        </div>
-        <% } else { %>
-            />
-        <% } %>
+        />
     <% } %>
 
 <% } %>

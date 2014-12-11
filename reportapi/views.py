@@ -129,26 +129,28 @@ def get_document(request, pk, download=False):
         return HttpResponse(doc.error, mimetype='text/html')
 
     if doc.report_file and os.path.exists(doc.report_file.path):
+        return HttpResponseRedirect(doc.url)
 
-        url = doc.url # remember
-
-        # Download or show PDF and HTML files as raw
-
-        if download or url.endswith('.pdf') or url.endswith('.html'):
-            return HttpResponseRedirect(url)
-
-        # Show ODF files in ViewerJS
-
-        ctx['DOCUMENT'] = doc
-
-        lang = get_language()
-        if lang in REPORTAPI_LANGUAGES:
-            lang = '.' + lang
-        else:
-            lang = ''
-
-        return HttpResponseRedirect('%slib/ViewerJS/index%s.html#%s' %
-            (settings.STATIC_URL, lang, url))
+        ### OLD CODE ###
+        #~ url = doc.url # remember
+#~ 
+        #~ # Download or show PDF and HTML files as raw
+#~ 
+        #~ if download or url.endswith('.pdf') or url.endswith('.html'):
+            #~ return HttpResponseRedirect(url)
+#~ 
+        #~ # Show ODF files in ViewerJS
+#~ 
+        #~ ctx['DOCUMENT'] = doc
+#~ 
+        #~ lang = get_language()
+        #~ if lang in REPORTAPI_LANGUAGES:
+            #~ lang = '.' + lang
+        #~ else:
+            #~ lang = ''
+#~ 
+        #~ return HttpResponseRedirect('%slib/ViewerJS/index%s.html#%s' %
+            #~ (settings.STATIC_URL, lang, url))
 
     ctx['remove_nav'] = True
 

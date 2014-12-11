@@ -22,49 +22,55 @@
 
 <div class="row">
     {% for doc in docs %}
-    <div id="div-document-{{ doc.pk }}" class="col-xs-12 {% if doc.error %}bg-danger{% elif not doc.end %}bg-warning{% else %}{% endif %}">
-        <h4 class="page-header">
-            {{ doc }}
-            <small class="pull-right">
-                {% if not doc.end %}
-                    {% trans 'in the making' %}
-                {% else %}
-                    {{ doc.end|default:'' }}
-                {% endif %}
-            </small>
-        </h4>
+    <div id="div-document-{{ doc.pk }}" class="col-xs-12">
+        <div class="panel panel-default">
+            <div class="panel-heading {% if doc.error %}bg-danger{% elif not doc.end %}bg-warning{% else %}{% endif %}">
+                <h4 class="panel-title">
+                    {{ doc }}
+                    <small class="pull-right">
+                        {% if not doc.end %}
+                            {% trans 'in the making' %}
+                        {% else %}
+                            {{ doc.end|default:'' }}
+                        {% endif %}
+                    </small>
+                </h4>
+            </div>
 
-        <dl class="dl-horizontal">
-            <dt>{% trans 'Author' %}</dt>
-            <dd>{{ doc.user.get_full_name|default:doc.user }}</dd>
-            <dt>{% trans 'Filters' %}</dt>
-            <dd>{{ doc.description|linebreaks }}</dd>
-            <dt>{% trans 'Links' %}</dt>
-            <dd>
-            {% if doc.end %} 
-                <a href="#view-document-{{ doc.pk }}" onClick="handlerShowDocument('{% url 'reportapi:get_document' doc.pk %}', 'document-{{ doc.pk }}')" 
-                    class="btn btn-link btn-xs" role="button"
-                    title="{% trans 'View' %}">
-                    <i class="fa {% if doc.error %}fa-bug{% else %}fa-search{% endif %}"></i> {% trans 'View' %}
-                </a>
-            {% endif %}
-                <a href="{{ doc.register.get_absolute_url }}" class="btn btn-link btn-xs"
-                    role="button" title="{% trans 'Create New' %}">
-                    <i class="fa fa-gears"></i> {% trans 'Create New' %}
-                </a>
-            {% if user.is_superuser or user == doc.user %}
-                <a href="#" onClick="handlerRemoveDocument({{ doc.pk }}, true)" 
-                    class="btn btn-link btn-xs" role="button"
-                    title="{% trans 'Remove' %}">
-                    <i class="fa fa-times"></i> {% trans 'Remove' %}
-                </a>
-            {% endif %}
-            </dd>
-        </dl>
-        <div id="view-document-{{ doc.pk }}" class="row" style="display:none; padding-top: 60px;">
-            <div class="embed-responsive embed-responsive-4by3"></div>
+            <div class="panel-body {% if doc.error %}bg-danger{% elif not doc.end %}bg-warning{% else %}{% endif %}">
+
+                <dl class="dl-horizontal">
+                    <dt>{% trans 'Author' %}</dt>
+                    <dd>{{ doc.user.get_full_name|default:doc.user }}</dd>
+                    <dt>{% trans 'Filters' %}</dt>
+                    <dd>{{ doc.description|linebreaks }}</dd>
+                    <dt>{% trans 'Links' %}</dt>
+                    <dd>
+                    {% if doc.end %} 
+                        <a href="#view-document-{{ doc.pk }}" onClick="handlerShowDocument('{% url 'reportapi:get_document' doc.pk %}', 'document-{{ doc.pk }}')" 
+                            class="btn btn-link btn-xs" role="button"
+                            title="{% trans 'View' %}">
+                            <i class="fa {% if doc.error %}fa-bug{% else %}fa-search{% endif %}"></i> {% trans 'View' %}
+                        </a>
+                    {% endif %}
+                        <a href="{{ doc.register.get_absolute_url }}" class="btn btn-link btn-xs"
+                            role="button" title="{% trans 'Create New' %}">
+                            <i class="fa fa-gears"></i> {% trans 'Create New' %}
+                        </a>
+                    {% if user.is_superuser or user == doc.user %}
+                        <a href="#" onClick="handlerRemoveDocument({{ doc.pk }}, true)" 
+                            class="btn btn-link btn-xs" role="button"
+                            title="{% trans 'Remove' %}">
+                            <i class="fa fa-times"></i> {% trans 'Remove' %}
+                        </a>
+                    {% endif %}
+                    </dd>
+                </dl>
+                <div id="view-document-{{ doc.pk }}" class="row-" style="display:none; padding-top: 60px;">
+                    <div class="embed-responsive embed-responsive-16by9"></div>
+                </div>
+            </div>
         </div>
-        <hr>
     </div>
     {% endfor %}
 </div>

@@ -6,12 +6,19 @@
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Grigoriy Kramarenko">
+
+{% block shortcut_icons %}
+    <link rel="icon" href="{{ STATIC_URL }}img/reportapi/logo.svg" type="image/svg">
+    <link rel="icon" href="{{ STATIC_URL }}img/reportapi/logo.png" type="image/png">
+{% endblock %}
 
     <!-- START: block style -->
     {% block style %}
-    <link rel="stylesheet" href="{{ STATIC_URL}}css/bootstrap/3.3.0/bootstrap{% mini_library %}.css">
-    <link rel="stylesheet" href="{{ STATIC_URL}}css/bootstrap/datetimepicker/2.3.0/bootstrap-datetimepicker{% mini_library %}.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome/4.0.3/css/font-awesome{% mini_library %}.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome/4.2.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap/3.3.1/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap/3.3.1/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/jquery/datetimepicker/2.4.1/jquery.datetimepicker.min.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}css/selectize/0.8.5/selectize.bootstrap3.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}css/reportapi/{% SETTINGS 'REPORTAPI_VERSION' %}/reportapi{% mini_library %}.css">
 
@@ -87,10 +94,9 @@
             {% block navbar_project %}
             <ul class="nav navbar-nav navbar-right">
                 <li>
-                    <a href="{% block navbar_project_url %}/{% endblock %}">
+                    <a class="navbar-brand" href="{% block navbar_project_url %}/{% endblock %}">
                         {% block navbar_project_label %}
-                        {% trans 'Home' %}
-                        <i class="fa fa-home"></i>
+                        <i class="fa fa-home"></i> {% PROJECT_NAME %}
                         {% endblock %}
                     </a>
                 </li>
@@ -134,7 +140,7 @@
 
 <!-- START: block jstemplates -->
     {% block jstemplates %}
-    {% cache 0 jstemplates LANGUAGE_CODE %}
+    {% cache 600 jstemplates LANGUAGE_CODE %}
     <!-- underscore -->
     <script type="text/x-underscore" id="underscore-alert">
         {% include "reportapi/underscore_alert.html" %}
@@ -169,15 +175,16 @@
     {% block js %}
     <!-- Bootstrap -->
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="{{ STATIC_URL}}js/jquery/2.1.0/jquery{% mini_library %}.js"></script>
-    <script src="{{ STATIC_URL }}js/jquery/json/2.4/jquery.json{% mini_library %}.js"></script>
-    <script src="{{ STATIC_URL }}js/underscore/1.4.4/underscore{% mini_library %}.js"></script>
-    <script src="{{ STATIC_URL }}js/underscore/string/2.3.0/underscore.string{% mini_library %}.js"></script>
-    <script src="{{ STATIC_URL }}js/django/{% SETTINGS 'DJANGO_VERSION' %}/django-ajax-csrf{% mini_library %}.js"></script>
-    <script src="{{ STATIC_URL}}js/bootstrap/3.3.0/bootstrap{% mini_library %}.js"></script>
-    <script src="{{ STATIC_URL}}js/bootstrap/datetimepicker/2.3.0/bootstrap-datetimepicker{% mini_library %}.js"></script>
-    <script src="{{ STATIC_URL}}js/selectize/0.8.5/standalone/selectize{% mini_library %}.js"></script>
-    <script src="{{ STATIC_URL}}js/reportapi/{% SETTINGS 'REPORTAPI_VERSION' %}/reportapi{% mini_library %}.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery/2.1.1/jquery.min.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery/django/1.4/django-ajax-csrf.min.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery/json/2.4/jquery.json.min.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery/datetimepicker/2.4.1/jquery.datetimepicker.min.js"></script>
+    <script src="{{ STATIC_URL }}js/moment/2.8.4/moment-with-locales.min.js"></script>
+    <script src="{{ STATIC_URL }}js/underscore/1.4.4/underscore.min.js"></script>
+    <script src="{{ STATIC_URL }}js/underscore/string/2.3.0/underscore.string.min.js"></script>
+    <script src="{{ STATIC_URL }}js/bootstrap/3.3.1/bootstrap.min.js"></script>
+    <script src="{{ STATIC_URL }}js/selectize/0.8.5/standalone/selectize.min.js"></script>
+    <script src="{{ STATIC_URL }}js/reportapi/{% SETTINGS 'REPORTAPI_VERSION' %}/reportapi{% mini_library %}.js"></script>
     {% endblock %}
 
     <!-- START: block extrajs -->

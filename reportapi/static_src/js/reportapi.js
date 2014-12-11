@@ -170,15 +170,18 @@ function jsonAPI(args, callback, to_console, sync, timeout) {
 /* Обработчик создания отчёта */
 function handlerCreateReport(force) {
     if (DEBUG) {console.log('function:'+'handlerCreateReport')};
-    $('.action-create-report, .action-recreate-report, .action-preview, .action-remove')
+    $('.action-create-report, .action-recreate-report, .action-preview, .action-download, .action-remove')
         .attr('disabled', 'disabled');
     $('#view-document-place').hide();
 
     window.REPORT.id = null;
     window.REPORT.process_filters = {};
     $.each(window.REPORT.filters, function(key, item) {
-        if (item.condition || item.value != null) {
-            window.REPORT.process_filters[item.name] = {condition:item.condition, value:item.value};
+        if (item.value != null && item.value != undefined) {
+            window.REPORT.process_filters[item.name] = {
+                condition: item.condition,
+                value: (item.server_value != undefined) ? item.server_value : item.value,
+            };
         };
     });
     var args = {
@@ -229,6 +232,9 @@ function handlerCheckProcess() {
                 $('.action-preview')
                     .removeClass('btn-warning').addClass('btn-default')
                     .find('.fa').removeClass('fa-bug').addClass('fa-search');
+                $('.action-download')
+                    .attr('href', json.data.url)
+                    .prop("disabled", false).removeAttr('disabled');
             };
             // If user can remove this report
             if (json.data.has_remove) {
@@ -376,7 +382,7 @@ function handlerSetSelectizers(filter) {
                     new jsonAPI(args, success);
                 },
                 onChange: function(value) {
-                    if (filter.condition == 'range' && value.length != 2) {
+                    if (filter.condition == 'range' && (!value || value.length != 2)) {
                         filter.value = null;
                     } else {
                         filter.value = (value == '') ? null : value;
@@ -407,7 +413,7 @@ function handlerSetSelectizers(filter) {
                 create: false,
                 maxItems: (filter.condition == 'range') ? 2 : undefined,
                 onChange: function(value) {
-                    if (filter.condition == 'range' && value.length != 2) {
+                    if (filter.condition == 'range' && (!value || value.length != 2)) {
                         filter.value = null;
                     } else {
                         filter.value = (value == '') ? null : value;
@@ -426,36 +432,83 @@ function handlerSetSelectizers(filter) {
 };
 
 
-/* Обработчик установки datetime для input */
+/* Обработчик установки datetimepicker для input */
 function handlerSetDatetimePickers(filter) {
     if (DEBUG) {console.log('function:'+'handlerSetDatetimePickers')};
     if (!filter || !(filter.type in {'datetime':'','date':'','time':''})) return false;
+    var args = {
+            lang: LANGUAGE_CODE,
+            format: filter.format,
+            timepicker: true,
+            datepicker: true,
+            mask: filter.use_mask,
+        };
+
+    if (filter.type == 'datetime') {
+        args.formatDate = filter.formatDate;
+        args.formatTime = filter.formatTime;
+        args.onChangeDateTime = function(dt, $input) {
+            /* сохраняем время так, как будто браузер находится в той-же
+             * временной зоне, что и сервер.
+             */
+            var val;
+            if (filter.use_tz) {
+                dt.setMinutes(dt.getMinutes() - (dt.getTimezoneOffset() - SERVER_TZ_OFFSET));
+                val = dt.toISOString();
+            } else {
+                val = ''+dt.getFullYear()+'-'+(dt.getMonth()+1)+'-'+dt.getDate()
+                     +'T'+dt.getHours()+':'+dt.getMinutes()+':'+dt.getSeconds()
+                     +'.'+dt.getMilliseconds();
+            }
+            $input.data('server_value', val);
+        }
+    } else if (filter.type == 'time') {
+        args.formatTime = filter.format;
+        args.datepicker = false;
+        args.onChangeDateTime = function(dt, $input) {
+            /* сохраняем время в понятном серверу формате.*/
+            $input.data('server_value',
+                ''+dt.getHours()+':'+dt.getMinutes()+':'+dt.getSeconds()
+                +'.'+dt.getMilliseconds());
+        }
+    } else {
+        args.formatDate = filter.format;
+        args.timepicker = false;
+        args.onChangeDateTime = function(dt, $input) {
+            /* сохраняем дату в понятном серверу формате.*/
+            dt.setMinutes(dt.getMinutes() - (dt.getTimezoneOffset() - SERVER_TZ_OFFSET));
+            $input.data('server_value',
+                ''+dt.getFullYear()+'-'+(dt.getMonth()+1)+'-'+dt.getDate());
+        }
+    };
 
     if (filter.condition == 'range') {
-        $('#datetime-'+ filter.name +'-range1')
-            .datetimepicker({
-                format: "dd MM yyyy - hh:ii",
-                autoclose: true,
-                todayBtn: true,
-            })
-            .on('changeDate', function(ev){
-                console.log(1, ev.date);
-            });
-        $('#datetime-'+ filter.name +'-range2')
-            .datetimepicker({format: "dd MM yyyy - hh:ii"})
-            .on('changeDate', function(ev){
-                console.log(2, ev.date);
-            });
+        var args1 = {}, args2 = {},
+            $input1 = $('#value-'+ filter.name +'-range1'),
+            $input2 = $('#value-'+ filter.name +'-range2');
+
+        $.extend(true, args1, args);
+        $.extend(true, args2, args);
+
+        // TODO: сделать ограничение для datetime
+        if (filter.type == 'date') {
+            args1.onShow = function(ct){
+                this.setOptions({ maxDate: $input2.data().server_value ? $input2.val() : false })
+            };
+            args2.onShow = function(ct){
+                this.setOptions({ minDate: $input1.data().server_value ? $input1.val() : false })
+            }
+        }
+
+        $input1.datetimepicker(args1);
+        $input2.datetimepicker(args2);
     } else {
-        $('#datetime-'+ filter.name)
-            .datetimepicker({format: "dd MM yyyy - hh:ii"})
-            .on('changeDate', function(ev){
-                console.log(0, ev.date);
-            });
+        $('#value-'+ filter.name).datetimepicker(args);
     }
 
     return true;
 };
+
 
 /* Обработчик проверки обязательных фильтров */
 function handlerCheckRequiredValue() {
@@ -489,7 +542,7 @@ function handlerAfterChanges() {
         window.REPORT.process = null;
     };
     handlerSetProgress(0);
-    $('.action-create-report, .action-preview, .action-remove')
+    $('.action-create-report, .action-preview, .action-download, .action-remove')
         .attr('disabled', 'disabled');
     $('.action-recreate-report:visible').hide();
     $('.action-create-report:hidden').show();
@@ -503,56 +556,113 @@ function handlerAfterChanges() {
 function eventChangeValue(event) {
     if (DEBUG) {console.log('function:'+'eventChangeValue')};//, event)};
     var value = this.value,
-        filter = REPORT.filters[this.name];
+        data = $(this).data(),
+        server_value = data.server_value,
+        filter = REPORT.filters[this.name],
+        test_datetime = function(objects) {
+            var test = true;
+            $.each(objects, function(i, v){
+                if (!v || v.indexOf('_') >= 0) { test = false }
+            })
+            return test 
+        };
+
     if (this.type == 'radio') {
         // Для радио-кнопок с булевыми значениями
         filter.value = (value == 'true') ? true : (value == 'false') ? false : null;
-    } else if ($(this).attr('data-mask') !== undefined && value != filter.value) {
-        // Значение не подошло под маску
-        filter.value = null;
+        if (server_value != undefined) filter.server_value = filter.value;
+        $('#valuebox-'+filter.name).html('');
+    } else if (filter.condition == 'range' && filter.type in {'datetime':'','date':'','time':''}) {
+        // Для datetimepickers с условием диапазона
+        var other, other_value;
+        if (this.id.match(/.*-range1/g)) {
+            other = $('#value-'+ filter.name +'-range2');
+            other_value = other.val();
+            filter.value = test_datetime([other_value, value]) ? [value, other_value] : null;
+            filter.server_value = test_datetime([other_value, value]) ? [server_value, other.data().server_value] : null;
+        } else {
+            other = $('#value-'+ filter.name +'-range1');
+            other_value = other.val();
+            filter.value = test_datetime([other_value, value]) ? [other_value, value] : null;
+            filter.server_value = test_datetime([other_value, value]) ? [other.data().server_value, server_value] : null;
+        }
     } else {
         filter.value = value || null;
+        if (server_value != undefined) filter.server_value = server_value;
     };
+
     handlerAfterChanges();
 };
 
-/* Обработчик события изменения условия фильтра */
+/* Обработчик события изменения условия фильтра
+ * 
+ * TODO: сделать установку дефолтных значений для даты-времени
+ * 
+ */
 function eventConditionChange(event) {
     if (DEBUG) {console.log('function:'+'eventConditionChange')};//, event)};
 
     var filter = REPORT.filters[$(this).data()['name']],
         prev_condition = filter.condition,
-        prev_value     = filter.value;
+        prev_value     = filter.value,
+        prev_server_value = filter.server_value;
 
     filter.condition = this.value || null;
 
-    if (filter.type  == 'boolean') {
-        // Булевы значения устанавливаются в дефолтное значение
-        filter.value = filter.default_value;
+
+    if (!filter.condition) {
+        // Сброс условия
+        filter.value = null;
+        if (filter.server_value != undefined) filter.server_value = null;
+
     } else if (filter.condition in {'isnull':0, 'empty':0}) {
         // Для условия "пусто" значение по-умолчанию истинно
         filter.value = true;
-    } else if (filter.type in {'object':0, 'choice':0, 'month':0, 'weekday':0, 'period':0 }) {
-        // Объекты и списки выбора сбрасываются
+
+    } else if (prev_value === true || prev_value === false || prev_value === null || prev_value === undefined) {
+        // Предыдущего значения небыло или стояло одно из условий: 'isnull', 'empty'
         filter.value = null;
+        if (filter.server_value != undefined) filter.server_value = null;
+
+    } else if (filter.type in {'object':0, 'choice':0, 'month':0, 'weekday':0, 'period':0}) {
+        // Объекты и списки выбора сбрасываются потому, что их
+        // невозможно установить в библиотеке selectize
+        filter.value = null;
+
     } else if (filter.condition in {'range':0,'in':0}) {
         // Для этих условий заполняем одним значением
-        if ($.type(prev_value) != 'array') {
-            if (prev_value != null) {
-                filter.value = (filter.condition == 'range') ? [prev_value, prev_value] : [prev_value]
-            } else if (filter.default_value != undefined) {
-                filter.value = [filter.default_value, filter.default_value]
+        if (!(prev_condition in {'range':0,'in':0})) {
+
+            filter.value = (filter.condition == 'range') ?
+                    [prev_value, prev_value] : [prev_value];
+
+            if (filter.server_value != undefined) {
+                filter.server_value = (filter.condition == 'range') ?
+                    [prev_server_value, prev_server_value] : [prev_server_value];
             }
+
         } else if (prev_condition == 'in' && filter.condition == 'range') {
+
             filter.value = prev_value.slice(0, 2);
-            if (filter.value.length < 2) {filter.value[1] = filter.value[0]}
-        }
+
+            if (filter.value.length < 2) { filter.value[1] = filter.value[0] }
+
+            if (filter.server_value != undefined) {
+
+                filter.server_value = prev_server_value.slice(0, 2);
+
+                if (filter.server_value.length < 2) { filter.server_value[1] = filter.server_value[0] }
+            }
+        } /* else {  prev_condition == 'range' && filter.condition == 'in'  } */
     } else {
         // Любые другие условия
         if (prev_condition in {'range':0,'in':0}) {
+
             filter.value = prev_value ? prev_value[0] : null;
-        } else if ((prev_value == null) && (filter.default_value != undefined)) {
-            filter.value = filter.default_value
+
+            if (filter.server_value != undefined) {
+                filter.server_value = prev_server_value ? prev_server_value[0] : null;
+            }
         }
     };
 
@@ -633,15 +743,88 @@ function eventKeyDownOnNumber(event) {
 };
 
 ////////////////////////////////////////////////////////////////////////
+//                Магические обработчики дат и времени                //
+////////////////////////////////////////////////////////////////////////
+
+/* Обработчик значения времени */
+function dateToArray(date) {
+    if (DEBUG) {console.log('function:'+'dateToArray')};
+    var addzero = function(v) {
+        if (v > 9) return ''+v;
+        return '0'+v; 
+    }
+    return [
+        '' + (1900 + date.getYear()), '-',
+        addzero(1 + date.getMonth()), '-',
+        addzero(date.getDate()), ' ',
+        addzero(date.getHours()), ':',
+        addzero(date.getMinutes()), ':',
+        addzero(date.getSeconds())
+    ]
+}
+
+/* Обработчик установки магических значений */
+function handlerMagicSet(filter, date, date2) {
+    if (DEBUG) {console.log('function:'+'handlerMagicSet', filter.name)};
+    var value, value2 = null;
+
+    if (filter.type == 'datetime') {
+        if (filter.withseconds) {
+            value = date.join('');
+            if (date2) value2 = date2.join('');
+        }
+        else {
+            value = date.slice(0, 9).join('');
+            if (date2) value2 = date2.slice(0, 9).join('');
+        }
+
+    } else if (filter.type == 'date') {
+        value = date.slice(0, 5).join('');
+        if (date2) value2 = date2.slice(0, 5).join('');
+    } else if (filter.type == 'time') {
+        if (filter.withseconds) {
+            value = date.slice(6).join('');
+            if (date2) value2 = date2.slice(6).join('');
+        }
+        else {
+            value = date.slice(6, 9).join('');
+            if (date2) value2 = date2.slice(6, 9).join('');
+        }
+    }
+
+    if (filter.condition == 'range') {
+        filter.value = [value, value2 || value]
+    } else {
+        filter.value = value
+    }
+    
+    if (filter.condition == 'range') {
+        $('#value-'+filter.name).val(filter.value[0]+RANGE_SPLIT+filter.value[1]);
+    } else {
+        $('#value-'+filter.name).val(filter.value);
+    }
+
+    handlerSetSelectizers($('#valuebox-'+filter.name));
+    handlerMaskInputs($('#valuebox-'+filter.name));
+    handlerAfterChanges();
+};
+
+/* Обработчик установки значения текущего времени или даты */
+function handlerMagicNow(filter) {
+    if (DEBUG) {console.log('function:'+'handlerMagicNow', filter.name)};
+    handlerMagicSet(filter, dateToArray(new Date()));
+};
+
+////////////////////////////////////////////////////////////////////////
 //                              ПРОЧЕЕ                                //
 ////////////////////////////////////////////////////////////////////////
 
 /* Обработчик прогрессбара */
 function handlerSetProgress(now) {
     if (DEBUG) {console.log('function:'+'handlerSetProgress')};
+    now = now || 0;
     var $pbar = $('.progress .progress-bar'),
         max = Number($pbar.attr('aria-valuemax')) || 100,
-        now = now || 0,
         width = (now / max) * 100;
     width = width > 100 ? 100 : width;
     $pbar.attr('aria-valuenow', now).css('width', width +'%');
@@ -707,6 +890,9 @@ function handlerBindinds() {
 $(document).ready(function($) {
     if (DEBUG) {console.log('function:'+'$(document).ready')};
 
+    // Инициализация moment.js
+    moment.locale(LANGUAGE_CODE);
+
     // Инициализация шаблонов Underscore
     handlerTemplates();
 
@@ -716,8 +902,5 @@ $(document).ready(function($) {
 
     // Установка биндингов для элементов
     handlerBindinds();
-
-    // Прочее
-    //~ handlerMaskInputs();
 
 });

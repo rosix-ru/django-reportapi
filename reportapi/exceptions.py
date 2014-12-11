@@ -50,10 +50,10 @@ class AbstractError(Exception):
 class PermissionError(AbstractError):
     message = _('Access denied')
 
-class PeriodsError(AbstractError):
-    pass
+class ObjectFoundError(AbstractError):
+    message = _('One ore more objects not found')
 
-class OversizeError(AbstractError):
+class PeriodsError(AbstractError):
     pass
 
 class ExceptionReporterExt(ExceptionReporter):

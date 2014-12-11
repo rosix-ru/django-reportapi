@@ -295,6 +295,7 @@ INSTALLED_APPS = (
 #                     SETTINGS FOR APPLICATIONS                        #
 ########################################################################
 SESSION_COOKIE_NAME = 'reportapisessionid'
+LOGIN_URL = '/admin/'
 
 ########################################################################
 #                   END SETTINGS FOR APPLICATIONS                      #

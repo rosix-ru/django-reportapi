@@ -17,63 +17,76 @@
 <table class="table table-condensed table-striped">
     <tbody>
 {% for name, filter in report.filters_list %}
-    {% if filter.type == 'boolean' %}
-        <tr class="bg-warning">
-            <th class="col-xs-2">{{ filter.label|title }}</th>
-            <td colspan="2" style="vertical-align: middle;">
-                <div class="btn-group" data-toggle="buttons">
-                {% if filter.usenone %}
-                    <label class="btn btn-default {{ filter.default_value|yesno:',,active' }}">
-                        <input type="radio" name="{{ filter.name }}"
-                            id="value-{{ filter.name }}-none"
-                            data-type="boolean"
-                            value="null" {{ filter.default_value|yesno:',,checked' }}>
-                         {{ filter.boolean_labels.NONE }}
-                    </label>
-                {% endif %}
-                    <label class="btn btn-default {{ filter.default_value|yesno:'active,,' }}">
-                        <input type="radio" name="{{ filter.name }}"
-                            id="value-{{ filter.name }}-true"
-                            data-type="boolean"
-                            value="true" {{ filter.default_value|yesno:'checked,,' }}>
-                        {{ filter.boolean_labels.TRUE }}
-                    </label>
-                    <label class="btn btn-default {{ filter.default_value|yesno:',active,' }}">
-                        <input type="radio" name="{{ filter.name }}"
-                            id="value-{{ filter.name }}-false"
-                            data-type="boolean"
-                            value="false" {{ filter.default_value|yesno:',checked,' }}>
-                        {{ filter.boolean_labels.FALSE }}
-                    </label>
-                </div>
-            </td>
-        </tr>
-    {% else %}
         <tr>
-            <th class="col-xs-2">{{ filter.label|title }}</th>
-            <td class="col-xs-2" style="vertical-align: middle;">
-                <select class="form-control"
-                    id="condition-{{ filter.name }}"
-                    data-type="{{ filter.type }}"
-                    data-name="{{ filter.name }}">
-                    <option value="">&lt;{% trans 'no condition' %}&gt;</option>
-                    {% for cond, label in filter.conditions %}
-                        <option value="{{ cond }}">{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-            <td id="valuebox-{{ filter.name }}" style="vertical-align: middle;">
-                {% if filter.required %}
-                    <label class="text-danger">{% trans 'Filter required' %}</label>
-                {% endif %}
+            <td style="vertical-align: middle;">
+            {% if filter.type == 'boolean' %}
+                <div class="form-group">
+                    <label class="col-xs-12">{{ filter.label|title }}</label>
+                    <div class="col-xs-12 col-sm-4 col-md-3">
+                        <div class="btn-group btn-group-justified" data-toggle="buttons">
+                        {% if filter.usenone %}
+                            <label class="btn btn-default {{ filter.value|yesno:',,active' }}">
+                                <input type="radio" name="{{ filter.name }}"
+                                    id="value-{{ filter.name }}-none"
+                                    data-type="boolean"
+                                    value="null" {{ filter.value|yesno:',,checked' }}>
+                                 {{ filter.boolean_labels.NONE }}
+                            </label>
+                        {% endif %}
+                            <label class="btn btn-default {{ filter.value|yesno:'active,,' }}">
+                                <input type="radio" name="{{ filter.name }}"
+                                    id="value-{{ filter.name }}-true"
+                                    data-type="boolean"
+                                    value="true" {{ filter.value|yesno:'checked,,' }}>
+                                {{ filter.boolean_labels.TRUE }}
+                            </label>
+                            <label class="btn btn-default {{ filter.value|yesno:',active,' }}">
+                                <input type="radio" name="{{ filter.name }}"
+                                    id="value-{{ filter.name }}-false"
+                                    data-type="boolean"
+                                    value="false" {{ filter.value|yesno:',checked,' }}>
+                                {{ filter.boolean_labels.FALSE }}
+                            </label>
+                        </div>
+                    </div>
+                    <div id="valuebox-{{ filter.name }}" class="col-xs-12 col-sm-8 col-md-9" style="vertical-align: middle;">
+                        {% if filter.value %}
+                            <label class="text-primary" style="padding-top: 6px;">{% trans 'default value' %}: {{ filter.value }}</label>
+                        {% elif filter.required and not filter.usenone %}
+                            <label class="text-danger" style="padding-top: 6px;">{% trans 'filter required' %}</label>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="form-group">
+                    <label class="col-xs-12">{{ filter.label|title }}</label>
+                    <div class="col-xs-12 col-sm-4 col-md-3">
+                        <select class="form-control"
+                            id="condition-{{ filter.name }}"
+                            data-type="{{ filter.type }}"
+                            data-name="{{ filter.name }}">
+                            <option value="">&lt;{% trans 'select the condition' %}&gt;</option>
+                            {% for cond, label in filter.conditions %}
+                                <option value="{{ cond }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div id="valuebox-{{ filter.name }}" class="col-xs-12 col-sm-8 col-md-9" style="vertical-align: middle;">
+                        {% if filter.value %}
+                            <label class="text-primary" style="padding-top: 6px;">{% trans 'default value' %}: {{ filter.value }}</label>
+                        {% elif filter.required %}
+                            <label class="text-danger" style="padding-top: 6px;">{% trans 'filter required' %}</label>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
             </td>
         </tr>
-    {% endif %}
 {% endfor %}
     </tbody>
     <tfoot>
         <tr>
-            <td colspan="3">
+            <td>
                 <div class="progress" style="margin-bottom: 0px;">
                     <div class="progress-bar" role="progressbar"
                         aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
@@ -83,20 +96,27 @@
             </td>
         </tr>
         <tr>
-            <td colspan="3">
+            <td>
                 <div class="btn-group btn-group-justified">
                     <a href="#" type="button" class="btn btn-default" disabled style="display: none; margin-top: 0px;"></a>
                     <a href="#" type="button" class="btn btn-primary action-create-report" disabled role="button">
+                        <i class="fa fa-cog"></i>
                         {% trans 'Create document' %}
                     </a>
                     <a href="#" type="button" class="btn btn-danger action-recreate-report"
                         style="display: none; margin-top: 0px;" disabled role="button">
+                        <i class="fa fa-cogs"></i>
                         {% trans 'Recreate document' %}
                     </a>
                     <a href="#view-document-place" type="button"
                         class="btn btn-default action-preview" disabled role="button">
                         <i class="fa fa-search"></i>
                         {% trans 'View' %}
+                    </a>
+                    <a href="#" type="button" target="_blank"
+                        class="btn btn-default action-download" disabled role="button">
+                        <i class="fa fa-download"></i>
+                        {% trans 'Download' %}
                     </a>
                     <a href="#" type="button"
                         class="btn btn-danger action-remove" disabled role="button">
@@ -112,7 +132,7 @@
 </table>
 
 <div id="view-document-place" style="display:none; padding-top: 60px;">
-    <div class="embed-responsive embed-responsive-4by3"></div>
+    <div class="embed-responsive embed-responsive-16by9"></div>
 </div>
 
 {% endblock %}

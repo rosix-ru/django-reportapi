@@ -38,7 +38,6 @@ from django.core.files.base import ContentFile
 
 from jsonfield import JSONField
 
-from reportapi.exceptions import OversizeError
 from reportapi.conf import (
     settings,
     REPORTAPI_CODE_HASHLIB,
@@ -49,9 +48,8 @@ from reportapi.conf import (
     REPORTAPI_UNOCONV_TO_PDF,
     REPORTAPI_UNOCONV_SERVERS,
     REPORTAPI_BRAND_TEXT,
-    REPORTAPI_MAXSIZE_ALL,
-    REPORTAPI_MAXSIZE_TYPES,
-    Header, Footer, Page,
+    REPORTAPI_BRAND_COLOR,
+    Header, Footer, Page
 )
 
 UNOCONV_EXE = "unoconv"
@@ -159,7 +157,6 @@ class Report(object):
     page            = Page()
     convert_to_pdf  = True
     convert_to_odf  = True
-    maxsize         = None # unlimited if REPORTAPI_MAXSIZE_ALL is None
 
     def __init__(self, site=None, section=None, section_label=None, \
         filters=None, title=None, name=None, **kwargs):
@@ -324,6 +321,8 @@ class Report(object):
         context = self.get_context(document=document, filters=filters, request=request)
         if not 'BRAND_TEXT' in context:
             context['BRAND_TEXT'] = REPORTAPI_BRAND_TEXT
+        if not 'BRAND_COLOR' in context:
+            context['BRAND_COLOR'] = REPORTAPI_BRAND_COLOR
         if not request:
             context['user'] = SystemUser()
 
@@ -359,11 +358,11 @@ class Report(object):
                 filters[k] = list(set(v))
         return smart_text(filters)
 
-    def filters_list(self):
+    def filters_list(self, request=None):
         """
         Возвращает список сериализованных фильтров
         """
-        return [ x.serialize() for x in self.filters ]
+        return [ x.serialize(request=request) for x in self.filters ]
 
     def prepare_filters(self, filters, request=None):
         """
@@ -432,7 +431,7 @@ class Report(object):
             'expiration_time': self.expiration_time,
             'timeout': self.timeout,
         }
-        filters_list = self.filters_list()
+        filters_list = self.filters_list(request=request)
         SCHEME['filters'] = dict(filters_list)
         SCHEME['filters_list'] = [ x[0] for x in filters_list ]
 
@@ -445,28 +444,6 @@ class Report(object):
         базе данных
         """
         return self.create_register().timeout
-
-    def check_oversize(self, document):
-        """
-        Проверка максимального размера файла документа
-        """
-        if not document.report_file:
-            return True
-
-        path = document.report_file.path
-        basename, ext = os.path.splitext(path)
-
-        if self.maxsize is None:
-            maxsize = REPORTAPI_MAXSIZE_TYPES.get(ext, REPORTAPI_MAXSIZE_ALL)
-        else:
-            maxsize = self.maxsize
-
-        if not maxsize is None:
-            size = os.path.getsize(path)
-            if size > maxsize:
-                raise OversizeError(_('Exceeded the maximum (%(max)s) file size: %(size)s byte.') % {'size': size, 'max': maxsize})
-
-        return True
 
 class Spreadsheet(Report):
     mimetype      = "application/vnd.oasis.opendocument.spreadsheet"
@@ -625,24 +602,6 @@ class Document(models.Model):
         if self.report_file:
             return self.report_file.url
         return None
-
-    def check_oversize(self):
-        """
-        Проверка максимального размера файла 
-        """
-        if not self.report_file:
-            return True
-
-        path = self.report_file.path
-        basename, ext = os.path.splitext(path)
-        maxsize = REPORTAPI_MAXSIZE_TYPES.get(ext, REPORTAPI_MAXSIZE_ALL)
-
-        if not maxsize is None:
-            size = os.path.getsize(path)
-            if size > maxsize:
-                raise OversizeError(_('Exceeded the maximum (%(max)s) file size: %(size)s byte.') % {'size': size, 'max': maxsize})
-
-        return True
 
     def autoconvert(self, remove_old=True, remove_log=True):
         """

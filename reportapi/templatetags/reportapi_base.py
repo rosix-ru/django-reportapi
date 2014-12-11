@@ -20,6 +20,8 @@
 #  MA 02110-1301, USA.
 #  
 #  
+import json
+
 from django import template
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
@@ -31,6 +33,10 @@ register = template.Library()
 @register.simple_tag
 def SETTINGS(key):
     return getattr(conf, key, getattr(conf.settings, key, ''))
+
+@register.simple_tag
+def PROJECT_NAME():
+    return getattr(conf.settings, 'PROJECT_NAME', _('Project'))
 
 @register.simple_tag
 def mini_library():

@@ -33,17 +33,20 @@ class TestReport(Report):
     title = ugettext_noop('Test report')
 
     filters = (
-        FilterNumber(ugettext_noop('timeout'), required=True, default=30, conditions=['exact']),
+        FilterNumber(ugettext_noop('timeout'), required=True, default_value=10, conditions=['exact']),
         FilterObject(ugettext_noop('filter for objects'), manager='auth.User.objects', required=True),
         FilterText(ugettext_noop('filter for text')),
         FilterNumber(ugettext_noop('filter for number')),
         FilterDateTime(ugettext_noop('filter for date and time'), True), # required=True as argument
-        FilterDate(ugettext_noop('filter for date')),
+        FilterDate(ugettext_noop('filter for date'), default_value=None),
         FilterTime(ugettext_noop('filter for time')),
         FilterChoice(ugettext_noop('filter for choice'), options=((1, _('First')),(2, _('Second')))),
         FilterMonth(ugettext_noop('filter for month')),
         FilterWeekDay(ugettext_noop('filter for weekday')),
-        FilterBoolean(ugettext_noop('filter for boolean')),
+        FilterBoolean('%s 1' % 'filter for boolean', verbose_name=_('filter for boolean'), default_value=None),
+        FilterBoolean('%s 2' % 'filter for boolean', verbose_name=_('filter for boolean'), default_value=True),
+        FilterBoolean('%s 3' % 'filter for boolean', verbose_name=_('filter for boolean'), default_value=False),
+        FilterBoolean('%s 4' % 'filter for boolean', verbose_name=_('filter for boolean'), usenone=False),
     )
 
     def get_context(self, document, filters, request=None):
@@ -63,7 +66,7 @@ class TestSpreadsheet(Spreadsheet):
     title = ugettext_noop('Test spreadsheet')
 
     filters = (
-        FilterNumber(ugettext_noop('timeout'), required=True),
+        FilterNumber(ugettext_noop('timeout'), default_value=10, required=True),
         FilterObject(ugettext_noop('filter for objects'), manager='auth.User.objects', required=True),
         FilterText(ugettext_noop('filter for text')),
         FilterNumber(ugettext_noop('filter for number')),
