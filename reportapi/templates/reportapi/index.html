@@ -52,11 +52,13 @@
                     <dt>{% trans 'Links' %}</dt>
                     <dd>
                     {% if doc.end %} 
+                        {% if doc.has_view_in_browser or doc.error %}
                         <a href="#view-document-{{ doc.pk }}" onClick="handlerShowDocument('{% url 'reportapi:get_document' doc.pk %}', 'document-{{ doc.pk }}')" 
                             class="btn btn-link btn-xs" role="button"
                             title="{% trans 'View' %}">
                             <i class="fa {% if doc.error %}fa-bug{% else %}fa-search{% endif %}"></i> {% trans 'View' %}
                         </a>
+                        {% endif %}
                         {% if not doc.error %}
                         <a href="{% url 'reportapi:get_document' doc.pk %}" target="_blank"
                             class="btn btn-link btn-xs" role="button"

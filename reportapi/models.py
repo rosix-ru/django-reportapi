@@ -607,6 +607,15 @@ class Document(models.Model):
             return self.report_file.url
         return None
 
+    @property
+    def has_view_in_browser(self):
+        
+        if self.report_file:
+            basename, ext = os.path.splitext(self.report_file.name)
+            return ext.lower() in ('.html', '.pdf')
+
+        return False
+
     def check_oversize(self):
         """
         Проверка максимального размера файла 
