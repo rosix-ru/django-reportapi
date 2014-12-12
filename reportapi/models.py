@@ -39,6 +39,7 @@ from django.core.files.base import ContentFile
 from jsonfield import JSONField
 
 from reportapi.exceptions import OversizeError
+from reportapi.managers import DocumentManager
 from reportapi.conf import (
     settings,
     REPORTAPI_CODE_HASHLIB,
@@ -531,29 +532,6 @@ class Register(models.Model):
     @models.permalink
     def get_absolute_url(self):
         return ('reportapi:report', [self.section, self.name])
-
-class DocumentManager(models.Manager):
-    use_for_related_fields = True
-
-    def permitted(self, request):
-        user = request.user
-        if not user.is_authenticated():
-            return self.get_query_set().none()
-        if user.is_superuser:
-            return self.get_query_set()
-        return self.get_query_set().filter(
-            Q(register__all_users=True)
-            | Q(register__users=user)
-            | Q(register__groups__in=user.groups.all())
-        )
-
-    def del_permitted(self, request):
-        user = request.user
-        if not user.is_authenticated():
-            return self.get_query_set().none()
-        if user.is_superuser:
-            return self.get_query_set().all()
-        return self.get_query_set().filter(user=user).all()
 
 @python_2_unicode_compatible
 class Document(models.Model):

@@ -296,7 +296,7 @@ def API_document_create(request, section, name, filters=None, force=False, fake=
         if not report.validate_filters(filters):
             return JSONResponse(status=400, message=_('One or more filters filled in not correctly'))
         # Новый отчёт
-        document = Document(user=user, code=code, register=register)
+        document = Document.objects.new(request=request, user=user, code=code, register=register)
         document.description = report.get_description_from_filters(filters)
         document.details = report.get_details(document=document, filters=filters, request=request)
         document.save()
@@ -352,7 +352,7 @@ def API_document_info(request, id, section, name, filters=None, **kwargs):
     if not id:
         return API_document_create(request, section, name, filters, fake=True)
     user = request.user
-    all_documents = Document.objects.permitted(request)
+    all_documents = Document.objects.permitted(request).all()
     try:
         document = all_documents.get(id=id)
     except:
@@ -378,7 +378,7 @@ def API_document_delete(request, id, **kwargs):
 
     """
     user = request.user
-    all_documents = Document.objects.del_permitted(request)
+    all_documents = Document.objects.del_permitted(request).all()
     try:
         document = all_documents.get(id=id)
     except:

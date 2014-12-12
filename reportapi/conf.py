@@ -49,6 +49,9 @@ REPORTAPI_UPLOAD_HASHLIB  = getattr(settings, 'REPORTAPI_UPLOAD_HASHLIB', 'md5')
 REPORTAPI_FILES_UNIDECODE = getattr(settings, 'REPORTAPI_FILES_UNIDECODE', False)
 REPORTAPI_LANGUAGES       = getattr(settings, 'REPORTAPI_LANGUAGES', ['en', 'ru'])
 
+# For custom manager. By default used reportapi.managers.DefaultDocumentManager
+REPORTAPI_DOCUMENT_MANAGER = getattr(settings, 'REPORTAPI_DOCUMENT_MANAGER', '')
+
 REPORTAPI_UNOCONV_TO_PDF  = getattr(settings, 'REPORTAPI_UNOCONV_TO_PDF', True)
 REPORTAPI_UNOCONV_TO_ODF  = getattr(settings, 'REPORTAPI_UNOCONV_TO_ODF', True)
 REPORTAPI_UNOCONV_SERVERS = getattr(settings, 'REPORTAPI_UNOCONV_SERVERS', [])
