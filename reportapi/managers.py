@@ -71,7 +71,6 @@ if CustomManager:
 
         DocumentManager = getattr(m, klass)
     else:
-        
         DocumentManager = CustomManager
 else:
     DocumentManager = DefaultDocumentManager
