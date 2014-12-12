@@ -39,21 +39,11 @@
 ////////////////////////////////////////////////////////////////////////
 //                   КОНСТАНТЫ И ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ                //
 ////////////////////////////////////////////////////////////////////////
-var TIMEOUT_PROGRESS = 1000,
-    SERVER_TZ_OFFSET = (window.SERVER_TZ_OFFSET != undefined) ? window.SERVER_TZ_OFFSET : -180; // Europe/Moscow
-
-// Глобальные хранилища-регистраторы
-window.TEMPLATES = {}; // Шаблоны
+window.TEMPLATES = {}; // Скомпилированные шаблоны underscore
 
 ////////////////////////////////////////////////////////////////////////
 //                            НАСТРОЙКИ                               //
 ////////////////////////////////////////////////////////////////////////
-
-/* Настройки шаблонизатора underscore.js в стиле Django */
-//~ _.templateSettings = {
-    //~ interpolate: /\{\{(.+?)\}\}/g,
-    //~ evaluate: /\{\%(.+?)\%\}/g, 
-//~ };
 
 /* Включение Underscore.string методов в пространство имён Underscore */
 _.mixin(_.str.exports());
@@ -78,6 +68,7 @@ function handlerHideAlert() {
     $('.alert').alert('close');
     $('#alert-place').css('z-index', '-1000');
 };
+
 function handlerShowAlert(msg, type, callback, timeout) {
     if (DEBUG) {console.log('function:'+'handlerShowAlert')};
     timeout = timeout || 5000;
@@ -154,7 +145,6 @@ function jsonAPI(args, callback, to_console, sync, timeout) {
             if (DEBUG) {
                 var o = new Object;
                 $.extend(true, o, json.data);
-                //~ console.log(o);
                 console.log($.toJSON(json.message));
             };
             return callback(json, status, xhr);
@@ -248,7 +238,6 @@ function handlerCheckProcess() {
 
             // TODO: animation or 1-2 seconds after
             $pbar.removeClass('progress-bar-striped active');
-            //~ handlerSetProgress(0);
     
             $('.action-recreate-report').prop("disabled", false).removeAttr('disabled');
 
@@ -263,7 +252,6 @@ function handlerCheckProcess() {
             $pbar.addClass('progress-bar-striped active');
         } else {
             // report not ready
-            //~ console.log(TIMEOUT_PROGRESS + now);
             handlerSetProgress(TIMEOUT_PROGRESS + now);
         };
     };
@@ -376,7 +364,6 @@ function handlerSetSelectizers(filter) {
                             'query': query,
                         },
                         success = function(res) {
-                            //~ console.log(res);
                             callback(res.data.object_list);
                         };
                     new jsonAPI(args, success);
@@ -430,7 +417,6 @@ function handlerSetSelectizers(filter) {
 
     return true;
 };
-
 
 /* Обработчик установки datetimepicker для input */
 function handlerSetDatetimePickers(filter) {
@@ -509,7 +495,6 @@ function handlerSetDatetimePickers(filter) {
     return true;
 };
 
-
 /* Обработчик проверки обязательных фильтров */
 function handlerCheckRequiredValue() {
     if (DEBUG) {console.log('function:'+'handlerCheckRequiredValue')};//, event)};
@@ -567,11 +552,12 @@ function eventChangeValue(event) {
             return test 
         };
 
+    if (filter.type == 'boolean') $('#valuebox-'+filter.name).html('');
+
     if (this.type == 'radio') {
         // Для радио-кнопок с булевыми значениями
         filter.value = (value == 'true') ? true : (value == 'false') ? false : null;
         if (server_value != undefined) filter.server_value = filter.value;
-        $('#valuebox-'+filter.name).html('');
     } else if (filter.condition == 'range' && filter.type in {'datetime':'','date':'','time':''}) {
         // Для datetimepickers с условием диапазона
         var other, other_value;
@@ -625,8 +611,8 @@ function eventConditionChange(event) {
         if (filter.server_value != undefined) filter.server_value = null;
 
     } else if (filter.type in {'object':0, 'choice':0, 'month':0, 'weekday':0, 'period':0}) {
-        // Объекты и списки выбора сбрасываются потому, что их
-        // невозможно установить в библиотеке selectize
+        // Объекты и списки выбора сбрасываются потому, что не найдено
+        // решение их установки в библиотеке selectize
         filter.value = null;
 
     } else if (filter.condition in {'range':0,'in':0}) {
@@ -678,7 +664,6 @@ function eventConditionChange(event) {
     return true;
 };
 
-
 /* Проверка события нажатия клавиши управления браузером */
 function keyDownIsControl(event) {
     if (DEBUG) {console.log('function:'+'keyDownIsControl')};//, event)};
@@ -692,35 +677,12 @@ function keyDownIsControl(event) {
     return false;
 };
 
-/* Обработчик события нажатия клавиши на поле ввода дат и времени */
-/*
-function eventKeyDownOnDateTime(event) {
-    if (DEBUG) {console.log('function:'+'eventKeyDownOnDateTime')};//, event)};
-
-    var prepare = function(event) {
-        value = event.target.value || '';
-        //~ console.log(value, event.charCode);
-    };
-
-    // Enabled keys browser control
-    if (keyDownIsControl(event)) { return true }
-    // Replace valide values
-    else if (event.which >= 48 && event.which <= 57) { // 0-9
-        prepare(event);
-        return true;
-    }
-
-    return false;
-};
-*/
-
 /* Обработчик события нажатия клавиши на поле ввода чисел */
 function eventKeyDownOnNumber(event) {
-    //~ if (DEBUG) {console.log('function:'+'eventKeyDownOnNumber')};//, event)};
+    //if (DEBUG) {console.log('function:'+'eventKeyDownOnNumber')};//, event)};
 
     var adddot = function(event) {
         value = event.target.value || '';
-        //~ console.log('search', value.search('.'));
         if (value.length < 1) {
             event.target.value = '0.';
         }
@@ -742,78 +704,6 @@ function eventKeyDownOnNumber(event) {
     return false;
 };
 
-////////////////////////////////////////////////////////////////////////
-//                Магические обработчики дат и времени                //
-////////////////////////////////////////////////////////////////////////
-
-/* Обработчик значения времени */
-function dateToArray(date) {
-    if (DEBUG) {console.log('function:'+'dateToArray')};
-    var addzero = function(v) {
-        if (v > 9) return ''+v;
-        return '0'+v; 
-    }
-    return [
-        '' + (1900 + date.getYear()), '-',
-        addzero(1 + date.getMonth()), '-',
-        addzero(date.getDate()), ' ',
-        addzero(date.getHours()), ':',
-        addzero(date.getMinutes()), ':',
-        addzero(date.getSeconds())
-    ]
-}
-
-/* Обработчик установки магических значений */
-function handlerMagicSet(filter, date, date2) {
-    if (DEBUG) {console.log('function:'+'handlerMagicSet', filter.name)};
-    var value, value2 = null;
-
-    if (filter.type == 'datetime') {
-        if (filter.withseconds) {
-            value = date.join('');
-            if (date2) value2 = date2.join('');
-        }
-        else {
-            value = date.slice(0, 9).join('');
-            if (date2) value2 = date2.slice(0, 9).join('');
-        }
-
-    } else if (filter.type == 'date') {
-        value = date.slice(0, 5).join('');
-        if (date2) value2 = date2.slice(0, 5).join('');
-    } else if (filter.type == 'time') {
-        if (filter.withseconds) {
-            value = date.slice(6).join('');
-            if (date2) value2 = date2.slice(6).join('');
-        }
-        else {
-            value = date.slice(6, 9).join('');
-            if (date2) value2 = date2.slice(6, 9).join('');
-        }
-    }
-
-    if (filter.condition == 'range') {
-        filter.value = [value, value2 || value]
-    } else {
-        filter.value = value
-    }
-    
-    if (filter.condition == 'range') {
-        $('#value-'+filter.name).val(filter.value[0]+RANGE_SPLIT+filter.value[1]);
-    } else {
-        $('#value-'+filter.name).val(filter.value);
-    }
-
-    handlerSetSelectizers($('#valuebox-'+filter.name));
-    handlerMaskInputs($('#valuebox-'+filter.name));
-    handlerAfterChanges();
-};
-
-/* Обработчик установки значения текущего времени или даты */
-function handlerMagicNow(filter) {
-    if (DEBUG) {console.log('function:'+'handlerMagicNow', filter.name)};
-    handlerMagicSet(filter, dateToArray(new Date()));
-};
 
 ////////////////////////////////////////////////////////////////////////
 //                              ПРОЧЕЕ                                //
@@ -874,10 +764,6 @@ function handlerBindinds() {
 
     $('body').on('click', '.action-create-report', eventCreateReport);
     $('body').on('click', '.action-recreate-report', eventRecreateReport);
-
-    // Биндинги на отчёты
-    //~ $('body').on('click', '[data-action=object_print]',   eventObjectPrint);
-    //~ $('body').on('click', '[data-action=object_print]',   eventObjectPrint);
 
     return true;
 };

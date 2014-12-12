@@ -157,6 +157,7 @@
         <script type="text/javascript">
             /* GLOBAL VARS */
             window.AJAX_TIMEOUT = 3000;
+            window.TIMEOUT_PROGRESS = 1000;
             window.REPORTAPI_API_URL = "{% filter escapejs %}{% url "reportapi:api" %}{% endfilter %}";
             window.USER_ID = "{{ user.id|default:0 }}";
             window.USER_NAME = "{{ user.username }}";
@@ -165,7 +166,6 @@
             window.USER = "{{ user }}";
             window.DEBUG = {% filter lower %}{% SETTINGS 'DEBUG' %}{% endfilter %};
             window.LANGUAGE_CODE = "{{ LANGUAGE_CODE }}" || undefined;
-            window.RANGE_SPLIT = " - ";
             window.SERVER_TZ_OFFSET = {% SETTINGS 'SERVER_TZ_OFFSET' %};
         </script>
     {% endblock %}

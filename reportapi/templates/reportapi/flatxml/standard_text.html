@@ -308,9 +308,9 @@
             </table:table-cell>
             <table:table-cell table:style-name="TD.zZ" office:value-type="string">
             {% if filter.condition == 'range' %}
-                <text:p text:style-name="TDContent">{{ filter.value_range_label|join:";<text:line-break/>" }}</text:p>
+                {% for x in filter.value_range_label %}<text:p text:style-name="TDContent">{{ x }}</text:p>{% endfor %}
             {% elif filter.condition == 'in' %}
-                <text:p text:style-name="TDContent">{{ filter.value_label|join:";<text:line-break/>" }}</text:p>
+                {% for x in filter.value_label %}<text:p text:style-name="TDContent">{{ x }}</text:p>{% endfor %}
             {% else %}
                 <text:p text:style-name="TDContent">{{ filter.value_label }}</text:p>
             {% endif %}

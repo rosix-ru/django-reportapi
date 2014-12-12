@@ -38,7 +38,7 @@ class TestReport(Report):
         FilterText(ugettext_noop('filter for text')),
         FilterNumber(ugettext_noop('filter for number')),
         FilterDateTime(ugettext_noop('filter for date and time'), True), # required=True as argument
-        FilterDate(ugettext_noop('filter for date'), default_value=None),
+        FilterDate(ugettext_noop('filter for date'), default_value=None), # drop default
         FilterTime(ugettext_noop('filter for time')),
         FilterChoice(ugettext_noop('filter for choice'), options=((1, _('First')),(2, _('Second')))),
         FilterMonth(ugettext_noop('filter for month')),

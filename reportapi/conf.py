@@ -53,6 +53,11 @@ REPORTAPI_UNOCONV_TO_PDF  = getattr(settings, 'REPORTAPI_UNOCONV_TO_PDF', True)
 REPORTAPI_UNOCONV_TO_ODF  = getattr(settings, 'REPORTAPI_UNOCONV_TO_ODF', True)
 REPORTAPI_UNOCONV_SERVERS = getattr(settings, 'REPORTAPI_UNOCONV_SERVERS', [])
 
+# LibreOffice refuses to convert large files
+# therefore exhibited an approximate value as 50 megabyte
+REPORTAPI_MAXSIZE_TYPES   = getattr(settings, 'REPORTAPI_MAXSIZE_TYPES', {})
+REPORTAPI_MAXSIZE_ALL     = getattr(settings, 'REPORTAPI_MAXSIZE_ALL', 1048576*50) # 50 мегабайт
+
 REPORTAPI_BRAND_TEXT = getattr(settings, 'REPORTAPI_BRAND_TEXT', '')
 REPORTAPI_BRAND_COLOR = getattr(settings, 'REPORTAPI_BRAND_COLOR', '#303030')
 

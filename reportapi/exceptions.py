@@ -56,6 +56,9 @@ class ObjectFoundError(AbstractError):
 class PeriodsError(AbstractError):
     pass
 
+class OversizeError(AbstractError):
+    pass
+
 class ExceptionReporterExt(ExceptionReporter):
     """
     Расширение класса отчёта об ошибках

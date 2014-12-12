@@ -121,9 +121,9 @@
             <td>{{ filter.condition_label|lower }}</td>
             <td>
             {% if filter.condition == 'range' %}
-                {{ filter.value_range_label|join:";<br>" }}
+                {% for x in filter.value_range_label %}<span>{{ x }}</span>{% if not forloop.last %}<br>{% endif %}{% endfor %}
             {% elif filter.condition == 'in' %}
-                {{ filter.value_label|join:";<br>" }}
+                {% for x in filter.value_label %}<span>{{ x }}</span>{% if not forloop.last %}<br>{% endif %}{% endfor %}
             {% else %}
                 {{ filter.value_label }}
             {% endif %}
