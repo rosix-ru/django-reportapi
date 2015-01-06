@@ -404,3 +404,6 @@ input[type=checkbox].ace.ace-switch.ace-switch-7:checked + .lbl::after {
   color: #FFF;
 }
 
+.panel-title {
+    font-weight: bold;
+}

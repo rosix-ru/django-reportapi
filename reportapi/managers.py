@@ -26,6 +26,7 @@ from __future__ import unicode_literals
 from django.utils.translation import ugettext_lazy as _
 from django.utils import six
 from django.db import models
+from django.db.models import Q
 
 from reportapi.conf import REPORTAPI_DOCUMENT_MANAGER as CustomManager
 
@@ -71,7 +72,6 @@ if CustomManager:
 
         DocumentManager = getattr(m, klass)
     else:
-        
         DocumentManager = CustomManager
 else:
     DocumentManager = DefaultDocumentManager

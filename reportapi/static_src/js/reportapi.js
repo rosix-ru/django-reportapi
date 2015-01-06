@@ -350,8 +350,8 @@ function handlerSetSelectizers(filter) {
                 load: function(query, callback) {
                     if (!query.length) return callback();
                     if (filter.search_on_date) {
-                        var day = moment(query);
-                        if (day.invalidAt() > -1 || query.length <10) {
+                        //~ var day = moment(query);
+                        if (query.length <=3) {
                             return callback();
                         };
                     };

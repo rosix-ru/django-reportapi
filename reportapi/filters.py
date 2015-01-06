@@ -21,6 +21,8 @@
 #  
 #  
 from __future__ import unicode_literals
+import re
+
 from django.utils.encoding import smart_text, python_2_unicode_compatible
 from django.utils import six, timezone
 from django.db import models
@@ -678,26 +680,21 @@ def _search_in_fields(queryset, fields, query):
 
     return queryset
 
-def _date_search_in_fields(queryset, fields, query, format=None):
+date_re = re.compile(
+    r'(?P<year>\d{4})-?(?P<month>\d{2})?-?(?P<day>\d{2})?$'
+)
+
+def _date_search_in_fields(queryset, fields, query, regexp=date_re):
     """ Фильтрация по дате"""
-    if fields:
-        query = query.strip()
-        date = parse_date(query)
-        if not date:
-            dt = parse_datetime(query)
-            if dt:
-                date = dt.date()
-        if date:
-            date1 = date + timedelta(days=1)
+    query = query.strip()
+    match = regexp.match(query)
 
-            orm_lookups = [ "%s__range" % smart_text(name) for name in fields ]
-            or_queries = [Q(**{orm_lookup: [date, date1]})
-                              for orm_lookup in orm_lookups]
-            queryset = queryset.filter(reduce(operator.or_, or_queries))
+    if match and fields:
 
-            orm_lookups = [ "%s__exact" % smart_text(name) for name in fields ]
-            or_queries = [Q(**{orm_lookup: date1})
-                              for orm_lookup in orm_lookups]
-            queryset = queryset.exclude(reduce(operator.or_, or_queries))
+        kv = list((k, int(v)) for k, v in match.groupdict().iteritems() if v)
+
+        for name in fields:
+            for k,v in kv:
+                queryset = queryset.filter(**{"%s__%s" % (name, k): v})
 
     return queryset
