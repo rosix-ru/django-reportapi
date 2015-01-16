@@ -44,10 +44,9 @@ REPORTAPI_DEBUG           = getattr(settings, 'REPORTAPI_DEBUG', settings.DEBUG)
 REPORTAPI_ROOT            = getattr(settings, 'REPORTAPI_ROOT', '%sreports/' % settings.MEDIA_ROOT)
 REPORTAPI_URL             = getattr(settings, 'REPORTAPI_URL',  '%sreports/' % settings.MEDIA_URL)
 REPORTAPI_ENABLE_THREADS  = getattr(settings, 'REPORTAPI_ENABLE_THREADS', False)
-REPORTAPI_CODE_HASHLIB    = getattr(settings, 'REPORTAPI_CODE_HASHLIB', 'md5')
-REPORTAPI_UPLOAD_HASHLIB  = getattr(settings, 'REPORTAPI_UPLOAD_HASHLIB', 'md5')
 REPORTAPI_FILES_UNIDECODE = getattr(settings, 'REPORTAPI_FILES_UNIDECODE', False)
 REPORTAPI_LANGUAGES       = getattr(settings, 'REPORTAPI_LANGUAGES', ['en', 'ru'])
+REPORTAPI_UPLOADCODE_LENGTH = getattr(settings, 'REPORTAPI_UPLOADCODE_LENGTH', 12)
 
 # For custom manager. By default used reportapi.managers.DefaultDocumentManager
 REPORTAPI_DOCUMENT_MANAGER = getattr(settings, 'REPORTAPI_DOCUMENT_MANAGER', '')
@@ -58,8 +57,20 @@ REPORTAPI_UNOCONV_SERVERS = getattr(settings, 'REPORTAPI_UNOCONV_SERVERS', [])
 
 # LibreOffice refuses to convert large files
 # therefore exhibited an approximate value as 50 megabyte
-REPORTAPI_MAXSIZE_TYPES   = getattr(settings, 'REPORTAPI_MAXSIZE_TYPES', {})
-REPORTAPI_MAXSIZE_ALL     = getattr(settings, 'REPORTAPI_MAXSIZE_ALL', 1048576*50) # 50 мегабайт
+REPORTAPI_MAXSIZE_XML = getattr(settings, 'REPORTAPI_MAXSIZE_XML', 1048576*50)
+
+REPORTAPI_VIEW_PRIORITY = tuple(
+    ( x for x in getattr(
+        settings, 'REPORTAPI_VIEW_PRIORITY', ('html', 'pdf')
+        ) if x in ('html', 'pdf')
+    )
+)
+REPORTAPI_DOWNLOAD_PRIORITY = tuple(
+    ( x for x in getattr(
+        settings, 'REPORTAPI_DOWNLOAD_PRIORITY', ('pdf', 'odf', 'xml')
+        ) if x in ('pdf', 'odf', 'xml')
+    )
+)
 
 REPORTAPI_BRAND_TEXT = getattr(settings, 'REPORTAPI_BRAND_TEXT', '')
 REPORTAPI_BRAND_COLOR = getattr(settings, 'REPORTAPI_BRAND_COLOR', '#303030')

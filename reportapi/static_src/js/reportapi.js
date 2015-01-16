@@ -210,21 +210,36 @@ function handlerCheckProcess() {
             window.REPORT.process = undefined;
             handlerSetProgress(max);
 
-            $('.action-preview')
-                .attr('onclick', "handlerShowDocument('"+json.data.url+"', 'document-"+json.data.id+"')")
-                .prop("disabled", false).removeAttr('disabled');
             if (json.data.error) {
                 $('.action-preview')
+                    .attr('onclick', "handlerShowDocument('"+json.data.urls.view.auto+"', 'document-"+json.data.id+"')")
+                    .prop("disabled", false)
+                    .removeAttr('disabled')
                     .removeClass('btn-default btn-success')
                     .addClass('btn-warning')
                     .find('.fa').removeClass('fa-search').addClass('fa-bug');
             } else {
-                $('.action-preview')
+                if (json.data.urls.view.auto) {
+                    $('.action-preview')
+                        .attr('onclick', "handlerShowDocument('"
+                            +json.data.urls.view.auto+"', 'document-"+json.data.id
+                            +"')")
+                        .prop("disabled", false).removeAttr('disabled')
                     .removeClass('btn-warning').addClass('btn-default')
                     .find('.fa').removeClass('fa-bug').addClass('fa-search');
-                $('.action-download')
-                    .attr('href', json.data.url)
-                    .prop("disabled", false).removeAttr('disabled');
+                }
+                if (json.data.urls.download.odf || json.data.urls.download.xml) {
+                    $('.action-download.type-odf')
+                        .attr('download', json.data.filenames.odf || json.data.filenames.xml)
+                        .attr('href', json.data.urls.download.odf || json.data.urls.download.xml)
+                        .prop("disabled", false).removeAttr('disabled');
+                }
+                if (json.data.urls.download.pdf) {
+                    $('.action-download.type-pdf')
+                        .attr('download', json.data.filenames.pdf)
+                        .attr('href', json.data.urls.download.pdf)
+                        .prop("disabled", false).removeAttr('disabled');
+                }
             };
             // If user can remove this report
             if (json.data.has_remove) {

@@ -407,3 +407,7 @@ input[type=checkbox].ace.ace-switch.ace-switch-7:checked + .lbl::after {
 .panel-title {
     font-weight: bold;
 }
+
+.dd-links a * {
+     vertical-align: middle;
+}

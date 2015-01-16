@@ -35,6 +35,7 @@ from django.utils import timezone
 from django.template import RequestContext, loader
 from django.template.defaultfilters import slugify
 from django.core.files.base import ContentFile
+from django.core.urlresolvers import reverse
 
 from jsonfield import JSONField
 
@@ -42,8 +43,7 @@ from reportapi.exceptions import OversizeError
 from reportapi.managers import DocumentManager
 from reportapi.conf import (
     settings,
-    REPORTAPI_CODE_HASHLIB,
-    REPORTAPI_UPLOAD_HASHLIB,
+    REPORTAPI_UPLOADCODE_LENGTH,
     REPORTAPI_FILES_UNIDECODE,
     AUTH_USER_MODEL,
     REPORTAPI_UNOCONV_TO_ODF,
@@ -51,8 +51,7 @@ from reportapi.conf import (
     REPORTAPI_UNOCONV_SERVERS,
     REPORTAPI_BRAND_TEXT,
     REPORTAPI_BRAND_COLOR,
-    REPORTAPI_MAXSIZE_ALL,
-    REPORTAPI_MAXSIZE_TYPES,
+    REPORTAPI_MAXSIZE_XML,
     Header, Footer, Page
 )
 
@@ -67,7 +66,6 @@ if REPORTAPI_UNOCONV_TO_ODF or REPORTAPI_UNOCONV_TO_PDF:
         REPORTAPI_UNOCONV_TO_ODF = False
         REPORTAPI_UNOCONV_TO_PDF = False
 
-
 User = get_model(*AUTH_USER_MODEL.split('.'))
 Group = User.groups.field.rel.to
 
@@ -81,8 +79,6 @@ if REPORTAPI_FILES_UNIDECODE:
     prep_filename = lambda x: unidecode(x).replace(' ', '_').replace("'", "")
 else:
     prep_filename = lambda x: x
-
-REPORTAPI_CODE_LENGTH = len(hashlib.new(REPORTAPI_CODE_HASHLIB).hexdigest())
 
 @python_2_unicode_compatible
 class SystemUser(object):
@@ -161,7 +157,7 @@ class Report(object):
     page            = Page()
     convert_to_pdf  = True
     convert_to_odf  = True
-    maxsize         = None # unlimited if REPORTAPI_MAXSIZE_ALL is None
+    maxsize         = None # unlimited if REPORTAPI_MAXSIZE_XML is None also
 
     def __init__(self, site=None, section=None, section_label=None, \
         filters=None, title=None, name=None, **kwargs):
@@ -256,7 +252,8 @@ class Report(object):
         """
         if not filters:
             return getattr(request, 'LANGUAGE_CODE', settings.LANGUAGE_CODE)
-        code = hashlib.new(REPORTAPI_CODE_HASHLIB)
+
+        code = hashlib.new('md5')
         code.update(self.filters_to_string(filters))
         code.update(getattr(request, 'LANGUAGE_CODE', settings.LANGUAGE_CODE))
         return code.hexdigest()
@@ -457,16 +454,10 @@ class Report(object):
         if not document.report_file:
             return True
 
-        path = document.report_file.path
-        basename, ext = os.path.splitext(path)
-
-        if self.maxsize is None:
-            maxsize = REPORTAPI_MAXSIZE_TYPES.get(ext, REPORTAPI_MAXSIZE_ALL)
-        else:
-            maxsize = self.maxsize
+        maxsize = self.maxsize or REPORTAPI_MAXSIZE_XML
 
         if not maxsize is None:
-            size = os.path.getsize(path)
+            size = os.path.getsize(document.report_file.path)
             if size > maxsize:
                 raise OversizeError(_('Exceeded the maximum (%(max)s) file size: %(size)s byte.') % {'size': size, 'max': maxsize})
 
@@ -480,7 +471,7 @@ class Spreadsheet(Report):
 class HtmlReport(Report):
     mimetype      = "text/html"
     format        = 'html'
-    template_name = 'reportapi/html/statdard.html'
+    template_name = 'reportapi/html/standard.html'
     convert_to_pdf = False
     convert_to_odf = False
 
@@ -513,7 +504,7 @@ class Register(models.Model):
         verbose_name=_('allow list users'))
     groups = models.ManyToManyField(Group, null=True, blank=True,
         verbose_name=_('allow list groups'))
-    timeout = models.IntegerField(_('max of timeout'), default=1000, editable=False)
+    timeout = models.IntegerField(_('max of timeout'), default=1000)
 
     objects = RegisterManager()
 
@@ -538,27 +529,26 @@ class Document(models.Model):
     """
     Файл сформированного документа.
 
-    Поле `code` по умолчанию рассчитано на длину md5, заданного
-    настройкой REPORTAPI_CODE_HASHLIB. Если вы измените эту настройку
-    после создания модели в базе данных, то в базу нужно будет вручную
-    внести соотвествующие изменения.
+    Поле `code` по умолчанию рассчитано на длину md5.
 
     Поле `restriction` является дополнительным ограничением для
     отображения списка доступных документов конкретному пользователю.
 
     """
 
-    register    = models.ForeignKey(Register, editable=False, verbose_name=_('registered report'))
-    user        = models.ForeignKey(User, editable=False, null=True, verbose_name=_('user'))
+    register    = models.ForeignKey(Register, verbose_name=_('registered report'))
+    user        = models.ForeignKey(User, null=True, verbose_name=_('user'))
     restriction = models.IntegerField(_('restriction'), editable=False, null=True, db_index=True)
-    code        = models.CharField(_('process key'), editable=False, blank=True, db_index=True,
-                                    max_length=REPORTAPI_CODE_LENGTH)
+    code        = models.CharField(_('process key'), blank=True, db_index=True,
+                                    max_length=32)
 
-    error       = models.TextField(_('error message'), editable=False, blank=True)
+    error       = models.TextField(_('error message'), blank=True)
     start       = models.DateTimeField(_('start create'), auto_now_add=True)
     end         = models.DateTimeField(_('end create'), null=True, blank=True)
-    report_file = models.FileField(_('report file'), blank=True, upload_to=lambda x,y: x.upload_to(y),
-                                    max_length=512)
+
+    report_file = models.FileField(_('report file'), blank=True, max_length=512, upload_to=lambda x,y: x.upload_to(y))
+    odf_file    = models.FileField(_('report file in ODF'), blank=True, max_length=512, upload_to=lambda x,y: x.upload_to(y))
+    pdf_file    = models.FileField(_('report file in PDF'), blank=True, max_length=512, upload_to=lambda x,y: x.upload_to(y))
 
     title       = models.CharField(_('title'), max_length=255, blank=True)
     description = models.TextField(_('description'), blank=True)
@@ -586,68 +576,174 @@ class Document(models.Model):
             'filename':filename,
             'date': date.isoformat(),
         }
-        code = hashlib.new(REPORTAPI_UPLOAD_HASHLIB)
-        code.update(str(dt.isoformat()))
-        code.update('reportapi')
-        code.update(get_random_string())
-        dic['code'] = code.hexdigest()
+        dic['code'] = get_random_string(REPORTAPI_UPLOADCODE_LENGTH)
         return smart_text('reports/%(date)s/%(code)s/%(filename)s' % dic)
-
-    @models.permalink
-    def get_absolute_url(self):
-        return ('reportapi:get_document', [self.pk])
 
     @property
     def created(self):
         return self.end
 
-    @property
-    def url(self):
+    def _xml_url(self):
         if self.report_file:
             return self.report_file.url
         return None
+    xml_url  = property(_xml_url)
+    html_url = property(_xml_url)
 
     @property
-    def has_view_in_browser(self):
-        
+    def odf_url(self):
+        if self.odf_file:
+            return self.odf_file.url
+        return None
+
+    @property
+    def pdf_url(self):
+        if self.pdf_file:
+            return self.pdf_file.url
+        return None
+
+    @property
+    def has_view_html(self):
         if self.report_file:
             basename, ext = os.path.splitext(self.report_file.name)
-            return ext.lower() in ('.html', '.pdf')
-
+            return ext.lower()  == '.html'
         return False
 
-    def check_oversize(self):
-        """
-        Проверка максимального размера файла 
-        """
-        if not self.report_file:
+    @property
+    def has_view_pdf(self):
+        if self.pdf_file:
             return True
+        return False
 
-        path = self.report_file.path
-        basename, ext = os.path.splitext(path)
-        maxsize = REPORTAPI_MAXSIZE_TYPES.get(ext, REPORTAPI_MAXSIZE_ALL)
+    @property
+    def has_view(self):
+        return self.has_view_html or self.has_view_pdf
 
-        if not maxsize is None:
-            size = os.path.getsize(path)
-            if size > maxsize:
-                raise OversizeError(_('Exceeded the maximum (%(max)s) file size: %(size)s byte.') % {'size': size, 'max': maxsize})
 
-        return True
+    def get_view_url(self):
+        if not self.has_view and not self.error:
+            return
+        return reverse('reportapi:view_document', args=[self.pk])
+
+    def get_view_url_html(self):
+        if not self.has_view_html:
+            return
+        return reverse('reportapi:view_document', args=[self.pk, 'html'])
+
+    def get_view_url_pdf(self):
+        if not self.has_view_pdf:
+            return
+        return reverse('reportapi:view_document', args=[self.pk, 'pdf'])
+
+    @property
+    def has_download_xml(self):
+        if self.report_file:
+            basename, ext = os.path.splitext(self.report_file.name)
+            return ext.lower() != '.html'
+        return False
+
+    @property
+    def has_download_odf(self):
+        if self.odf_file:
+            return True
+        return False
+
+    @property
+    def has_download_pdf(self):
+        if self.pdf_file:
+            return True
+        return False
+
+    @property
+    def has_download(self):
+        return self.has_download_pdf or self.has_download_odf or self.has_download_xml
+
+
+    def get_download_url(self):
+        if not self.has_download:
+            return
+        return reverse('reportapi:download_document', args=[self.pk])
+
+    def get_download_url_xml(self):
+        if not self.has_download_xml:
+            return
+        return reverse('reportapi:download_document', args=[self.pk, 'xml'])
+
+    def get_download_url_odf(self):
+        if not self.has_download_odf:
+            return
+        return reverse('reportapi:download_document', args=[self.pk, 'odf'])
+
+    def get_download_url_pdf(self):
+        if not self.has_download_pdf:
+            return
+        return reverse('reportapi:download_document', args=[self.pk, 'pdf'])
+
+
+    def get_filename_xml(self):
+        if self.has_download_xml:
+            return os.path.basename(self.report_file.name)
+
+    def get_filename_odf(self):
+        if self.has_download_odf:
+            return os.path.basename(self.odf_file.name)
+
+    def get_filename_pdf(self):
+        if self.has_download_pdf:
+            return os.path.basename(self.pdf_file.name)
+
+
+    @property
+    def xml_format(self):
+        if self.report_file:
+            basename, ext = os.path.splitext(self.report_file.name)
+            return ext[1:].upper().replace('FOD', 'Flat OD')
+        return ''
+
+    @property
+    def odf_format(self):
+        if self.odf_file:
+            basename, ext = os.path.splitext(self.odf_file.name)
+            return ext[1:].upper()
+        return ''
+
+    @property
+    def download_formats(self):
+        L = []
+
+        if self.report_file:
+            basename, ext = os.path.splitext(self.report_file.name)
+            format = ext[1:].lower()
+            if format != 'html':
+                L.append(format)
+
+        if self.odf_file:
+            basename, ext = os.path.splitext(self.odf_file.name)
+            L.append(ext[1:].lower())
+
+        if self.pdf_file:
+            L.append('pdf')
+
+        return L
 
     def autoconvert(self, remove_old=True, remove_log=True):
         """
-        Конвертирует из FlatXML в заданный формат если на сервере
-        установлен `unoconv`
+        Конвертирует из оригинального файла в заданный формат если
+        на сервере установлен `unoconv`
         Поддерживаются:
             1. ODF (ODT, ODS, ODP)
             2. PDF
 
-        Устанавливает путь к новому файлу относительно
-        расположения хранилища: self.report_file.name
+        Кладёт новый файл рядом с исходным
         
         Возвращает булево исполнения операции.
         """
 
+        if  not (self.convert_to_odf and REPORTAPI_UNOCONV_TO_ODF) \
+        and not (self.convert_to_pdf and REPORTAPI_UNOCONV_TO_PDF):
+            return False
+
+        flag = False
         location = self.report_file.storage.location
         oldpath = self.report_file.path
         oldname = self.report_file.name
@@ -656,20 +752,12 @@ class Document(models.Model):
 
         ExtODF = {'.fodt': '.odt', '.fods': '.ods', '.fodp': '.odp', '.html': '.odt'}
 
-        if self.convert_to_pdf and REPORTAPI_UNOCONV_TO_PDF and ext != '.pdf':
-            format = 'pdf'
-            newname = basename + '.pdf'
-        elif self.convert_to_odf and REPORTAPI_UNOCONV_TO_ODF and ext in ExtODF:
-            format = ExtODF[ext][1:]
-            newname = basename + ExtODF[ext]
-        else:
+        if ext != '.pdf' and not ext in ExtODF:
             return False
 
-        newpath = os.path.join(location, newname)
-        if remove_old and os.path.exists(newpath):
-            remove_file(newpath)
+        def conv(format, newpath):
+            newname = os.path.basename(newpath)
 
-        if not os.path.exists(newpath):
             dwd = os.path.dirname(newpath)
             cwd = os.getcwd()
             os.chdir(dwd)
@@ -678,8 +766,8 @@ class Document(models.Model):
             proc.extend(random_unoconv_con(document=self))
             proc.extend(['-f', format, os.path.basename(oldpath)])
 
-            out = os.path.join(dwd, 'out') #if settings.DEBUG else "/dev/null"
-            err = os.path.join(dwd, 'err') #if settings.DEBUG else "/dev/null"
+            out = os.path.join(dwd, 'convert.out.%s.log' % format if format == 'pdf' else 'odf')
+            err = os.path.join(dwd, 'convert.error.%s.log' % format if format == 'pdf' else 'odf')
 
             p = subprocess.Popen(proc, shell=False,
                     stdout=open(out, 'w+b'), 
@@ -691,30 +779,57 @@ class Document(models.Model):
             err_txt = f.read().decode('utf-8')
             f.close()
 
+            if err_txt:
+                deep_to_dict(self.details, err.replace('.log', ''), err_txt)
+
             f = open(out, 'r')
             out_txt = f.read().decode('utf-8')
             f.close()
 
+            if out_txt:
+                deep_to_dict(self.details, out.replace('.log', ''), out_txt)
+
             os.chdir(cwd)
 
-            if os.path.exists(newpath):
-                self.report_file.name = newname
-
-                self.details = deep_to_dict(self.details, 'sources', oldname, append_to_list=True)
-
-                deep_to_dict(self.details, 'autoconvert.err', err_txt)
-                deep_to_dict(self.details, 'autoconvert.out', out_txt)
-
+            if not err_txt and os.path.exists(newpath):
                 if remove_log:
                     remove_file(err)
                     remove_file(out)
-
-                if remove_old:
-                    remove_file(oldpath)
-
                 return True
+            else:
+                return False
 
-        return False
+        def run(format, newpath):
+            if remove_old and os.path.exists(newpath):
+                remove_file(newpath)
+
+            if not os.path.exists(newpath):
+                if conv(format, newpath):
+                    flag = True
+                    return True
+
+            return False
+
+        if self.convert_to_odf and REPORTAPI_UNOCONV_TO_ODF and ext in ExtODF:
+            format = ExtODF[ext][1:]
+            newname = basename + ExtODF[ext]
+            newpath = os.path.join(location, newname)
+            
+            if run(format, newpath):
+                self.odf_file = newname
+
+        if self.convert_to_pdf and REPORTAPI_UNOCONV_TO_PDF and ext != '.pdf':
+            format = 'pdf'
+            newname = basename + '.pdf'
+            newpath = os.path.join(location, newname)
+
+            if run(format, newpath):
+                self.pdf_file = newname
+
+        if flag:
+            self.save()
+
+        return flag
 
     def save(self):
         if self.id:

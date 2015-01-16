@@ -37,6 +37,6 @@ class DocumentAdmin(admin.ModelAdmin):
     list_display = ('register', 'user', 'start', 'end', 'id')
     search_fields = ['register__title', 'id']
     list_filter = ('register__section', 'register__title')
-    raw_id_fields = ('register', 'user')
+    raw_id_fields = ('user',)
     ordering = ['-end', 'start']
 admin.site.register(Document, DocumentAdmin)

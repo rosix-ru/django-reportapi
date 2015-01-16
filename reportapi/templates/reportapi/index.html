@@ -22,7 +22,7 @@
 
 <div class="row">
     {% for doc in docs %}
-    <div id="div-document-{{ doc.pk }}" class="col-xs-12">
+    <div id="view-{{ doc.pk }}" class="col-xs-12">
         <div class="panel {% if doc.error %}panel-danger{% elif not doc.end %}panel-warning{% else %}panel-success{% endif %}">
             <div class="panel-heading">
                 <h4 class="panel-title">
@@ -31,7 +31,7 @@
                     <span class="label
                     {% if not doc.end %}
                          label-warning">{% trans 'in the making' %}
-                    {% elif doc.error %}
+                    {% elif doc.error or doc.convert.error %}
                          label-danger">{{ doc.end }}
                     {% else %}
                          label-success">{{ doc.end }}
@@ -50,37 +50,71 @@
                     <dt>{% trans 'Filters' %}</dt>
                     <dd>{{ doc.description|linebreaks }}</dd>
                     <dt>{% trans 'Links' %}</dt>
-                    <dd>
+                    <dd id="dd-links-{{ doc.pk }}" class="dd-links">
                     {% if doc.end %} 
-                        {% if doc.has_view_in_browser or doc.error %}
-                        <a href="#view-document-{{ doc.pk }}" onClick="handlerShowDocument('{% url 'reportapi:get_document' doc.pk %}', 'document-{{ doc.pk }}')" 
+                        {% if doc.has_view_html or doc.error %}
+                        <a href="#view-{{ doc.pk }}" onClick="handlerShowDocument('{% url 'reportapi:view_document' doc.pk 'html' %}', 'document-{{ doc.pk }}')" 
                             class="btn btn-link btn-xs" role="button"
                             title="{% trans 'View' %}">
-                            <i class="fa {% if doc.error %}fa-bug{% else %}fa-search{% endif %}"></i> {% trans 'View' %}
+                            <i class="fa fa-2x {% if doc.error %}fa-bug{% else %}fa-search{% endif %}"></i>
+                            <span>{% trans 'View' %}</span>
                         </a>
                         {% endif %}
-                        {% if not doc.error %}
-                        <a href="{% url 'reportapi:get_document' doc.pk %}" target="_blank"
+                        {% if doc.has_view_pdf %}
+                        <a href="#view-{{ doc.pk }}" onClick="handlerShowDocument('{% url 'reportapi:view_document' doc.pk 'pdf' %}', 'document-{{ doc.pk }}')" 
                             class="btn btn-link btn-xs" role="button"
-                            title="{% trans 'Download' %}">
-                            <i class="fa fa-download"></i> {% trans 'Download' %}
+                            title="{% trans 'View' %} PDF">
+                            <i class="fa fa-2x fa-file-pdf-o text-danger"></i>
+                            <span>{% trans 'View' %} PDF</span>
+                        </a>
+                        {% endif %}
+                        {% if doc.has_download_xml %}
+                        <a href="{% url 'reportapi:download_document' doc.pk 'xml' %}"
+                            download="{{ doc.get_filename_xml }}"
+                            class="btn btn-link btn-xs" role="button"
+                            title="{% trans 'Download' %} {{ doc.xml_format }}">
+                            <i class="fa fa-2x fa-file-code-o text-success"></i>
+                            <span>{% trans 'Download' %} {{ doc.xml_format }}</span>
+                        </a>
+                        {% endif %}
+                        {% if doc.has_download_odf %}
+                        <a href="{% url 'reportapi:download_document' doc.pk 'odf' %}"
+                            download="{{ doc.get_filename_odf }}"
+                            class="btn btn-link btn-xs" role="button"
+                            title="{% trans 'Download' %} {{ doc.odf_format }}">
+                            <i class="fa fa-2x fa-file-text-o text-info"></i>
+                            <span>{% trans 'Download' %} {{ doc.odf_format }}</span>
+                        </a>
+                        {% endif %}
+                        {% if doc.has_download_pdf %}
+                        <a href="{% url 'reportapi:download_document' doc.pk 'pdf' %}"
+                            download="{{ doc.get_filename_pdf }}"
+                            class="btn btn-link btn-xs" role="button"
+                            title="{% trans 'Download' %} PDF">
+                            <i class="fa fa-2x fa-file-pdf-o text-danger"></i>
+                            <span>{% trans 'Download' %} PDF</span>
                         </a>
                         {% endif %}
                     {% endif %}
                         <a href="{{ doc.register.get_absolute_url }}" class="btn btn-link btn-xs"
                             role="button" title="{% trans 'Create New' %}">
-                            <i class="fa fa-gears"></i> {% trans 'Create New' %}
+                            <span class="fa-stack fa-lg text-primary">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-pencil fa-stack-1x fa-inverse"></i>
+                            </span>
+                            <span>{% trans 'Create New' %}</span>
                         </a>
                     {% if user.is_superuser or user == doc.user %}
                         <a href="#" onClick="handlerRemoveDocument({{ doc.pk }}, true)" 
                             class="btn btn-link btn-xs" role="button"
                             title="{% trans 'Remove' %}">
-                            <i class="fa fa-times"></i> {% trans 'Remove' %}
+                            <i class="fa fa-2x fa-times text-danger"></i>
+                            <span>{% trans 'Remove' %}</span>
                         </a>
                     {% endif %}
                     </dd>
                 </dl>
-                <div id="view-document-{{ doc.pk }}" class="row-" style="display:none; padding-top: 60px;">
+                <div id="view-document-{{ doc.pk }}" class="panel panel-default" style="display:none; padding-top: 20px;">
                     <div class="embed-responsive embed-responsive-16by9"></div>
                 </div>
             </div>

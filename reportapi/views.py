@@ -23,6 +23,7 @@
 from __future__ import unicode_literals, print_function
 import os, sys, traceback, threading
 
+from django.core.urlresolvers import reverse
 from django.utils.encoding import smart_text
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
@@ -39,8 +40,8 @@ from quickapi.decorators import login_required, api_required
 from reportapi.sites import site
 from reportapi.conf import (settings, REPORTAPI_DEBUG,
     REPORTAPI_FILES_UNIDECODE, REPORTAPI_ENABLE_THREADS,
-    REPORTAPI_LANGUAGES)
-from reportapi.models import Register, Document
+    REPORTAPI_LANGUAGES, REPORTAPI_VIEW_PRIORITY, REPORTAPI_DOWNLOAD_PRIORITY)
+from reportapi.models import Register, Document, deep_from_dict
 from reportapi.exceptions import ExceptionReporterExt, PermissionError
 
 DOCS_PER_PAGE = 25
@@ -117,7 +118,7 @@ def report(request, section, name):
                             context_instance=RequestContext(request,))
 
 @login_required
-def get_document(request, pk, download=False):
+def view_document(request, pk, format=None):
     ctx = _default_context(request)
     try:
         doc = Document.objects.permitted(request).get(pk=pk)
@@ -128,34 +129,56 @@ def get_document(request, pk, download=False):
     if doc.error:
         return HttpResponse(doc.error, mimetype='text/html')
 
-    if doc.report_file and os.path.exists(doc.report_file.path):
-        return HttpResponseRedirect(doc.url)
+    if not format:
+        for p in REPORTAPI_VIEW_PRIORITY:
+            print(p)
+            if getattr(doc, 'has_view_%s' % p, False):
+                url = getattr(doc, '%s_url' % p, None)
+                if url:
+                    print(12345)
+                    return HttpResponseRedirect(url)
 
-        ### OLD CODE ###
-        #~ url = doc.url # remember
-#~ 
-        #~ # Download or show PDF and HTML files as raw
-#~ 
-        #~ if download or url.endswith('.pdf') or url.endswith('.html'):
-            #~ return HttpResponseRedirect(url)
-#~ 
-        #~ # Show ODF files in ViewerJS
-#~ 
-        #~ ctx['DOCUMENT'] = doc
-#~ 
-        #~ lang = get_language()
-        #~ if lang in REPORTAPI_LANGUAGES:
-            #~ lang = '.' + lang
-        #~ else:
-            #~ lang = ''
-#~ 
-        #~ return HttpResponseRedirect('%slib/ViewerJS/index%s.html#%s' %
-            #~ (settings.STATIC_URL, lang, url))
+    elif format in ('html', 'pdf'):
+        if getattr(doc, 'has_view_%s' % format, False):
+            url = getattr(doc, '%s_url' % format, None)
+            if url:
+                return HttpResponseRedirect(url)
 
     ctx['remove_nav'] = True
 
     return render_to_response('reportapi/404.html', ctx,
                             context_instance=RequestContext(request,))
+
+@login_required
+def download_document(request, pk, format=None):
+    ctx = _default_context(request)
+    try:
+        doc = Document.objects.permitted(request).get(pk=pk)
+    except Exception as e:
+        ctx['remove_nav'] = True
+        return render_to_response('reportapi/404.html', ctx,
+                            context_instance=RequestContext(request,))
+    if doc.error:
+        return HttpResponse(doc.error, mimetype='text/html')
+
+    if not format:
+        for p in REPORTAPI_DOWNLOAD_PRIORITY:
+            if getattr(doc, 'has_download_%s' % p, False):
+                url = getattr(doc, '%s_url' % p, None)
+                if url:
+                    return HttpResponseRedirect(url)
+
+    elif format in ('pdf', 'odf', 'xml'):
+        if getattr(doc, 'has_download_%s' % format, False):
+            url = getattr(doc, '%s_url' % format, None)
+            if url:
+                return HttpResponseRedirect(url)
+
+    ctx['remove_nav'] = True
+
+    return render_to_response('reportapi/404.html', ctx,
+                            context_instance=RequestContext(request,))
+
 
 ########################################################################
 # Additional functions
@@ -201,6 +224,7 @@ def create_document(request, report, document, filters):
 
 def result(request, document, old=False):
     user = request.user
+
     result = {
         'report_id': document.register_id,
         'id': document.id,
@@ -208,15 +232,37 @@ def result(request, document, old=False):
         'end': document.end,
         'user': document.user.get_full_name() or document.user.username,
         'error': document.error or None,
+        'convert_error': deep_from_dict(document.details, 'convert.error', update=False),
         'timeout': document.register.timeout,
         'has_remove': False,
     }
-    if old:
-        result['old'] = True
+
+    if old: result['old'] = True
+
     if document.end:
-        result['url'] = document.get_absolute_url()
+        result['urls'] =  {
+            'view': {
+                'auto': document.get_view_url(),
+                'html': document.get_view_url_html(),
+                'pdf':  document.get_view_url_pdf(),
+            },
+            'download': {
+                'auto': document.get_download_url(),
+                'xml':  document.get_download_url_xml(),
+                'odf':  document.get_download_url_odf(),
+                'pdf':  document.get_download_url_pdf(),
+            }
+        }
+
+        result['filenames'] = {
+            'xml': document.get_filename_xml(),
+            'odf': document.get_filename_odf(),
+            'pdf': document.get_filename_pdf(),
+        }
+
         if user.is_superuser or document.user == user:
             result['has_remove'] = True
+
     return JSONResponse(data=result)
 
 ########################################################################

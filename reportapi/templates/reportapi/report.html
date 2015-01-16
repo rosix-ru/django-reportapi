@@ -84,7 +84,7 @@
         </tr>
 {% endfor %}
     </tbody>
-    <tfoot>
+    <tfoot id="table-footer">
         <tr>
             <td>
                 <div class="progress" style="margin-bottom: 0px;">
@@ -97,7 +97,7 @@
         </tr>
         <tr>
             <td>
-                <div class="btn-group btn-group-justified">
+                <div id="view" class="btn-group btn-group-justified">
                     <a href="#" type="button" class="btn btn-default" disabled style="display: none; margin-top: 0px;"></a>
                     <a href="#" type="button" class="btn btn-primary action-create-report" disabled role="button">
                         <i class="fa fa-cog"></i>
@@ -108,15 +108,21 @@
                         <i class="fa fa-cogs"></i>
                         {% trans 'Recreate document' %}
                     </a>
-                    <a href="#view-document-place" type="button"
+                    <a href="#view" type="button"
                         class="btn btn-default action-preview" disabled role="button">
                         <i class="fa fa-search"></i>
                         {% trans 'View' %}
                     </a>
-                    <a href="#" type="button" target="_blank"
-                        class="btn btn-default action-download" disabled role="button">
-                        <i class="fa fa-download"></i>
-                        {% trans 'Download' %}
+                    <a href="#" type="button"
+                        class="btn btn-default action-download type-odf" disabled role="button">
+                        <i class="fa fa-file-text-o text-info"></i>
+                        <span>{% trans 'Download' %} ODF</span>
+                    </a>
+                    <a href="#" type="button"
+                        download="{{ report.label }}.pdf"
+                        class="btn btn-default action-download type-pdf" disabled role="button">
+                        <i class="fa fa-file-pdf-o text-danger"></i>
+                        <span>{% trans 'Download' %} PDF</span>
                     </a>
                     <a href="#" type="button"
                         class="btn btn-danger action-remove" disabled role="button">
@@ -131,7 +137,7 @@
     </tfoot>
 </table>
 
-<div id="view-document-place" style="display:none; padding-top: 60px;">
+<div id="view-document-place" class="panel panel-default" style="display:none; padding-top: 20px;">
     <div class="embed-responsive embed-responsive-16by9"></div>
 </div>
 
