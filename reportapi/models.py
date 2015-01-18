@@ -766,8 +766,8 @@ class Document(models.Model):
             proc.extend(random_unoconv_con(document=self))
             proc.extend(['-f', format, os.path.basename(oldpath)])
 
-            out = os.path.join(dwd, 'convert.out.%s.log' % format if format == 'pdf' else 'odf')
-            err = os.path.join(dwd, 'convert.error.%s.log' % format if format == 'pdf' else 'odf')
+            out = os.path.join(dwd, 'convert.out.%s.log' % (format if format == 'pdf' else 'odf',))
+            err = os.path.join(dwd, 'convert.error.%s.log' % (format if format == 'pdf' else 'odf',))
 
             p = subprocess.Popen(proc, shell=False,
                     stdout=open(out, 'w+b'), 
@@ -775,11 +775,17 @@ class Document(models.Model):
                     cwd=dwd)
             p.wait()
 
+            ready = os.path.exists(newpath)
+
             f = open(err, 'r')
             err_txt = f.read().decode('utf-8')
             f.close()
 
-            if err_txt:
+            # Когда LO создаёт файл, то может несколько раз попытаться
+            # создать временный каталог. Такие ошибки тоже попадают в лог
+            # Поэтому единственно верным признаком успеха является
+            # наличие конечного файла
+            if err_txt and not ready:
                 deep_to_dict(self.details, err.replace('.log', ''), err_txt)
 
             f = open(out, 'r')
@@ -791,7 +797,7 @@ class Document(models.Model):
 
             os.chdir(cwd)
 
-            if not err_txt and os.path.exists(newpath):
+            if ready:
                 if remove_log:
                     remove_file(err)
                     remove_file(out)
@@ -814,7 +820,7 @@ class Document(models.Model):
             format = ExtODF[ext][1:]
             newname = basename + ExtODF[ext]
             newpath = os.path.join(location, newname)
-            
+
             if run(format, newpath):
                 self.odf_file = newname
 

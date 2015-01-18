@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-#  reportapi/__init__.py
+#  reportapi/apps.py
 #  
-#  Copyright 2014 Grigoriy Kramarenko <root@rosix.ru>
+#  Copyright 2015 Grigoriy Kramarenko <root@rosix.ru>
 #  
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -20,21 +20,10 @@
 #  MA 02110-1301, USA.
 #  
 #  
-from __future__ import unicode_literals
-from django.utils.encoding import smart_text
+from django.apps import AppConfig as BaseAppConfig
 from django.utils.translation import ugettext_lazy as _
-from reportapi.utils.version import auto_create_version_links
 
-__label__ = _('Reporting')
 
-VERSION = (3, 0, 0)
-__version__ = '.'.join([ str(x) for x in VERSION ])
-
-default_app_config = 'reportapi.apps.AppConfig'
-
-# При сборке пакета и установке через pip код не выполнится
-# из-за отсутствия путей.
-try:
-    auto_create_version_links(__file__, VERSION)
-except:
-    pass
+class AppConfig(BaseAppConfig):
+    name = 'reportapi'
+    verbose_name = _("Reporting")
