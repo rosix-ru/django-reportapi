@@ -681,16 +681,19 @@ class Document(models.Model):
 
 
     def get_filename_xml(self):
-        if self.has_download_xml:
-            return os.path.basename(self.report_file.name)
+        if self.report_file:
+            basename, ext = os.path.splitext(self.report_file.name)
+            if ext.lower() != '.html':
+                return '%s%s' % (self.title, ext)
 
     def get_filename_odf(self):
         if self.has_download_odf:
-            return os.path.basename(self.odf_file.name)
+            basename, ext = os.path.splitext(self.odf_file.name)
+            return '%s%s' % (self.title, ext)
 
     def get_filename_pdf(self):
         if self.has_download_pdf:
-            return os.path.basename(self.pdf_file.name)
+            return '%s%s' % (self.title, 'pdf')
 
 
     @property
