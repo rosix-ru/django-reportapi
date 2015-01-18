@@ -24,7 +24,7 @@
 from __future__ import unicode_literals
 import os, re, hashlib, subprocess
 
-from django.utils.encoding import smart_text, force_text, python_2_unicode_compatible
+from django.utils.encoding import force_text, python_2_unicode_compatible
 from django.utils.crypto import get_random_string
 from django.utils import six
 from django.db import models
@@ -268,7 +268,7 @@ class Report(object):
         """
         Формирует имя файла отчёта. Для переопределения в наследуемых классах.
         """
-        filename = smart_text(self.verbose_name) + '.' + self.format
+        filename = force_text(self.verbose_name) + '.' + self.format
         filename = prep_filename(filename)
         return filename
 
@@ -299,7 +299,7 @@ class Report(object):
                 cond = ', '.join([ force_text(x) for x in f['value_label']])
                 s = '%s: %s [%s]' % (label, clabel, cond)
             elif f['condition'] == 'range':
-                cond = [ smart_text(x) for x in f['value_label']]
+                cond = [ force_text(x) for x in f['value_label']]
                 s = _('%(label)s: from %(cond0)s to %(cond1)s') % {
                     'label': label, 'cond0': cond[0], 'cond1': cond[1]
                 }
@@ -344,7 +344,7 @@ class Report(object):
         content = loader.render_to_string(self.template_name, context,
                             context_instance=RequestContext(request,))
         _file = ContentFile(content.encode('utf-8') or \
-            smart_text(_('Unspecified render error in template.')))
+            force_text(_('Unspecified render error in template.')))
         document.report_file.save(self.get_filename(), _file, save=save)
         return document
 
@@ -358,7 +358,7 @@ class Report(object):
         for k,v in filters.items():
             if isinstance(v, (list,tuple)):
                 filters[k] = list(set(v))
-        return smart_text(filters)
+        return force_text(filters)
 
     def filters_list(self, request=None):
         """
@@ -577,7 +577,7 @@ class Document(models.Model):
             'date': date.isoformat(),
         }
         dic['code'] = get_random_string(REPORTAPI_UPLOADCODE_LENGTH)
-        return smart_text('reports/%(date)s/%(code)s/%(filename)s' % dic)
+        return force_text('reports/%(date)s/%(code)s/%(filename)s' % dic)
 
     @property
     def created(self):

@@ -24,7 +24,7 @@ from __future__ import unicode_literals
 from django.utils.translation import ugettext_lazy as _
 
 
-VERSION = (3, 0, 0)
+VERSION = (3, 0, 1)
 __version__ = '.'.join([ str(x) for x in VERSION ])
 
 

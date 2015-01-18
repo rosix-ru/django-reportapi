@@ -24,7 +24,7 @@ from __future__ import unicode_literals, print_function
 import os, sys, traceback, threading
 
 from django.core.urlresolvers import reverse
-from django.utils.encoding import smart_text
+from django.utils.encoding import force_text
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
@@ -203,7 +203,7 @@ def create_document(request, report, document, filters):
             reporter = ExceptionReporterExt(request, *exc_info)
             document.error = reporter.get_traceback_html()
         else:
-            document.error = '%s:\n%s' % (smart_text(_('Error in template')), msg)
+            document.error = '%s:\n%s' % (force_text(_('Error in template')), msg)
 
     if not document.error:
         document.autoconvert()
