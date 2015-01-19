@@ -31,19 +31,25 @@ from django.utils.encoding import force_text
 from quickapi.http import JSONResponse
 from quickapi.views import api as quickapi_index, get_methods
 from quickapi.decorators import login_required, api_required
+from quickapi.utils import (apidoc_lazy, string_lazy,
+    RETURN_BOOLEAN_SUCCESS, RETURN_BOOLEAN_EXISTS, PARAMS_UPDATE_FIELD)
 
 from reportapi.sites import site
 from reportapi.models import Register, Document, deep_from_dict
 from reportapi.exceptions import ExceptionReporterExt, PermissionError
-from reportapi.conf import REPORTAPI_DEBUG, REPORTAPI_ENABLE_THREADS
-
-logger = logging.getLogger('reportapi.api')
+from reportapi.conf import (REPORTAPI_DEBUG,
+    REPORTAPI_ENABLE_THREADS, REPORTAPI_LOGGING as LOGGING)
 
 def create_document(request, report, document, filters):
     """ Создание отчёта """
     try:
         report.render(request=request, document=document, filters=filters)
     except Exception as e:
+
+        if LOGGING:
+            logger = logging.getLogger('reportapi.api.create_document')
+            logger.error(force_text(e))
+
         msg = traceback.format_exc()
         if REPORTAPI_DEBUG:
             exc_info = sys.exc_info()
@@ -112,50 +118,44 @@ def result(request, document, old=False):
 
     return JSONResponse(data=result)
 
+
 @api_required
 @login_required
 def API_get_scheme(request, **kwargs):
-    """ *Возвращает схему ReportAPI для пользователя.*
-
-        ####ЗАПРОС. Без параметров.
-
-        ####ОТВЕТ. Формат ключа "data":
-        Схема
+    """
+    Возвращает схему ReportAPI для пользователя.
     """
     data = site.get_scheme(request)
     return JSONResponse(data=data)
 
+API_get_scheme.__doc__ = apidoc_lazy(
+    header=_("*Returns the schema ReportAPI for the user.*"),
+    data=string_lazy(
+"""
+```
+#!javascript
+
+{
+    "icon": null,
+    "label": "%s",
+    "sections": {
+        "icon": null,
+        "label": "main",
+        "reports_list": [],
+        "reports": {}
+    }
+}
+```
+""", _('Reporting'))
+)
+
+
 @api_required
 @login_required
 def API_document_create(request, section, name, filters=None, force=False, fake=False, **kwargs):
-    """ *Запускает процесс создания отчёта и/или возвращает информацию
-        об уже запущенном процессе.*
-
-        ####ЗАПРОС. Параметры:
-
-        1. "section" - идентификационное название раздела;
-        2. "name"    - идентификационное название отчёта;
-        3. "filters" - фильтры для обработки результата (необязательно);
-        4. "force"   - принудительное создание отчёта (необязательно).
-        5. "fake"    - для готовых документов имитирует создание нового (необязательно).
-
-        ####ОТВЕТ. Формат ключа "data":
-        Информация о процессе
-
-        ```
-        #!javascript
-        {
-            "id": 1,
-            "start": "2014-01-01T10:00:00+0000",
-            "user": "Гадя Петрович Хренова",
-            "end": null, // либо дата создания
-            "url": "",
-            "old": null, // true, когда взят уже существующий старый отчёт
-            "error": null, // или описание ошибки
-            "timeout": 1000, // расчётное время ожидания результата в милисекундах 
-        }
-        ```
-
+    """
+    Запускает процесс создания отчёта и/или возвращает информацию
+    об уже запущенном процессе.
     """
     user = request.user
     session = request.session
@@ -182,8 +182,6 @@ def API_document_create(request, section, name, filters=None, force=False, fake=
             return result(request, last_documents[0])
         return result(request, last_documents[0], old=True)
     else:
-        if not report.validate_filters(filters):
-            return JSONResponse(status=400, message=_('One or more filters filled in not correctly'))
         # Новый отчёт
         document = Document.objects.new(request=request, user=user, code=code, register=register)
         document.description = report.get_description_from_filters(filters)
@@ -208,35 +206,60 @@ def API_document_create(request, section, name, filters=None, force=False, fake=
             r = create_document(**func_kwargs)
             return result(request, document)
 
+API_document_create.__doc__ = apidoc_lazy(
+    header=_("""*Starts the process of creating a report and/or returns
+information about an already running process.*"""),
+
+    params=string_lazy(
+"""
+    1. "section" - %s;
+    2. "name"    - %s;
+    3. "filters" - %s;
+    4. "force"   - %s;
+    5. "fake"    - %s.
+""", (
+    _('identification section name'),
+    _('identification report name'),
+    _('filters for processing the result (optional)'),
+    _('force the creation of the report (optional)'),
+    _('for finished documents simulates the creation of new (optional)')
+    )),
+
+    data=string_lazy(
+"""
+%s
+
+```
+#!javascript
+{
+    "id": 1,
+    "start": "2014-01-01T10:00:00+0000",
+    "user": "%s",
+    "end": null, // %s
+    "url": "",
+    "old": null, // true, %s
+    "error": null, // %s
+    "timeout": 1000, // %s
+}
+```
+""", (
+    _('Information about the process'),
+    _('Grigoriy Kramarenko'),
+    _('or creation date'),
+    _('when taken already existing old report'),
+    _('or description of the error'),
+    _('estimated time of waiting for the result in milliseconds'),
+    ))
+)
+
+
 @api_required
 @login_required
 def API_document_info(request, id, section, name, filters=None, **kwargs):
-    """ *Возвращает информацию об определённом запущенном или
-        завершённом отчёте по заданному идентификационному номеру,
-        либо по другим идентификационным данным.*
-
-        ####ЗАПРОС. Параметры:
-
-        1. "id" - идентификатор отчёта;
-        2. "section" - идентификационное название раздела;
-        3. "name"    - идентификационное название отчёта;
-        4. "filters" - фильтры для обработки результата (необязательно);
-
-        ####ОТВЕТ. Формат ключа "data":
-        Информация о процессе формирования отчёта
-
-        ```
-        #!javascript
-        {
-            "id": 1,
-            "start": "2014-01-01T10:00:00+0000",
-            "user": "Гадя Петрович Хренова",
-            "end": null, // либо дата создания
-            "url": "",
-            "error": null, // или описание ошибки
-        }
-        ```
-
+    """
+    Возвращает информацию об определённом запущенном или
+    завершённом отчёте по заданному идентификационному номеру,
+    либо по другим идентификационным данным.
     """
     if not id:
         return API_document_create(request, section, name, filters, fake=True)
@@ -249,22 +272,53 @@ def API_document_info(request, id, section, name, filters=None, **kwargs):
     else:
         return result(request, document)
 
+API_document_info.__doc__ = apidoc_lazy(
+    header=_("""*Returns information about a specific running or
+the completed report at the specified identification number, either
+other identification data.*"""),
+
+    params=string_lazy(
+"""
+    1. "id"      - %s;
+    2. "section" - %s;
+    3. "name"    - %s;
+    4. "filters" - %s.
+""", (
+    _('report identificator'),
+    _('identification section name'),
+    _('identification report name'),
+    _('filters for processing the result (optional)'),
+    )),
+
+    data=string_lazy(
+"""
+%s
+
+```
+#!javascript
+{
+    "id": 1,
+    "start": "2014-01-01T10:00:00+0000",
+    "user": "%s",
+    "end": null, // %s
+    "url": "",
+    "error": null, // %s
+}
+```
+""", (
+    _('Information about the process of report generation'),
+    _('Grigoriy Kramarenko'),
+    _('or creation date'),
+    _('or description of the error'),
+    ))
+)
+
+
 @api_required
 @login_required
 def API_document_delete(request, id, **kwargs):
-    """ *Удаляет документ по заданному идентификационному номеру.*
-
-        ####ЗАПРОС. Параметры:
-
-        1. "id" - идентификатор отчёта;
-
-        ####ОТВЕТ. Формат ключа "data":
-
-        ```
-        #!javascript
-        true // если удаление произведено
-        ```
-
+    """
+    Удаляет документ по заданному идентификационному номеру.
     """
     user = request.user
     all_documents = Document.objects.del_permitted(request).all()
@@ -276,47 +330,23 @@ def API_document_delete(request, id, **kwargs):
         document.delete()
         return JSONResponse(data=True)
 
+API_document_delete.__doc__ = apidoc_lazy(
+    header=_("*Deletes the document at the specified identification number.*"),
+    params=string_lazy(
+"""
+    1. "id" - %s.
+""", _('report identificator')),
+
+    data=RETURN_BOOLEAN_SUCCESS
+)
+
+
 @api_required
 @login_required
 def API_object_search(request, section, name, filter_name, query=None, page=1, **kwargs):
-    """ *Производит поиск для заполнения объектного фильтра экземпляром
-        связанной модели.*
-
-        ####ЗАПРОС. Параметры:
-
-        1. "section" - идентификационное название раздела;
-        2. "name"    - идентификационное название отчёта;
-        3. "filter_name" - имя фильтра для связанной модели;
-        4. "query" - поисковый запрос (необязательно);
-        5. "page" - номер страницы (необязательно);
-
-        ####ОТВЕТ. Формат ключа "data":
-        Сериализованный объект страницы паджинатора
-
-        ```
-        #!javascript
-        {
-            "object_list": [
-                {"pk": 1, "__unicode__": "First object"},
-                {"pk": 2, "__unicode__": "Second object"}
-            ],
-            "number": 2,
-            "count": 99,
-            "per_page": 10
-            "num_pages": 10,
-            "page_range": [1,2,3,'...',9,10],
-            "start_index": 1,
-            "end_index": 10,
-            "has_previous": true,
-            "has_next": true,
-            "has_other_pages": true,
-            "previous_page_number": 1,
-            "next_page_number": 3,
-        }
-        ```
-        Это стандартный вывод, который может быть переопределён
-        отдельно для каждого отчёта.
-
+    """ 
+    Производит поиск для заполнения объектного фильтра экземпляром
+    связанной модели.
     """
     user = request.user
     report = site.get_report(request, section, name)
@@ -327,6 +357,51 @@ def API_object_search(request, section, name, filter_name, query=None, page=1, *
         return JSONResponse(status=400)
     data = _filter.search(query, page, request=request)
     return JSONResponse(data=data)
+
+API_object_search.__doc__ = apidoc_lazy(
+    header=_("*Searches for filling the object filter an instance of the related model.*"),
+    params=string_lazy(
+"""
+    1. "section" - %s;
+    2. "name"    - %s;
+    3. "filter_name" - %s;
+    4. "query" - %s;
+    5. "page" - %s;
+""", (
+    _('identification section name'),
+    _('identification report name'),
+    _('the filter name for the related model'),
+    _('the search query (optional)'),
+    _('page number (optional)'),
+    )),
+    data=string_lazy(
+"""
+%s
+
+```
+#!javascript
+{
+    "object_list": [
+        {"pk": 1, "__unicode__": "%s"},
+        {"pk": 2, "__unicode__": "%s"}
+    ],
+    "number": 2,
+    "count": 99,
+    "per_page": 10
+    "num_pages": 10,
+    "page_range": [1,2,3,'...',9,10],
+    "start_index": 1,
+    "end_index": 10,
+    "has_previous": true,
+    "has_next": true,
+    "has_other_pages": true,
+    "previous_page_number": 1,
+    "next_page_number": 3,
+}
+```
+""", (_('The serialized object to the page of Paginator'), _('First object'), _('Second object'))),
+    footer=_('*This is the standard output, which can be overridden separately for each report.*')
+)
 
 
 _methods = [

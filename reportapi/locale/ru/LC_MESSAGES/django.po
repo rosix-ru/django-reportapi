@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReportAPI\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-01-19 15:10+1000\n"
+"POT-Creation-Date: 2015-01-19 17:46+1000\n"
 "PO-Revision-Date: 2014-03-07 00:00+1100\n"
 "Last-Translator: Grigoriy Kramarenko <root@rosix.ru>\n"
 "Language-Team: \n"
@@ -18,29 +18,147 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)\n"
 
-#: __init__.py:31 apps.py:29 sites.py:124 templates/reportapi/base.html:5
-#: templates/reportapi/base.html.py:72 templates/reportapi/index.html:9
-#: templates/reportapi/report.html:7 templates/reportapi/report_list.html:7
+#: __init__.py:31 api.py:149 apps.py:29 sites.py:124
+#: templates/reportapi/base.html:5 templates/reportapi/base.html.py:72
+#: templates/reportapi/index.html:9 templates/reportapi/report.html:7
+#: templates/reportapi/report_list.html:7
 msgid "Reporting"
 msgstr "Отчётность"
 
-#: api.py:53
+#: api.py:59
 msgid "Error in template"
 msgstr "Ошибка в шаблоне"
 
-#: api.py:186
-msgid "One or more filters filled in not correctly"
-msgstr "Один или более фильтров заполнены неверно"
+#: api.py:132
+msgid "*Returns the schema ReportAPI for the user.*"
+msgstr "*Возвращает схему ReportAPI для пользователя.*"
+
+#: api.py:210
+msgid ""
+"*Starts the process of creating a report and/or returns\n"
+"information about an already running process.*"
+msgstr ""
+"*Запускает создание отчёта и/или возвращаетинформацию об уже запущенном "
+"процессе.*"
+
+#: api.py:221 api.py:288 api.py:371
+msgid "identification section name"
+msgstr "идентификационное название раздела"
+
+#: api.py:222 api.py:289 api.py:372
+msgid "identification report name"
+msgstr "идентификационное название отчёта"
+
+#: api.py:223 api.py:290
+msgid "filters for processing the result (optional)"
+msgstr "фильтры для обработки результата (необязательно)"
+
+#: api.py:224
+msgid "force the creation of the report (optional)"
+msgstr "принудительное создание отчёта (необязательно)"
+
+#: api.py:225
+msgid "for finished documents simulates the creation of new (optional)"
+msgstr "для готовых документов имитирует создание нового (необязательно)"
+
+#: api.py:246
+msgid "Information about the process"
+msgstr "Информация о процессе"
+
+#: api.py:247 api.py:310 templates/reportapi/base.html:133
+msgid "Grigoriy Kramarenko"
+msgstr "Григорий Крамаренко"
+
+#: api.py:248 api.py:311
+msgid "or creation date"
+msgstr "либо дата создания"
+
+#: api.py:249
+msgid "when taken already existing old report"
+msgstr "когда взят уже существующий старый отчёт"
+
+#: api.py:250 api.py:312
+msgid "or description of the error"
+msgstr "или описание ошибки"
+
+#: api.py:251
+msgid "estimated time of waiting for the result in milliseconds"
+msgstr "расчётное время ожидания результата в миллисекундах"
+
+#: api.py:276
+msgid ""
+"*Returns information about a specific running or\n"
+"the completed report at the specified identification number, either\n"
+"other identification data.*"
+msgstr ""
+"*Возвращает информацию об определённом запущенном или\n"
+"завершённом отчёте по заданному идентификационному номеру, либо по\n"
+"другим идентификационным данным.*"
+
+#: api.py:287 api.py:338
+msgid "report identificator"
+msgstr "идентификатор отчёта"
+
+#: api.py:309
+msgid "Information about the process of report generation"
+msgstr "Информация о процессе формирования отчёта"
+
+#: api.py:334
+msgid "*Deletes the document at the specified identification number.*"
+msgstr "*Удаляет документ по указанному идентификатору.*"
+
+#: api.py:362
+msgid ""
+"*Searches for filling the object filter an instance of the related model.*"
+msgstr ""
+"*Производит поиск для заполнения объектного фильтра экземпляром связанной "
+"модели.*"
+
+#: api.py:373
+msgid "the filter name for the related model"
+msgstr "имя фильтра для связанной модели"
+
+#: api.py:374
+msgid "the search query (optional)"
+msgstr "поисковый запрос (необязательно)"
+
+#: api.py:375
+msgid "page number (optional)"
+msgstr "номер страницы (необязательно)"
+
+#: api.py:402
+msgid "The serialized object to the page of Paginator"
+msgstr "Сериализованный объект страницы паджинатора"
+
+#: api.py:402
+msgid "First object"
+msgstr "Первый объект"
+
+#: api.py:402
+msgid "Second object"
+msgstr "Второй объект"
+
+#: api.py:403
+msgid ""
+"*This is the standard output, which can be overridden separately for each "
+"report.*"
+msgstr ""
+"*Это стандартный вывод, который может быть переопределён отдельно для "
+"каждого отчёта.*"
 
 #: exceptions.py:34
 msgid "Abstract error"
 msgstr "Абстрактная ошибка"
 
 #: exceptions.py:51
+msgid "Validation error"
+msgstr "Ошибка проверки"
+
+#: exceptions.py:54
 msgid "Access denied"
 msgstr "Доступ запрещён"
 
-#: exceptions.py:54
+#: exceptions.py:57
 msgid "One ore more objects not found"
 msgstr "Один или более объектов не найдены"
 
@@ -273,6 +391,22 @@ msgstr "системный пользователь"
 msgid "main"
 msgstr "основные"
 
+#: models.py:174 models.py:180
+#, python-format
+msgid ""
+"Attribute `%s` most be string in English without digits, spaces and hyphens."
+msgstr ""
+"Атрибут `%s` должен быть строкой на английском языке без цифр, пробелов и "
+"дефисов."
+
+#: models.py:187
+msgid "Attribute `filters` most be list or tuple."
+msgstr "Атрибут `filters` должен быть списком или кортежем."
+
+#: models.py:195
+msgid "Attribute `title` most be string in English without translation."
+msgstr "Атрибут `title` должен быть строкой на английском языке без перевода."
+
 #: models.py:296
 msgid "no empty"
 msgstr "не пусто"
@@ -282,105 +416,110 @@ msgstr "не пусто"
 msgid "%(label)s: from %(cond0)s to %(cond1)s"
 msgstr "%(label)s: от %(cond0)s до %(cond1)s"
 
-#: models.py:347
+#: models.py:348
 msgid "Unspecified render error in template."
 msgstr "Неопределённая ошибка рендеринга шаблона."
 
-#: models.py:462
+#: models.py:383
+#, python-format
+msgid "The filters contain errors: (%s)"
+msgstr "Фильтры содержат ошибку: (%s)"
+
+#: models.py:463
 #, python-format
 msgid "Exceeded the maximum (%(max)s) file size: %(size)s byte."
 msgstr "Превышен максимальный (%(max)s) размер файла: %(size)s байт."
 
-#: models.py:499
+#: models.py:500
 msgid "section"
 msgstr "раздел"
 
-#: models.py:500 templates/reportapi/flatxml/standard_text.html:291
+#: models.py:501 templates/reportapi/flatxml/standard_text.html:291
 #: templates/reportapi/html/standard.html:112
 msgid "name"
 msgstr "имя"
 
-#: models.py:501
+#: models.py:502
 msgid "title without translation"
 msgstr "название без перевода"
 
-#: models.py:502
+#: models.py:503
 msgid "allow all users"
 msgstr "доступно всем пользователям"
 
-#: models.py:504
+#: models.py:505
 msgid "allow list users"
 msgstr "доступно списку пользователей"
 
-#: models.py:506
+#: models.py:507
 msgid "allow list groups"
 msgstr "доступно списку групп"
 
-#: models.py:507
+#: models.py:508
 msgid "max of timeout"
 msgstr "максимальное время ожидания"
 
-#: models.py:513 models.py:539
+#: models.py:514 models.py:540
 msgid "registered report"
 msgstr "зарегистрированный отчёт"
 
-#: models.py:514
+#: models.py:515
 msgid "registered reports"
 msgstr "зарегистрированные отчёты"
 
-#: models.py:540
+#: models.py:541
 msgid "user"
 msgstr "пользователь"
 
-#: models.py:541
+#: models.py:542
 msgid "restriction"
 msgstr "ограничение"
 
-#: models.py:542
+#: models.py:543
 msgid "process key"
 msgstr "ключ процесса"
 
-#: models.py:545
+#: models.py:546
 msgid "error message"
 msgstr "сообщение об ошибке"
 
-#: models.py:546
+#: models.py:547
 msgid "start create"
 msgstr "начало создания"
 
-#: models.py:547
+#: models.py:548
 msgid "end create"
 msgstr "конец создания"
 
-#: models.py:549
+#: models.py:550
 msgid "report file"
 msgstr "файл отчёта"
 
-#: models.py:550
+#: models.py:551
 msgid "report file in ODF"
 msgstr "файл отчёта в ODF"
 
-#: models.py:551
+#: models.py:552
 msgid "report file in PDF"
 msgstr "файл отчёта в PDF"
 
-#: models.py:553
+#: models.py:554
 msgid "title"
 msgstr "название"
 
-#: models.py:554
+#: models.py:555
 msgid "description"
 msgstr "описание"
 
-#: models.py:555
+#: models.py:556
 msgid "details"
 msgstr "детали"
 
-#: models.py:568
+#: models.py:569
 msgid "generated report"
 msgstr "сгенерированный отчет"
 
-#: models.py:569
+#: models.py:570
 msgid "generated reports"
 msgstr "сгенерированные отчеты"
 
@@ -419,7 +558,9 @@ msgstr "Отчёт либо регистратор не найдены для р
 #, python-format
 msgid ""
 "Report or register not found for section (%(section)s) and name (%(name)s)."
-msgstr "Отчёт либо регистратор не найдены для раздела (%(section)s) и имени (%(name)s)."
+msgstr ""
+"Отчёт либо регистратор не найдены для раздела (%(section)s) и имени "
+"(%(name)s)."
 
 #: views.py:145 views.py:179
 #, python-format
@@ -445,10 +586,6 @@ msgstr "Переключение навигации"
 #: templates/reportapi/base.html:84
 msgid "List reports"
 msgstr "Список отчётов"
-
-#: templates/reportapi/base.html:133
-msgid "Grigoriy Kramarenko"
-msgstr "Григорий Крамаренко"
 
 #: templates/reportapi/index.html:12 templates/reportapi/index.html.py:100
 #: templates/reportapi/index.html:105
@@ -616,6 +753,9 @@ msgstr "Проект"
 #: templatetags/reportapi_base.py:90 templatetags/reportapi_base.py:98
 msgid "Anonymous"
 msgstr "Аноним"
+
+#~ msgid "One or more filters filled in not correctly"
+#~ msgstr "Один или более фильтров заполнены неверно"
 
 #~ msgid "press and select"
 #~ msgstr "нажмите и выберите"

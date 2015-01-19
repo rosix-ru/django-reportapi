@@ -39,7 +39,7 @@ from django.core.urlresolvers import reverse
 
 from jsonfield import JSONField
 
-from reportapi.exceptions import OversizeError
+from reportapi.exceptions import OversizeError, ValidationError
 from reportapi.managers import DocumentManager
 from reportapi.conf import (
     settings,
@@ -171,20 +171,20 @@ class Report(object):
 
         self.section = section or getattr(self, 'section')
         if not isinstance(self.section, six.string_types) or not validate_name(self.section):
-            raise ValueError('Attribute `section` most be string in '
-                'English without digits, spaces and hyphens.')
+            raise ValueError(force_text(_('Attribute `%s` most be string in '
+                'English without digits, spaces and hyphens.') % 'section'))
         self.section_label = section_label or getattr(self, 'section_label', None) or _(self.section)
 
         self.name = name or getattr(self, 'name', None) or class_name.lower()
         if not isinstance(self.name, six.string_types) or not validate_name(self.name):
-            raise ValueError('Attribute `name` most be string in '
-                'English without digits, spaces and hyphens.')
+            raise ValueError(force_text(_('Attribute `%s` most be string in '
+                'English without digits, spaces and hyphens.') % 'name'))
 
         if self.filters is None:
             self.filters = filters or ()
 
         if not isinstance(self.filters, (list, tuple)):
-            raise ValueError('Attribute `filters` most be list or tuple.')
+            raise ValueError(force_text(_('Attribute `filters` most be list or tuple.')))
 
         self._filters = dict([ (f.name, f) for f in self.filters ])
         # unique
@@ -192,8 +192,8 @@ class Report(object):
 
         self.title = title or getattr(self, 'title')
         if not isinstance(self.title, six.string_types) or not validate_title(self.title):
-            raise ValueError('Attribute `title` most be string in '
-                'English without translation.')
+            raise ValueError(force_text(_('Attribute `title` most be string in '
+                'English without translation.')))
         self.verbose_name = _(self.title)
 
     def slugify(self, name):
@@ -335,12 +335,13 @@ class Report(object):
         document.details        = deep_to_dict(document.details, 'filters', filters)
         
         # create title
+        document._filters_data = self.get_filters_data(filters, request=request)
         document.title = self.get_document_title(document)
 
         if self.page:
             context['PAGE'] = self.page.checked()
         context['DOCUMENT'] = document
-        context['FILTERS'] = self.get_filters_data(filters, request=request).values()
+        context['FILTERS'] = document._filters_data.values()
         content = loader.render_to_string(self.template_name, context,
                             context_instance=RequestContext(request,))
         _file = ContentFile(content.encode('utf-8') or \
@@ -379,7 +380,7 @@ class Report(object):
         try:
             data = self.get_filters_data(filters, request=request)
         except Exception as e:
-            raise e
+            raise ValidationError(_('The filters contain errors: (%s)') % e)
         return True
 
     def get_filters_data(self, filters, request=None):

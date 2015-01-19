@@ -47,6 +47,9 @@ class AbstractError(Exception):
             return repr(self.message_str())
         return repr(self.message_str(), self.value)
 
+class ValidationError(AbstractError):
+    message = _('Validation error')
+
 class PermissionError(AbstractError):
     message = _('Access denied')
 
