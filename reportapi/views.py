@@ -123,7 +123,7 @@ def report(request, section, name):
             logger.error(force_text(
                 _('Report or register not found for section (%(section)s) and name (%(name)s).')
                 % {'section': section, 'name': name}
-            )
+            ))
         return render_to_response('reportapi/404.html', ctx,
                             context_instance=RequestContext(request,))
 

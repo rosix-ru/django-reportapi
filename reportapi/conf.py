@@ -41,6 +41,7 @@ QUICKAPI_VERSION  = quickapi_version
 AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 REPORTAPI_DEBUG           = getattr(settings, 'REPORTAPI_DEBUG', settings.DEBUG)
+REPORTAPI_LOGGING         = getattr(settings, 'REPORTAPI_LOGGING', not settings.DEBUG)
 REPORTAPI_ROOT            = getattr(settings, 'REPORTAPI_ROOT', '%sreports/' % settings.MEDIA_ROOT)
 REPORTAPI_URL             = getattr(settings, 'REPORTAPI_URL',  '%sreports/' % settings.MEDIA_URL)
 REPORTAPI_ENABLE_THREADS  = getattr(settings, 'REPORTAPI_ENABLE_THREADS', False)
