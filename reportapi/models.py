@@ -24,7 +24,7 @@
 from __future__ import unicode_literals
 import os, re, hashlib, subprocess
 
-from django.utils.encoding import smart_text, force_text, python_2_unicode_compatible
+from django.utils.encoding import force_text, python_2_unicode_compatible
 from django.utils.crypto import get_random_string
 from django.utils import six
 from django.db import models
@@ -268,7 +268,7 @@ class Report(object):
         """
         Формирует имя файла отчёта. Для переопределения в наследуемых классах.
         """
-        filename = smart_text(self.verbose_name) + '.' + self.format
+        filename = force_text(self.verbose_name) + '.' + self.format
         filename = prep_filename(filename)
         return filename
 
@@ -299,7 +299,7 @@ class Report(object):
                 cond = ', '.join([ force_text(x) for x in f['value_label']])
                 s = '%s: %s [%s]' % (label, clabel, cond)
             elif f['condition'] == 'range':
-                cond = [ smart_text(x) for x in f['value_label']]
+                cond = [ force_text(x) for x in f['value_label']]
                 s = _('%(label)s: from %(cond0)s to %(cond1)s') % {
                     'label': label, 'cond0': cond[0], 'cond1': cond[1]
                 }
@@ -344,7 +344,7 @@ class Report(object):
         content = loader.render_to_string(self.template_name, context,
                             context_instance=RequestContext(request,))
         _file = ContentFile(content.encode('utf-8') or \
-            smart_text(_('Unspecified render error in template.')))
+            force_text(_('Unspecified render error in template.')))
         document.report_file.save(self.get_filename(), _file, save=save)
         return document
 
@@ -358,7 +358,7 @@ class Report(object):
         for k,v in filters.items():
             if isinstance(v, (list,tuple)):
                 filters[k] = list(set(v))
-        return smart_text(filters)
+        return force_text(filters)
 
     def filters_list(self, request=None):
         """
@@ -577,7 +577,7 @@ class Document(models.Model):
             'date': date.isoformat(),
         }
         dic['code'] = get_random_string(REPORTAPI_UPLOADCODE_LENGTH)
-        return smart_text('reports/%(date)s/%(code)s/%(filename)s' % dic)
+        return force_text('reports/%(date)s/%(code)s/%(filename)s' % dic)
 
     @property
     def created(self):
@@ -681,16 +681,19 @@ class Document(models.Model):
 
 
     def get_filename_xml(self):
-        if self.has_download_xml:
-            return os.path.basename(self.report_file.name)
+        if self.report_file:
+            basename, ext = os.path.splitext(self.report_file.name)
+            if ext.lower() != '.html':
+                return '%s%s' % (self.title, ext)
 
     def get_filename_odf(self):
         if self.has_download_odf:
-            return os.path.basename(self.odf_file.name)
+            basename, ext = os.path.splitext(self.odf_file.name)
+            return '%s%s' % (self.title, ext)
 
     def get_filename_pdf(self):
         if self.has_download_pdf:
-            return os.path.basename(self.pdf_file.name)
+            return '%s%s' % (self.title, 'pdf')
 
 
     @property
@@ -766,8 +769,8 @@ class Document(models.Model):
             proc.extend(random_unoconv_con(document=self))
             proc.extend(['-f', format, os.path.basename(oldpath)])
 
-            out = os.path.join(dwd, 'convert.out.%s.log' % format if format == 'pdf' else 'odf')
-            err = os.path.join(dwd, 'convert.error.%s.log' % format if format == 'pdf' else 'odf')
+            out = os.path.join(dwd, 'convert.out.%s.log' % (format if format == 'pdf' else 'odf',))
+            err = os.path.join(dwd, 'convert.error.%s.log' % (format if format == 'pdf' else 'odf',))
 
             p = subprocess.Popen(proc, shell=False,
                     stdout=open(out, 'w+b'), 
@@ -775,11 +778,17 @@ class Document(models.Model):
                     cwd=dwd)
             p.wait()
 
+            ready = os.path.exists(newpath)
+
             f = open(err, 'r')
             err_txt = f.read().decode('utf-8')
             f.close()
 
-            if err_txt:
+            # Когда LO создаёт файл, то может несколько раз попытаться
+            # создать временный каталог. Такие ошибки тоже попадают в лог
+            # Поэтому единственно верным признаком успеха является
+            # наличие конечного файла
+            if err_txt and not ready:
                 deep_to_dict(self.details, err.replace('.log', ''), err_txt)
 
             f = open(out, 'r')
@@ -791,7 +800,7 @@ class Document(models.Model):
 
             os.chdir(cwd)
 
-            if not err_txt and os.path.exists(newpath):
+            if ready:
                 if remove_log:
                     remove_file(err)
                     remove_file(out)
@@ -814,7 +823,7 @@ class Document(models.Model):
             format = ExtODF[ext][1:]
             newname = basename + ExtODF[ext]
             newpath = os.path.join(location, newname)
-            
+
             if run(format, newpath):
                 self.odf_file = newname
 

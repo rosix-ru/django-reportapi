@@ -21,11 +21,13 @@
 #  
 #  
 from __future__ import unicode_literals
-from django.conf.urls import *
 import os, copy
-from reportapi.conf import settings
-from reportapi.sites import site
+
+from django.conf.urls import patterns, include, url
 from django.utils.importlib import import_module
+
+from reportapi.conf import settings
+
 
 def autodiscover():
     """
@@ -43,7 +45,6 @@ autodiscover()
 
 urlpatterns = patterns('reportapi.views',
     url(r'^$', 'index', name='index'),
-    url(r'^api/', 'api', name='api'),
     url(r'^list/(?P<section>\w+)/$', 'report_list', name='report_list'),
     url(r'^doc/(?P<pk>\d+)/view/+(?P<format>[html,pdf]+)?$', 'view_document', name='view_document'),
     url(r'^doc/(?P<pk>\d+)/download/+(?P<format>[xml,odf,pdf]+)?$', 'download_document', name='download_document'),
@@ -52,3 +53,5 @@ urlpatterns = patterns('reportapi.views',
     url(r'^docs/(?P<section>\w+)/(?P<name>\w+)/$', 'documents', name='documents_section_name'),
     url(r'^report/(?P<section>\w+)/(?P<name>\w+)/$', 'report', name='report'),
 )
+
+urlpatterns += patterns('reportapi.api', url(r'^api/', 'api', name='api'))
