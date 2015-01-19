@@ -693,7 +693,7 @@ class Document(models.Model):
 
     def get_filename_pdf(self):
         if self.has_download_pdf:
-            return '%s%s' % (self.title, 'pdf')
+            return '%s.%s' % (self.title, 'pdf')
 
 
     @property
