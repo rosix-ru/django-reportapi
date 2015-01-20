@@ -20,25 +20,29 @@
 #  MA 02110-1301, USA.
 #  
 #  
-from __future__ import unicode_literals, print_function, division
+from __future__ import unicode_literals, division
 from datetime import datetime
 
-from django.utils.encoding import smart_text, python_2_unicode_compatible
-from django.utils import six
+from django import get_version as django_version
+from django.utils.translation import ugettext_lazy as _
 from django.utils.timezone import get_default_timezone
 from django.conf import settings
-from django import VERSION as django_version
-from reportapi import __version__ as reportapi_version
+
 from quickapi import __version__ as quickapi_version
+
+from reportapi import __version__ as reportapi_version
 
 SITE_ID = settings.SITE_ID
 DEBUG   = settings.DEBUG
 
-DJANGO_VERSION    = '.'.join([str(x) for x in django_version[:2]])
+DJANGO_VERSION    = django_version()
 REPORTAPI_VERSION = reportapi_version
 QUICKAPI_VERSION  = quickapi_version
 
 AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+
+PROJECT_NAME = getattr(settings, 'PROJECT_NAME', _('Project'))
+PROJECT_URL  = getattr(settings, 'PROJECT_URL', '/')
 
 REPORTAPI_DEBUG           = getattr(settings, 'REPORTAPI_DEBUG', settings.DEBUG)
 REPORTAPI_LOGGING         = getattr(settings, 'REPORTAPI_LOGGING', not settings.DEBUG)
@@ -48,6 +52,7 @@ REPORTAPI_ENABLE_THREADS  = getattr(settings, 'REPORTAPI_ENABLE_THREADS', False)
 REPORTAPI_FILES_UNIDECODE = getattr(settings, 'REPORTAPI_FILES_UNIDECODE', False)
 REPORTAPI_LANGUAGES       = getattr(settings, 'REPORTAPI_LANGUAGES', ['en', 'ru'])
 REPORTAPI_UPLOADCODE_LENGTH = getattr(settings, 'REPORTAPI_UPLOADCODE_LENGTH', 12)
+
 
 # For custom manager. By default used reportapi.managers.DefaultDocumentManager
 REPORTAPI_DOCUMENT_MANAGER = getattr(settings, 'REPORTAPI_DOCUMENT_MANAGER', '')

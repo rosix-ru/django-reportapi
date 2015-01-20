@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReportAPI\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-01-19 17:46+1000\n"
+"POT-Creation-Date: 2015-01-20 17:26+1000\n"
 "PO-Revision-Date: 2014-03-07 00:00+1100\n"
 "Last-Translator: Grigoriy Kramarenko <root@rosix.ru>\n"
 "Language-Team: \n"
@@ -19,7 +19,7 @@ msgstr ""
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)\n"
 
 #: __init__.py:31 api.py:149 apps.py:29 sites.py:124
-#: templates/reportapi/base.html:5 templates/reportapi/base.html.py:72
+#: templates/reportapi/base.html:5 templates/reportapi/base.html.py:83
 #: templates/reportapi/index.html:9 templates/reportapi/report.html:7
 #: templates/reportapi/report_list.html:7
 msgid "Reporting"
@@ -65,7 +65,7 @@ msgstr "для готовых документов имитирует созда
 msgid "Information about the process"
 msgstr "Информация о процессе"
 
-#: api.py:247 api.py:310 templates/reportapi/base.html:133
+#: api.py:247 api.py:310 templates/reportapi/base.html:146
 msgid "Grigoriy Kramarenko"
 msgstr "Григорий Крамаренко"
 
@@ -145,6 +145,10 @@ msgid ""
 msgstr ""
 "*Это стандартный вывод, который может быть переопределён отдельно для "
 "каждого отчёта.*"
+
+#: conf.py:44
+msgid "Project"
+msgstr "Проект"
 
 #: exceptions.py:34
 msgid "Abstract error"
@@ -579,13 +583,17 @@ msgstr "Внутренняя ошибка сервера"
 msgid "Project administrator will consider in the near future this a bug."
 msgstr "Администратор проекта рассмотрит ошибку в ближайшее время."
 
-#: templates/reportapi/base.html:65
+#: templates/reportapi/base.html:77
 msgid "Toggle navigation"
 msgstr "Переключение навигации"
 
-#: templates/reportapi/base.html:84
+#: templates/reportapi/base.html:94
 msgid "List reports"
 msgstr "Список отчётов"
+
+#: templates/reportapi/base.html:141
+msgid "version"
+msgstr "версия"
 
 #: templates/reportapi/index.html:12 templates/reportapi/index.html.py:100
 #: templates/reportapi/index.html:105
@@ -746,11 +754,7 @@ msgstr "Печать"
 msgid "formed"
 msgstr "сформировано"
 
-#: templatetags/reportapi_base.py:39
-msgid "Project"
-msgstr "Проект"
-
-#: templatetags/reportapi_base.py:90 templatetags/reportapi_base.py:98
+#: templatetags/reportapi_base.py:84 templatetags/reportapi_base.py:92
 msgid "Anonymous"
 msgstr "Аноним"
 
