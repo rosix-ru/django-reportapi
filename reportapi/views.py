@@ -20,7 +20,7 @@
 #  MA 02110-1301, USA.
 #  
 #  
-from __future__ import unicode_literals, print_function
+from __future__ import unicode_literals
 import os, sys, traceback, threading
 
 from django.core.urlresolvers import reverse
@@ -131,11 +131,9 @@ def view_document(request, pk, format=None):
 
     if not format:
         for p in REPORTAPI_VIEW_PRIORITY:
-            print(p)
             if getattr(doc, 'has_view_%s' % p, False):
                 url = getattr(doc, '%s_url' % p, None)
                 if url:
-                    print(12345)
                     return HttpResponseRedirect(url)
 
     elif format in ('html', 'pdf'):
@@ -197,7 +195,6 @@ def create_document(request, report, document, filters):
         report.render(request=request, document=document, filters=filters)
     except Exception as e:
         msg = traceback.format_exc()
-        print(msg)
         if REPORTAPI_DEBUG:
             exc_info = sys.exc_info()
             reporter = ExceptionReporterExt(request, *exc_info)
