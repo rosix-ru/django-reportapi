@@ -20,22 +20,11 @@
 #  MA 02110-1301, USA.
 #  
 #  
-from __future__ import unicode_literals
-from django.utils.translation import ugettext_lazy as _
-
-
 VERSION = (3, 1, 0)
-__version__ = '.'.join([ str(x) for x in VERSION ])
 
+def get_version(*args, **kwargs):
+    return '.'.join([ str(x) for x in VERSION ])
 
-__label__ = _('Reporting')
+__version__ = get_version()
+
 default_app_config = 'reportapi.apps.AppConfig'
-
-
-# При сборке пакета и установке через pip код не выполнится
-# из-за отсутствия путей.
-try:
-    from reportapi.utils.version import auto_create_version_links
-    auto_create_version_links(__file__, VERSION)
-except:
-    pass

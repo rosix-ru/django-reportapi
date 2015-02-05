@@ -28,16 +28,16 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.timezone import get_default_timezone
 from django.conf import settings
 
-from quickapi import __version__ as quickapi_version
+from quickapi import get_version as quickapi_version
 
-from reportapi import __version__ as reportapi_version
+from reportapi import get_version as reportapi_version
 
 SITE_ID = settings.SITE_ID
 DEBUG   = settings.DEBUG
 
 DJANGO_VERSION    = django_version()
-REPORTAPI_VERSION = reportapi_version
-QUICKAPI_VERSION  = quickapi_version
+REPORTAPI_VERSION = reportapi_version()
+QUICKAPI_VERSION  = quickapi_version()
 
 AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 

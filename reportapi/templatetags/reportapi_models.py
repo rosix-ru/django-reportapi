@@ -20,14 +20,11 @@
 #  MA 02110-1301, USA.
 #  
 #  
-from django.template import Library, Node, TemplateSyntaxError
 from django.db.models import Q
+from django.template import Library, Node, TemplateSyntaxError
 from django.utils.translation import ugettext_lazy as _
-from django.utils.text import capfirst
-from reportapi.conf import settings
 
 register = Library()
-
 
 @register.filter
 def ordering(objects, ordering):
@@ -38,9 +35,9 @@ def ordering(objects, ordering):
 @register.filter
 def filtering(objects, args):
     def get_boolean(bit):
-        if bit == u'False':
+        if bit == 'False':
             return False
-        if bit == u'True':
+        if bit == 'True':
             return True
         return bit
     if isinstance(args, (str, unicode)):
