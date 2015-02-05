@@ -2,14 +2,14 @@
 import os, sys
 
 # Set name directory of environ
-ENV = 'env-django1.4'
+ENV = 'env-django1.8'
 
 def getenv():
     if ENV:
         thispath = os.path.abspath(os.path.dirname(__file__))
         while thispath:
             if thispath == '/' and not os.path.exists(os.path.join(thispath, ENV)):
-                raise Exception(u'Environ not found')
+                raise Exception('Environ not found')
             if os.path.exists(os.path.join(thispath, ENV)):
                 return os.path.join(thispath, ENV)
             else:
@@ -20,7 +20,7 @@ def getenv():
 if __name__ == "__main__":
     env = getenv()
     if env:
-        python = 'python%s.%s' % ( str(sys.version_info[0]),  str(sys.version_info[1]) )
+        python = 'python%s.%s' % sys.version_info[:2]
         packages = os.path.join(env, 'lib', python, 'site-packages')
         sys.path.insert(0, packages)
 

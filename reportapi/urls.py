@@ -21,18 +21,16 @@
 #  
 #  
 from __future__ import unicode_literals
-import os, copy
-
 from django.conf.urls import patterns, include, url
-from django.utils.importlib import import_module
-
-from reportapi.conf import settings
 
 
 def autodiscover():
     """
     Автообнаружение в приложениях INSTALLED_APPS модулей reports.py.
     """
+    import os
+    from importlib import import_module
+    from django.conf import settings
 
     for app in settings.INSTALLED_APPS:
         mod = import_module(app)

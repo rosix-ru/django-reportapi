@@ -28,14 +28,33 @@ from reportapi import conf
 register = Library()
 
 @register.simple_tag
-def SETTINGS(key):
-    return getattr(conf, key, getattr(conf.settings, key, ''))
+def DEBUG_MODE():
+    return conf.DEBUG
 
 @register.simple_tag
-def mini_library():
-    if conf.settings.DEBUG:
-        return ''
-    return '.min'
+def PROJECT_NAME():
+    return conf.PROJECT_NAME or _('Project')
+
+@register.simple_tag
+def PROJECT_URL():
+    return conf.PROJECT_URL or '/'
+
+@register.simple_tag
+def SERVER_TZ_OFFSET():
+    return conf.SERVER_TZ_OFFSET
+
+@register.simple_tag
+def DJANGO_VERSION():
+    return conf.DJANGO_VERSION
+
+@register.simple_tag
+def QUICKAPI_VERSION():
+    return conf.QUICKAPI_VERSION
+
+@register.simple_tag
+def REPORTAPI_VERSION():
+    return conf.REPORTAPI_VERSION
+
 
 @register.simple_tag
 def short_username(user):

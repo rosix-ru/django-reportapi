@@ -24,19 +24,19 @@ from __future__ import unicode_literals
 import logging
 
 from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
+from django.shortcuts import render_to_response
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import force_text
 
-from quickapi.http import tojson
 from quickapi.decorators import login_required
+from quickapi.http import tojson
 
-from reportapi.sites import site
 from reportapi.conf import (REPORTAPI_VIEW_PRIORITY,
     REPORTAPI_DOWNLOAD_PRIORITY, REPORTAPI_LOGGING as LOGGING)
 from reportapi.models import Document
+from reportapi.sites import site
 
 DOCS_PER_PAGE = 25
 

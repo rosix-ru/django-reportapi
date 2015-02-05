@@ -22,51 +22,42 @@
 #  
 
 from __future__ import unicode_literals
-import os, re, hashlib, subprocess
+import os
+import hashlib
 
-from django.utils.encoding import force_text, python_2_unicode_compatible
-from django.utils.crypto import get_random_string
-from django.utils import six
-from django.db import models
-from django.db.models import Q, get_model
-from django.db.models.manager import EmptyManager
-from django.utils.translation import ugettext_noop, ugettext, ugettext_lazy as _
-from django.utils import timezone
-from django.template import RequestContext, loader
-from django.template.defaultfilters import slugify
+from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
+from django.db import models
+from django.db.models import Q
+from django.template import RequestContext, loader
+from django.template.defaultfilters import slugify
+from django.utils import timezone
+from django.utils import six
+from django.utils.crypto import get_random_string
+from django.utils.encoding import force_text, python_2_unicode_compatible
+from django.utils.translation import ugettext_noop, ugettext, ugettext_lazy as _
 
 from jsonfield import JSONField
 
-from reportapi.exceptions import OversizeError, ValidationError
-from reportapi.managers import DocumentManager
+from reportapi.exceptions import (OversizeError, ValidationError,
+    raise_set_site, raise_set_section)
+from reportapi.managers import RegisterManager, DocumentManager
 from reportapi.conf import (
     settings,
     REPORTAPI_UPLOADCODE_LENGTH,
-    REPORTAPI_FILES_UNIDECODE,
-    AUTH_USER_MODEL,
-    REPORTAPI_UNOCONV_TO_ODF,
-    REPORTAPI_UNOCONV_TO_PDF,
-    REPORTAPI_UNOCONV_SERVERS,
     REPORTAPI_BRAND_TEXT,
     REPORTAPI_BRAND_COLOR,
     REPORTAPI_MAXSIZE_XML,
     Header, Footer, Page
 )
+from reportapi.utils.deep import to_dict as deep_to_dict
+from reportapi.utils.files import remove_dirs, remove_file, prep_filename
+from reportapi.utils.regexp import validate_name, validate_title
+from reportapi.utils.uno import (unoconv, REPORTAPI_UNOCONV_TO_ODF,
+    REPORTAPI_UNOCONV_TO_PDF)
 
-UNOCONV_EXE = "unoconv"
 
-if REPORTAPI_UNOCONV_TO_ODF or REPORTAPI_UNOCONV_TO_PDF:
-    import subprocess
-
-    try:
-        UNOCONV_EXE = subprocess.check_output(["which", "unoconv"]).replace('\n', '')
-    except:
-        REPORTAPI_UNOCONV_TO_ODF = False
-        REPORTAPI_UNOCONV_TO_PDF = False
-
-User = get_model(*AUTH_USER_MODEL.split('.'))
 Group = User.groups.field.rel.to
 
 if hasattr(User, 'permissions'):
@@ -74,11 +65,6 @@ if hasattr(User, 'permissions'):
 else:
     Permission = User.user_permissions.field.rel.to
 
-if REPORTAPI_FILES_UNIDECODE:
-    from unidecode import unidecode
-    prep_filename = lambda x: unidecode(x).replace(' ', '_').replace("'", "")
-else:
-    prep_filename = lambda x: x
 
 @python_2_unicode_compatible
 class SystemUser(object):
@@ -138,6 +124,7 @@ class SystemUser(object):
 
     def is_authenticated(self):
         return False
+
 
 class Report(object):
     enable_threads  = True
@@ -464,10 +451,12 @@ class Report(object):
 
         return True
 
+
 class Spreadsheet(Report):
     mimetype      = "application/vnd.oasis.opendocument.spreadsheet"
     format        = 'fods'
     template_name = 'reportapi/flatxml/standard_spreadsheet.html'
+
 
 class HtmlReport(Report):
     mimetype      = "text/html"
@@ -476,20 +465,6 @@ class HtmlReport(Report):
     convert_to_pdf = False
     convert_to_odf = False
 
-class RegisterManager(models.Manager):
-    use_for_related_fields = True
-
-    def permitted(self, request):
-        user = request.user
-        if not user.is_authenticated():
-            return self.get_query_set().none()
-        if user.is_superuser:
-            return self.get_query_set()
-        return self.get_query_set().filter(
-            Q(all_users=True)
-            | Q(users=user)
-            | Q(groups__in=user.groups.all())
-        )
 
 @python_2_unicode_compatible
 class Register(models.Model):
@@ -501,10 +476,8 @@ class Register(models.Model):
     name    = models.CharField(_('name'), max_length=255)
     title = models.CharField(_('title without translation'), max_length=255)
     all_users = models.BooleanField(_('allow all users'), default=False)
-    users = models.ManyToManyField(User, null=True, blank=True,
-        verbose_name=_('allow list users'))
-    groups = models.ManyToManyField(Group, null=True, blank=True,
-        verbose_name=_('allow list groups'))
+    users = models.ManyToManyField(User, verbose_name=_('allow list users'))
+    groups = models.ManyToManyField(Group, verbose_name=_('allow list groups'))
     timeout = models.IntegerField(_('max of timeout'), default=1000)
 
     objects = RegisterManager()
@@ -759,62 +732,12 @@ class Document(models.Model):
         if ext != '.pdf' and not ext in ExtODF:
             return False
 
-        def conv(format, newpath):
-            newname = os.path.basename(newpath)
-
-            dwd = os.path.dirname(newpath)
-            cwd = os.getcwd()
-            os.chdir(dwd)
-
-            proc = [UNOCONV_EXE]
-            proc.extend(random_unoconv_con(document=self))
-            proc.extend(['-f', format, os.path.basename(oldpath)])
-
-            out = os.path.join(dwd, 'convert.out.%s.log' % (format if format == 'pdf' else 'odf',))
-            err = os.path.join(dwd, 'convert.error.%s.log' % (format if format == 'pdf' else 'odf',))
-
-            p = subprocess.Popen(proc, shell=False,
-                    stdout=open(out, 'w+b'), 
-                    stderr=open(err, 'w+b'),
-                    cwd=dwd)
-            p.wait()
-
-            ready = os.path.exists(newpath)
-
-            f = open(err, 'r')
-            err_txt = f.read().decode('utf-8')
-            f.close()
-
-            # Когда LO создаёт файл, то может несколько раз попытаться
-            # создать временный каталог. Такие ошибки тоже попадают в лог
-            # Поэтому единственно верным признаком успеха является
-            # наличие конечного файла
-            if err_txt and not ready:
-                deep_to_dict(self.details, err.replace('.log', ''), err_txt)
-
-            f = open(out, 'r')
-            out_txt = f.read().decode('utf-8')
-            f.close()
-
-            if out_txt:
-                deep_to_dict(self.details, out.replace('.log', ''), out_txt)
-
-            os.chdir(cwd)
-
-            if ready:
-                if remove_log:
-                    remove_file(err)
-                    remove_file(out)
-                return True
-            else:
-                return False
-
         def run(format, newpath):
             if remove_old and os.path.exists(newpath):
                 remove_file(newpath)
 
             if not os.path.exists(newpath):
-                if conv(format, newpath):
+                if unoconv(self, format, oldpath, newpath, remove_log):
                     flag = True
                     return True
 
@@ -862,145 +785,6 @@ class Document(models.Model):
             remove_dirs(os.path.dirname(self.report_file.path), withfiles=True)
         super(Document, self).delete()
 
-def random_unoconv_con(document=None):
-    """
-    Возвращает настройки соединения с сервером конвертации
-    Пример
-    REPORTAPI_UNOCONV_SERVERS = (
-        ('-p', '2002'), # localhost on port 2002
-        ('-p', '2003'), # localhost on port 2003
-        ('-p', '2004'), # localhost on port 2004
-        ('-s', '10.10.10.1', '-p', '2002'), # external server
-        ('-s', '10.10.10.1', '-p', '2003'), # external server
-    )
-    """
-    if not REPORTAPI_UNOCONV_SERVERS:
-        return []
 
-    count = len(REPORTAPI_UNOCONV_SERVERS)
 
-    if document and document.pk:
-        n = ((document.pk % count) or count) - 1
-    else:
-        n = 0
-
-    return list(REPORTAPI_UNOCONV_SERVERS[n])
-
-def deep_to_dict(dictionary, field, value, append_to_list=False):
-    """
-    Рекурсивное обновление поля словаря. Ключ значения может выглядеть как:
-    'field'
-    или
-    'field1.field2'
-    и так далее...
-
-    Заметьте, что (по умолчанию) списки поддерживаются только в
-    качестве готовых значений! Если нужно добавить в список, то
-    передавайте параметр `append_to_list=True`.
-    Тогда, если такого списка нет, то он создасться с переданным
-    значением внутри, если же есть и это действительно список,
-    то добавит в него. Если же назначение не список, то вызовет ошибку.
-
-    """
-    self = dictionary if isinstance(dictionary, dict) else {}
-    if not isinstance(field, (list, tuple)):
-        field = field.split('.')
-
-    s = self
-    length = len(field)
-    dest = length-1
-    for i in range(0, length):
-        key = field[i]
-        if not s.has_key(key):
-            if i == dest:
-                if append_to_list:
-                    s[key] = [value]
-                else:
-                    s[key] = value
-            else:
-                s[key] = {}
-                s = s[key]
-        elif i == dest:
-            if append_to_list:
-                s[key].append(value)
-            else:
-                s[key] = value
-        else:
-            s = s[key]
-
-    return self
-
-def deep_from_dict(dictionary, field, default=None, update=True, delete=False):
-    """
-    Рекурсивное получение поля словаря. Ключ значения может выглядеть как:
-    'field'
-    или
-    'field1.field2'
-    и так далее...
-    
-    Устанавливает значение по-умолчанию, если ничего не найдено и
-    разрешено обновление.
-    Если задано удаление, то удаляет этот ключ.
-    """
-    self = dictionary if isinstance(dictionary, dict) else {}
-
-    if not isinstance(field, (list, tuple)):
-        field = field.split('.')
-
-    s = self
-    value = default
-    length = len(field)
-    dest = length-1
-    for i in range(0, length):
-        key = field[i]
-        if not s.has_key(key):
-            if not update or delete:
-                return value
-            elif i == dest:
-                s[key] = value
-            else:
-                s[key] = {}
-                s = s[key]
-        elif i == dest:
-            if delete:
-                return s.pop(key)
-            else:
-                value = s[key] 
-        else:
-            s = s[key]
-
-    return value
-
-def remove_dirs(dirname, withfiles=False):
-    """ Замалчивание ошибки удаления каталога """
-    if withfiles and os.path.exists(dirname):
-        for f in os.listdir(dirname):
-            remove_file(os.path.join(dirname, f))
-    try:
-        os.removedirs(dirname)
-        return True
-    except:
-        return False
-
-def remove_file(filename):
-    """ Замалчивание ошибки удаления файла """
-    try:
-        os.remove(filename)
-        return True
-    except:
-        return False
-
-def raise_set_site(class_name):
-    raise NotImplementedError('Set the "site" in %s.' % class_name)
-
-def raise_set_section(class_name):
-    raise NotImplementedError('Set the "section" in %s.' % class_name)
-
-pattern_name = re.compile('^[a-z,A-Z]+$')
-def validate_name(s):
-    return bool(pattern_name.match(s))
-
-pattern_title = re.compile('^[ ,\-,\w]+$')
-def validate_title(s):
-    return bool(pattern_title.match(s))
 

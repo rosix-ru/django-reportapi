@@ -7,10 +7,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Grigoriy Kramarenko">
+    <meta name="generator" content="Django {% DJANGO_VERSION %}">
+    <meta name="description" content="{% trans "ReportAPI - it's easy mechanism building reports in Django projects." %}">
+    <meta name="version" content="{% REPORTAPI_VERSION %}">
 
 {% block shortcut_icons %}
-    <link rel="icon" href="{{ STATIC_URL }}reportapi/{% SETTINGS 'REPORTAPI_VERSION' %}/img/logo.svg" type="image/svg">
-    <link rel="icon" href="{{ STATIC_URL }}reportapi/{% SETTINGS 'REPORTAPI_VERSION' %}/img/logo.png" type="image/png">
+    <link rel="icon" href="{{ STATIC_URL }}reportapi/{% REPORTAPI_VERSION %}/img/logo.svg" type="image/svg">
+    <link rel="icon" href="{{ STATIC_URL }}reportapi/{% REPORTAPI_VERSION %}/img/logo.png" type="image/png">
 {% endblock %}
 
     <!-- START: block style -->
@@ -20,7 +23,7 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}bootstrap/3.3.2/css/bootstrap-theme.min.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}jquery/datetimepicker/2.4.1/min.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}selectize/0.12.0/css/selectize.bootstrap3.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}reportapi/{% SETTINGS 'REPORTAPI_VERSION' %}/css/reportapi.min.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}reportapi/{% REPORTAPI_VERSION %}/css/reportapi.min.css">
 
     <style type="text/css">
         html {
@@ -80,11 +83,10 @@
                 <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand" href="{% url 'reportapi:index' %}"
-                title="Django ReportAPI">{% block navbar_brand %}{% trans 'Reporting' %}{% endblock %}</a>
+                title="Django ReportAPI {% REPORTAPI_VERSION %}">{% block navbar_brand %}{% trans 'Reporting' %}{% endblock %}</a>
         </div>
         <div class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
-        {% cache 500 navbarsections request.user.id LANGUAGE_CODE %}
             {% for sect, reports in sections %}
                 <li class="dropdown">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">
@@ -99,13 +101,14 @@
                     </ul>
                 </li>
             {% endfor %}
-        {% endcache %}
             </ul>
             {% block navbar_project %}
             <ul class="nav navbar-nav navbar-right">
                 <li>
-                    <a href="{% SETTINGS 'PROJECT_URL' %}"
-                        class="">{% block navbar_project_label %}<i class="fa fa-level-up"></i> {% SETTINGS 'PROJECT_NAME' %}{% endblock %}</a>
+                    <a href="{% PROJECT_URL %}" class="navbar-brand">
+                        <i class="fa fa-level-up fa-lg"></i>
+                        <span> {% PROJECT_NAME %}</span>
+                    </a>
                 </li>
             </ul>
             {% endblock %}
@@ -136,14 +139,19 @@
     <!-- .footer -->
     <div class="footer">
         <div class="container">
-            <div class="col-xs-12 col-sm-6">
-                <div class="footer-content">
-                    <span class="text-muted">{% trans 'version' %} {% SETTINGS 'REPORTAPI_VERSION' %}</a>
-                </div>
-            </div>
-            <div class="col-xs-12 col-sm-6">
-                <div class="footer-content text-right">
-                    <span class="text-muted">ReportAPI © 2014, {% trans 'Grigoriy Kramarenko' %}</span>
+            <div class="col-xs-12">
+                <div class="footer-content text-center text-muted">
+                    <a href="https://djangoproject.com/" class="text-muted">
+                        Django {% DJANGO_VERSION %}
+                    </a>
+                    <i class="fa fa-angle-double-right fa-lg"></i>
+                    <a href="https://rosix.ru/projects/10/" class="text-muted">
+                        QuickAPI {% QUICKAPI_VERSION %}
+                    </a>
+                    <i class="fa fa-angle-double-right fa-lg"></i>
+                    <a href="https://rosix.ru/projects/13/" class="text-muted">
+                        ReportAPI {% REPORTAPI_VERSION %}
+                    </a>
                 </div>
             </div>
         </div>
@@ -178,9 +186,9 @@
             window.USER_LAST_NAME = "{{ user.last_name }}";
             window.USER_FIRST_NAME = "{{ user.first_name }}";
             window.USER = "{{ user }}";
-            window.DEBUG = {% filter lower %}{% SETTINGS 'DEBUG' %}{% endfilter %};
+            window.DEBUG = {% filter lower %}{% DEBUG_MODE %}{% endfilter %};
             window.LANGUAGE_CODE = "{{ LANGUAGE_CODE }}" || undefined;
-            window.SERVER_TZ_OFFSET = {% SETTINGS 'SERVER_TZ_OFFSET' %};
+            window.SERVER_TZ_OFFSET = {% SERVER_TZ_OFFSET %};
         </script>
     {% endblock %}
     <!-- END: block jsglobalvars -->
@@ -196,7 +204,7 @@
     <script src="{{ STATIC_URL }}underscore/1.7.0/underscore.min.js"></script>
     <script src="{{ STATIC_URL }}bootstrap/3.3.2/js/bootstrap.min.js"></script>
     <script src="{{ STATIC_URL }}selectize/0.12.0/js/standalone/selectize.min.js"></script>
-    <script src="{{ STATIC_URL }}reportapi/{% SETTINGS 'REPORTAPI_VERSION' %}/js/reportapi.min.js"></script>
+    <script src="{{ STATIC_URL }}reportapi/{% REPORTAPI_VERSION %}/js/reportapi.min.js"></script>
     {% endblock %}
 
     <!-- START: block extrajs -->

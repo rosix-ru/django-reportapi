@@ -30,7 +30,36 @@ from django.db.models import Q
 
 from reportapi.conf import REPORTAPI_DOCUMENT_MANAGER as CustomManager
 
-class DefaultDocumentManager(models.Manager):
+
+class CompatManager(models.Manager):
+    """
+    Backward compatible with Django 1.4
+    """
+
+    def get_queryset(self):
+        try:
+            return super(CompatManager, self).get_queryset()
+        except AttributeError:
+            return super(CompatManager, self).get_query_set()
+
+
+class RegisterManager(CompatManager):
+    use_for_related_fields = True
+    
+    def permitted(self, request):
+        user = request.user
+        if not user.is_authenticated():
+            return self.get_queryset().none()
+        if user.is_superuser:
+            return self.get_queryset()
+        return self.get_queryset().filter(
+            Q(all_users=True)
+            | Q(users=user)
+            | Q(groups__in=user.groups.all())
+        )
+
+
+class DefaultDocumentManager(CompatManager):
     use_for_related_fields = True
 
     def new(self, request, **kwargs):
@@ -43,10 +72,10 @@ class DefaultDocumentManager(models.Manager):
     def permitted(self, request):
         user = request.user
         if not user.is_authenticated():
-            return self.get_query_set().none()
+            return self.get_queryset().none()
         if user.is_superuser:
-            return self.get_query_set()
-        return self.get_query_set().filter(
+            return self.get_queryset()
+        return self.get_queryset().filter(
             Q(register__all_users=True)
             | Q(register__users=user)
             | Q(register__groups__in=user.groups.all())
@@ -55,10 +84,11 @@ class DefaultDocumentManager(models.Manager):
     def del_permitted(self, request):
         user = request.user
         if not user.is_authenticated():
-            return self.get_query_set().none()
+            return self.get_queryset().none()
         if user.is_superuser:
-            return self.get_query_set().all()
-        return self.get_query_set().filter(user=user).all()
+            return self.get_queryset().all()
+        return self.get_queryset().filter(user=user).all()
+
 
 if CustomManager:
     if isinstance(CustomManager, six.string_types):

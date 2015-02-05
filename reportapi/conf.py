@@ -24,9 +24,8 @@ from __future__ import unicode_literals, division
 from datetime import datetime
 
 from django import get_version as django_version
-from django.utils.translation import ugettext_lazy as _
-from django.utils.timezone import get_default_timezone
 from django.conf import settings
+from django.utils.timezone import get_default_timezone
 
 from quickapi import get_version as quickapi_version
 
@@ -39,10 +38,8 @@ DJANGO_VERSION    = django_version()
 REPORTAPI_VERSION = reportapi_version()
 QUICKAPI_VERSION  = quickapi_version()
 
-AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
-
-PROJECT_NAME = getattr(settings, 'PROJECT_NAME', _('Project'))
-PROJECT_URL  = getattr(settings, 'PROJECT_URL', '/')
+PROJECT_NAME = getattr(settings, 'PROJECT_NAME', None)
+PROJECT_URL  = getattr(settings, 'PROJECT_URL', None)
 
 REPORTAPI_DEBUG           = getattr(settings, 'REPORTAPI_DEBUG', settings.DEBUG)
 REPORTAPI_LOGGING         = getattr(settings, 'REPORTAPI_LOGGING', not settings.DEBUG)

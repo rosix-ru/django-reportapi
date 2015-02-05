@@ -21,24 +21,29 @@
 #  
 #  
 from __future__ import unicode_literals
-import sys, traceback, threading, logging
+import sys
+import traceback
+import threading
+import logging
 
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import force_text
+from django.utils.translation import ugettext_lazy as _
 
+from quickapi.decorators import login_required, api_required
 from quickapi.http import JSONResponse
 from quickapi.views import api as quickapi_index, get_methods
-from quickapi.decorators import login_required, api_required
 from quickapi.utils import (apidoc_lazy, string_lazy,
     RETURN_BOOLEAN_SUCCESS, RETURN_BOOLEAN_EXISTS, PARAMS_UPDATE_FIELD)
 
-from reportapi.sites import site
-from reportapi.models import Register, Document, deep_from_dict
 from reportapi.exceptions import ExceptionReporterExt, PermissionError
 from reportapi.conf import (REPORTAPI_DEBUG,
     REPORTAPI_ENABLE_THREADS, REPORTAPI_LOGGING as LOGGING)
+from reportapi.models import Register, Document
+from reportapi.sites import site
+from reportapi.utils.deep import from_dict as deep_from_dict
+
 
 def create_document(request, report, document, filters):
     """ Создание отчёта """

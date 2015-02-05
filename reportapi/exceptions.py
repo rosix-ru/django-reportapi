@@ -77,6 +77,13 @@ class ExceptionReporterExt(ExceptionReporter):
         c = Context(self.get_traceback_data())
         return t.render(c)
 
+
+def raise_set_site(class_name):
+    raise NotImplementedError('Set the "site" in %s.' % class_name)
+
+def raise_set_section(class_name):
+    raise NotImplementedError('Set the "section" in %s.' % class_name)
+
 #
 # Templates are embedded in the file so that we know the error handler will
 # always work even if the template loader is broken.

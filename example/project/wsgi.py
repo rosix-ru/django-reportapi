@@ -13,10 +13,11 @@ middleware here, or combine a Django application with an application of another
 framework.
 
 """
-import os, sys
+import os
+import sys
 
 # Set name directory of environ
-ENV = 'env-django1.4'
+ENV = 'env-django1.8'
 
 def getenv():
     """ Find full path for name directory of environ """
@@ -24,7 +25,7 @@ def getenv():
         thispath = os.path.abspath(os.path.dirname(__file__))
         while thispath:
             if thispath == '/' and not os.path.exists(os.path.join(thispath, ENV)):
-                raise Exception(u'Environ not found')
+                raise Exception('Environ not found')
             if os.path.exists(os.path.join(thispath, ENV)):
                 return os.path.join(thispath, ENV)
             else:

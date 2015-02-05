@@ -22,24 +22,24 @@
 #  
 from __future__ import unicode_literals
 import re
+import operator
 
-from django.utils.encoding import smart_text, python_2_unicode_compatible
-from django.utils import six, timezone
 from django.db import models
-from django.db.models import Q, get_model
+from django.db.models import Q
+from django.core.paginator import Paginator, Page, PageNotAnInteger, EmptyPage
+from django.template.defaultfilters import slugify
+from django.utils.encoding import force_text, python_2_unicode_compatible
+from django.utils import six, timezone
 from django.utils.dates import WEEKDAYS, MONTHS
 from django.utils.translation import ugettext_noop, ugettext_lazy as _
-from django.core.paginator import Paginator, Page, PageNotAnInteger, EmptyPage
 from django.utils.dateparse import parse_datetime, parse_date, parse_time
 from django.utils.dateformat import format as date_format
-from django.template.defaultfilters import slugify
-from datetime import timedelta
-import operator, re
 
 from reportapi import conf
+from reportapi.exceptions import PeriodsError, ObjectFoundError
 from reportapi.python_serializer import serialize
 from reportapi.utils import periods
-from reportapi.exceptions import PeriodsError, ObjectFoundError
+from reportapi.utils.compat import get_model
 
 DEFAULT_SEARCH_FIELDS = getattr(conf, 'DEFAULT_SEARCH_FIELDS',
     (# Основные классы, от которых наследуются другие
@@ -235,6 +235,7 @@ class FilterObject(BaseFilter):
     placeholder = _('Object search')
     max_options = 10
     unicode_key = '__unicode__'
+    secret_fields = ['password', 'settings', 'details']
 
     def __init__(self, name, model=None, manager=None, fields_search=None, **kwargs):
         """
@@ -293,17 +294,18 @@ class FilterObject(BaseFilter):
         для поиска по ним.
         Если параметр пуст, то установит все доступные текстовые поля
         из модели.
+        Также производит исключение полей self.secret_fields
         """
         if not fields_search:
             all_fields = self.opts.get_fields_with_model()
             if self.search_on_date:
-                self.fields_search = [ x[0].name for x in all_fields \
+                fields_search = [ x[0].name for x in all_fields \
                             if isinstance(x[0], DEFAULT_SEARCH_DATE_FIELDS) ]
             else:
-                self.fields_search = [ x[0].name for x in all_fields \
+                fields_search = [ x[0].name for x in all_fields \
                             if isinstance(x[0], DEFAULT_SEARCH_FIELDS) ]
-        else:
-            self.fields_search = fields_search
+
+        self.fields_search = [ x for x in fields_search if not x in self.secret_fields ]
 
     @property
     def objects(self):
@@ -313,8 +315,8 @@ class FilterObject(BaseFilter):
         return self.manager.all()
 
     def options(self, request=None, **kwargs):
-        return serialize(self.get_queryset(request=request, **kwargs)[:self.max_options],
-            attrs=self.fields_search, unicode_key=self.unicode_key)
+        qs = self.get_queryset(request=request, **kwargs)[:self.max_options]
+        return serialize(qs, attrs=self.fields_search, unicode_key=self.unicode_key)
 
     def get_queryset(self, request=None, **kwargs):
         """
@@ -484,7 +486,7 @@ class FilterDateTime(BaseDateTime):
             else:
                 value = None
         if value is None:
-            raise ValueError('One or more values not valid in `%s` filter.' % smart_text(self))
+            raise ValueError('One or more values not valid in `%s` filter.' % force_text(self))
         if condition == 'range':
             value = [min(value), max(value)]
         return value
@@ -504,7 +506,7 @@ class FilterDate(BaseDateTime):
             else:
                 value = None
         if value is None:
-            raise ValueError('One or more values not valid in `%s` filter.' % smart_text(self))
+            raise ValueError('One or more values not valid in `%s` filter.' % force_text(self))
         if condition == 'range':
             value = [min(value), max(value)]
         return value
@@ -530,7 +532,7 @@ class FilterTime(BaseDateTime):
             else:
                 value = None
         if value is None:
-            raise ValueError('One or more values not valid in `%s` filter.' % smart_text(self))
+            raise ValueError('One or more values not valid in `%s` filter.' % force_text(self))
         if condition == 'range':
             value = [min(value), max(value)]
         return value
@@ -670,7 +672,7 @@ def _search_in_fields(queryset, fields, query):
                 return "%s__search" % field_name[1:]
             else:
                 return "%s__icontains" % field_name
-        orm_lookups = [construct_search(smart_text(search_field))
+        orm_lookups = [construct_search(force_text(search_field))
                        for search_field in fields]
         if not query in ('', None, False, True):
             for bit in query.split():

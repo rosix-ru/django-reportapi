@@ -23,34 +23,12 @@
 from __future__ import unicode_literals
 from StringIO import StringIO
 from types import MethodType
+
 from django.db import models
-from django.utils.encoding import smart_text
 from django.core.paginator import Page
 from django.core.serializers.python import Serializer as OrignSerializer
+from django.utils.encoding import force_text
 
-def page_range_dots(page, on_each_side=3, on_ends=2, dot='.'):
-    number    = page.number
-    num_pages = page.paginator.num_pages
-    page_range = page.paginator.page_range
-    #~ print 0, page_range
-    if num_pages > 9:
-        page_range = []
-        if number > (on_each_side + on_ends):
-            page_range.extend(range(1, on_each_side))
-            page_range.append(dot)
-            page_range.extend(range(number +1 - on_each_side, number + 1))
-            #~ print 1, page_range
-        else:
-            page_range.extend(range(1, number + 1))
-            #~ print 2, page_range
-        if number < (num_pages - on_each_side - on_ends + 1):
-            page_range.extend(range(number + 1, number + on_each_side))
-            page_range.append(dot)
-            page_range.extend(range(num_pages - on_ends +1, num_pages+1))
-            #~ print 3, page_range
-        else:
-            page_range.extend(range(number + 1, num_pages+1))
-    return page_range
 
 class SerializerWrapper(object):
     """ Обёртка вокруг базовых классов Django.
@@ -76,9 +54,9 @@ class SerializerWrapper(object):
         if callable(value):
             value = value()
         if isinstance(value, models.Model):
-            app, model = smart_text(value._meta).split('.')
+            app, model = force_text(value._meta).split('.')
             value = {
-                self.unicode_key: smart_text(value),
+                self.unicode_key: force_text(value),
                 'pk': value.pk,
                 'app': app,
                 'model': model,
@@ -90,10 +68,10 @@ class SerializerWrapper(object):
         if obj.pk:
             related = getattr(obj, field.name)
             if related:
-                #~ value = (related.pk, smart_text(related))
-                app, model = smart_text(related._meta).split('.')
+                #~ value = (related.pk, force_text(related))
+                app, model = force_text(related._meta).split('.')
                 value = {
-                    self.unicode_key: smart_text(related),
+                    self.unicode_key: force_text(related),
                     'pk': related.pk,
                     'app': app,
                     'model': model,
@@ -105,10 +83,10 @@ class SerializerWrapper(object):
             rel_model = field.rel.to
             try:
                 related = rel_model._default_manager.get(pk=value)
-                #~ value = (related.pk, smart_text(related))
-                app, model = smart_text(related._meta).split('.')
+                #~ value = (related.pk, force_text(related))
+                app, model = force_text(related._meta).split('.')
                 value = {
-                    self.unicode_key: smart_text(related),
+                    self.unicode_key: force_text(related),
                     'pk': related.pk,
                     'app': app,
                     'model': model,
@@ -122,11 +100,11 @@ class SerializerWrapper(object):
     def handle_m2m_field(self, obj, field):
         value = []
         if obj.pk and field.rel.through._meta.auto_created:
-            #~ m2m_value = lambda value: (value.pk, smart_text(value))
-            app, model = smart_text(field.rel.through._meta).split('.')
+            #~ m2m_value = lambda value: (value.pk, force_text(value))
+            app, model = force_text(field.rel.through._meta).split('.')
             def m2m_value(related):
                 return {
-                    self.unicode_key: smart_text(related),
+                    self.unicode_key: force_text(related),
                     'pk': related.pk,
                     'app': app,
                     'model': model,
@@ -204,7 +182,6 @@ class SerializerWrapper(object):
             result['count']       = objects.paginator.count
             result['num_pages']   = objects.paginator.num_pages
             result['per_page']    = objects.paginator.per_page
-            result['page_range']  = page_range_dots(objects)
             result['object_list'] = self.serialize_objects(objects.object_list, **options)
             self.objects = result
         else:
@@ -224,10 +201,10 @@ class SerializerWrapper(object):
     def end_object(self, obj):
         _unicode = ""
         try:
-            _unicode = smart_text(obj)
+            _unicode = force_text(obj)
         except:
             pass
-        pk = smart_text(obj._get_pk_val(), strings_only=True)
+        pk = force_text(obj._get_pk_val())
         if self.simple_select_list:
             self._current = (pk, _unicode)
         else:
