@@ -33,7 +33,7 @@ class TestReport(Report):
     title = ugettext_noop('Test report')
 
     filters = (
-        FilterNumber(ugettext_noop('timeout'), required=True, default_value=10, conditions=['exact']),
+        FilterNumber(ugettext_noop('timeout'), required=True, default_value=3, conditions=['exact']),
         FilterObject(ugettext_noop('filter for objects'), manager='auth.User.objects', required=True),
         FilterText(ugettext_noop('filter for text')),
         FilterNumber(ugettext_noop('filter for number')),
@@ -67,7 +67,7 @@ class TestSpreadsheet(Spreadsheet):
     title = ugettext_noop('Test spreadsheet')
 
     filters = (
-        FilterNumber(ugettext_noop('timeout'), default_value=10, required=True),
+        FilterNumber(ugettext_noop('timeout'), default_value=3, required=True),
         FilterObject(ugettext_noop('filter for objects'), manager='auth.User.objects', required=True),
         FilterText(ugettext_noop('filter for text')),
         FilterNumber(ugettext_noop('filter for number')),
@@ -101,7 +101,7 @@ class TestHtmlReport(HtmlReport):
     convert_to_odf = True
 
     filters = (
-        FilterNumber(ugettext_noop('timeout'), default_value=10, required=True),
+        FilterNumber(ugettext_noop('timeout'), default_value=3, required=True),
         FilterObject(ugettext_noop('filter for objects'), manager='auth.User.objects', required=True),
         FilterText(ugettext_noop('filter for text')),
         FilterNumber(ugettext_noop('filter for number')),

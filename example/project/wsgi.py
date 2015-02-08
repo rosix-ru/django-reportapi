@@ -17,7 +17,7 @@ import os
 import sys
 
 # Set name directory of environ
-ENV = 'env-django1.8'
+ENV = ''#'env-django1.8'
 
 def getenv():
     """ Find full path for name directory of environ """

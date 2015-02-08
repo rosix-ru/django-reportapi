@@ -33,9 +33,10 @@ from django.utils.translation import ugettext_lazy as _
 
 from quickapi.decorators import login_required, api_required
 from quickapi.http import JSONResponse
-from quickapi.views import api as quickapi_index, get_methods
-from quickapi.utils import (apidoc_lazy, string_lazy,
+from quickapi.views import api as quickapi_index
+from quickapi.utils.doc import (apidoc_lazy, string_lazy,
     RETURN_BOOLEAN_SUCCESS, RETURN_BOOLEAN_EXISTS, PARAMS_UPDATE_FIELD)
+from quickapi.utils.method import get_methods
 
 from reportapi.exceptions import ExceptionReporterExt, PermissionError
 from reportapi.conf import (REPORTAPI_DEBUG,
@@ -56,6 +57,7 @@ def create_document(request, report, document, filters):
             logger.error(force_text(e))
 
         msg = traceback.format_exc()
+
         if REPORTAPI_DEBUG:
             exc_info = sys.exc_info()
             reporter = ExceptionReporterExt(request, *exc_info)
