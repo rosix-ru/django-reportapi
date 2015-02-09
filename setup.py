@@ -1,12 +1,5 @@
 from setuptools import setup, find_packages
-import os
 import reportapi
-
-def read(fname):
-    try:
-        return open(os.path.join(os.path.dirname(__file__), fname)).read()
-    except:
-        return ''
 
 setup(
     name='django-reportapi',
@@ -20,7 +13,7 @@ setup(
     zip_safe=False,
     packages=find_packages(),
     include_package_data = True,
-    install_requires=['django-quickapi', 'jsonfield'],
+    install_requires=['django-quickapi>=2.6', 'jsonfield>=1.0'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
