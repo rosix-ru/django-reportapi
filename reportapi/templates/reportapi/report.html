@@ -146,5 +146,6 @@
 {% block extrajs %}
     <script type="text/javascript">
         window.REPORT = {{ report_as_json|safe }};
+        handlerCheckRequiredValue();
     </script>
 {% endblock %}
