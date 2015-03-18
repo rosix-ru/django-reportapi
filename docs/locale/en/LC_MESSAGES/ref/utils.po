@@ -1,0 +1,58 @@
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: ReportAPI 3.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-03-18 22:32\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../ref/utils.txt:2
+msgid "Пакет utils"
+msgstr ""
+
+#: ../../ref/utils.txt:7
+msgid "Модуль :mod:`reportapi.utils.compat`"
+msgstr ""
+
+#: ../../ref/utils.txt:13
+msgid "Модуль :mod:`reportapi.utils.deep`"
+msgstr ""
+
+#: ../../ref/utils.txt:19
+msgid "Модуль :mod:`reportapi.utils.files`"
+msgstr ""
+
+#: ../../ref/utils.txt:25
+msgid "Модуль :mod:`reportapi.utils.periods`"
+msgstr ""
+
+#: ../../ref/utils.txt:31
+msgid "Модуль :mod:`reportapi.utils.regexp`"
+msgstr ""
+
+#: ../../ref/utils.txt:37
+msgid "Модуль :mod:`reportapi.utils.uno`"
+msgstr ""
+
+#~ msgid "Модуль :mod:`compat`"
+#~ msgstr ""
+
+#~ msgid "Модуль :mod:`deep`"
+#~ msgstr ""
+
+#~ msgid "Модуль :mod:`files`"
+#~ msgstr ""
+
+#~ msgid "Модуль :mod:`periods`"
+#~ msgstr ""
+
+#~ msgid "Модуль :mod:`regexp`"
+#~ msgstr ""
+
+#~ msgid "Модуль :mod:`uno`"
+#~ msgstr ""

@@ -1,0 +1,94 @@
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: ReportAPI 3.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-03-18 22:32\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../ref/exceptions.txt:3
+msgid "Исключения в ReportAPI"
+msgstr ""
+
+#: ../../ref/exceptions.txt:5
+msgid ""
+"ReportAPI вызывает свои исключения на основе стандартных исключений Python."
+msgstr ""
+
+#: ../../ref/exceptions.txt:12
+msgid "Основные исключения"
+msgstr ""
+
+#: ../../ref/exceptions.txt:14
+msgid "Все классы исключений ReportAPI определены в ``reportapi.exceptions``."
+msgstr ""
+
+#: ../../ref/exceptions.txt:17
+msgid "``AbstractError``"
+msgstr ""
+
+#: ../../ref/exceptions.txt:21
+msgid ""
+"Абстрактный класс исключений. В отличии от встроенных в Python, выводит "
+"объекты сообщений с отложенным переводом (ugettext_lazy). Все основные "
+"исключения наследуются от него."
+msgstr ""
+
+#: ../../ref/exceptions.txt:27
+msgid "``ValidationError``"
+msgstr ""
+
+#: ../../ref/exceptions.txt:31
+msgid "Исключение проверки значений."
+msgstr ""
+
+#: ../../ref/exceptions.txt:35
+msgid "``PermissionError``"
+msgstr ""
+
+#: ../../ref/exceptions.txt:39
+msgid "Исключение проверки прав доступа."
+msgstr ""
+
+#: ../../ref/exceptions.txt:43
+msgid "``ObjectFoundError``"
+msgstr ""
+
+#: ../../ref/exceptions.txt:47
+msgid "Исключение поиска объекта."
+msgstr ""
+
+#: ../../ref/exceptions.txt:51
+msgid "``PeriodsError``"
+msgstr ""
+
+#: ../../ref/exceptions.txt:55
+msgid "Исключение установки периода для фильтров."
+msgstr ""
+
+#: ../../ref/exceptions.txt:59
+msgid "``OversizeError``"
+msgstr ""
+
+#: ../../ref/exceptions.txt:63
+msgid "Исключение превышения размера файла."
+msgstr ""
+
+#: ../../ref/exceptions.txt:67
+msgid "Дополнительные исключения"
+msgstr ""
+
+#: ../../ref/exceptions.txt:70
+msgid "``ExceptionReporterExt``"
+msgstr ""
+
+#: ../../ref/exceptions.txt:74
+msgid ""
+"Исключение, наследуемое от ``django.views.debug.ExceptionReporter``, и "
+"предназначенное для вывода отчёта об ошибках."
+msgstr ""

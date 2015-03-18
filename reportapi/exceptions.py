@@ -32,6 +32,7 @@ from django.utils import timezone
 
 class AbstractError(Exception):
     message = _('Abstract error')
+
     def __init__(self, message=None, value=None):
         self.value   = value
         self.message = message or self.message
@@ -45,6 +46,7 @@ class AbstractError(Exception):
     def __repr__(self):
         if self.value is None:
             return repr(self.message_str())
+
         return repr(self.message_str(), self.value)
 
 class ValidationError(AbstractError):

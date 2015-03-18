@@ -127,6 +127,7 @@ class SystemUser(object):
 
 
 class Report(object):
+    """ Модель отчёта """
     enable_threads  = True
     create_force    = True
     expiration_time = 86400 # 1 day
@@ -712,8 +713,9 @@ class Document(models.Model):
             2. PDF
 
         Кладёт новый файл рядом с исходным
-        
+
         Возвращает булево исполнения операции.
+
         """
 
         if  not (self.convert_to_odf and REPORTAPI_UNOCONV_TO_ODF) \

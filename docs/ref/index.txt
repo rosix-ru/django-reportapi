@@ -1,0 +1,18 @@
+==============
+Справочник API
+==============
+
+..  toctree::
+    :maxdepth: 1
+
+    api
+    conf
+    exceptions
+    filters
+    managers
+    models
+    routers
+    sites
+    templatetags
+    utils
+    views

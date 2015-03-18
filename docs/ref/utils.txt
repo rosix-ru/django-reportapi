@@ -1,0 +1,40 @@
+Пакет utils
+===========
+
+.. currentmodule:: reportapi.utils
+
+Модуль :mod:`reportapi.utils.compat`
+------------------------------------
+
+.. module:: reportapi.utils.compat
+    
+
+Модуль :mod:`reportapi.utils.deep`
+----------------------------------
+
+.. module:: reportapi.utils.deep
+    
+
+Модуль :mod:`reportapi.utils.files`
+-----------------------------------
+
+.. module:: reportapi.utils.files
+    
+
+Модуль :mod:`reportapi.utils.periods`
+-------------------------------------
+
+.. module:: reportapi.utils.periods
+    
+
+Модуль :mod:`reportapi.utils.regexp`
+------------------------------------
+
+.. module:: reportapi.utils.regexp
+    
+
+Модуль :mod:`reportapi.utils.uno`
+---------------------------------
+
+.. module:: reportapi.utils.uno
+    
