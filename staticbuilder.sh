@@ -15,6 +15,10 @@ echo '';
 SRC_DIR="reportapi/static_src";
 DST_DIR="reportapi/static/reportapi";
 
+CSS_SYM="../../static_src/css";
+JS_SYM="../../static_src/js";
+IMG_SYM="../../static_src/img";
+
 VERSION_DIR="${DST_DIR}/${VERSION}";
 CSS_DIR="${VERSION_DIR}/css";
 JS_DIR="${VERSION_DIR}/js";
@@ -22,6 +26,16 @@ IMG_DIR="${VERSION_DIR}/img";
 
 rm -R ${DST_DIR}
 mkdir -p ${CSS_DIR} ${JS_DIR} ${IMG_DIR};
+
+# symlinks for develop dirs
+echo 'SYMLINKS FOR DEVELOP DIRS';
+cd ${DST_DIR};
+ln -s ${CSS_SYM} css;
+ln -s ${JS_SYM} js;
+ln -s ${IMG_SYM} img;
+cd -;
+echo '';
+
 
 # CSS
 echo "STARTS THE CREATION OF CSS FILES";

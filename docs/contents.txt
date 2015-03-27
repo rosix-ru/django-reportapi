@@ -1,0 +1,22 @@
+.. _contents:
+
+=================================
+Содержание документации ReportAPI
+=================================
+
+.. toctree::
+    :hidden:
+
+    index
+
+.. toctree::
+    :maxdepth: 3
+
+    glossary
+    releases/index
+
+Индексированные страницы
+========================
+
+* :ref:`genindex`
+* :ref:`modindex`

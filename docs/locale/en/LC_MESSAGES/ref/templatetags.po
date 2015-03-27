@@ -1,0 +1,30 @@
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: ReportAPI 3.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-03-18 22:32\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../ref/templatetags.txt:2
+msgid "Пакет templatetags"
+msgstr ""
+
+#: ../../ref/templatetags.txt:7
+msgid "Модуль :mod:`reportapi.templatetags.reportapi_base`"
+msgstr ""
+
+#: ../../ref/templatetags.txt:13
+msgid "Модуль :mod:`reportapi.templatetags.reportapi_models`"
+msgstr ""
+
+#~ msgid "Модуль :mod:`reportapi_base`"
+#~ msgstr ""
+
+#~ msgid "Модуль :mod:`reportapi_models`"
+#~ msgstr ""

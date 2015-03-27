@@ -20,7 +20,7 @@
 #  MA 02110-1301, USA.
 #  
 #  
-VERSION = (3, 1, 0)
+VERSION = (3, 1, 1)
 
 def get_version(*args, **kwargs):
     return '.'.join([ str(x) for x in VERSION ])

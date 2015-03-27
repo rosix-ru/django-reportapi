@@ -1,0 +1,75 @@
+======================
+Исключения в ReportAPI
+======================
+
+ReportAPI вызывает свои исключения на основе стандартных исключений Python.
+
+.. module:: reportapi.exceptions
+    :synopsis: Исключения ReportAPI
+
+
+Основные исключения
+===================
+
+Все классы исключений ReportAPI определены в ``reportapi.exceptions``.
+
+``AbstractError``
+-----------------
+
+.. exception:: AbstractError
+
+    Абстрактный класс исключений. В отличии от
+    встроенных в Python, выводит объекты сообщений с отложенным
+    переводом (ugettext_lazy).
+    Все основные исключения наследуются от него.
+
+``ValidationError``
+---------------------
+
+.. exception:: ValidationError
+
+    Исключение проверки значений.
+
+
+``PermissionError``
+---------------------
+
+.. exception:: PermissionError
+
+    Исключение проверки прав доступа.
+
+
+``ObjectFoundError``
+---------------------
+
+.. exception:: ObjectFoundError
+
+    Исключение поиска объекта.
+
+
+``PeriodsError``
+---------------------
+
+.. exception:: PeriodsError
+
+    Исключение установки периода для фильтров.
+
+
+``OversizeError``
+---------------------
+
+.. exception:: OversizeError
+
+    Исключение превышения размера файла.
+
+
+Дополнительные исключения
+=========================
+
+``ExceptionReporterExt``
+------------------------
+
+.. exception:: ExceptionReporterExt
+
+    Исключение, наследуемое от ``django.views.debug.ExceptionReporter``,
+    и предназначенное для вывода отчёта об ошибках.
