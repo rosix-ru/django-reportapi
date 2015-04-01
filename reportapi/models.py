@@ -477,8 +477,8 @@ class Register(models.Model):
     name    = models.CharField(_('name'), max_length=255)
     title = models.CharField(_('title without translation'), max_length=255)
     all_users = models.BooleanField(_('allow all users'), default=False)
-    users = models.ManyToManyField(User, verbose_name=_('allow list users'))
-    groups = models.ManyToManyField(Group, verbose_name=_('allow list groups'))
+    users = models.ManyToManyField(User, verbose_name=_('allow list users'), blank=True)
+    groups = models.ManyToManyField(Group, verbose_name=_('allow list groups'), blank=True)
     timeout = models.IntegerField(_('max of timeout'), default=1000)
 
     objects = RegisterManager()
