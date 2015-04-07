@@ -18,7 +18,7 @@
     License along with ReportAPI. If not, see
     <http://www.gnu.org/licenses/>.
 -->
-{% endcomment %}{% load i18n l10n reportapi_base cache %}{% load url from future %}<!DOCTYPE html>
+{% endcomment %}{% load i18n l10n reportapi_base cache static %}{% load url from future %}<!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE|default:"ru" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
 <head>
@@ -32,18 +32,18 @@
     <meta name="version" content="{% REPORTAPI_VERSION %}">
 
 {% block shortcut_icons %}
-    <link rel="icon" href="{{ STATIC_URL }}reportapi/{% REPORTAPI_VERSION %}/img/logo.svg" type="image/svg">
-    <link rel="icon" href="{{ STATIC_URL }}reportapi/{% REPORTAPI_VERSION %}/img/logo.png" type="image/png">
+    <link rel="icon" href="{% get_static_prefix %}reportapi/{% REPORTAPI_VERSION %}/img/logo.svg" type="image/svg">
+    <link rel="icon" href="{% get_static_prefix %}reportapi/{% REPORTAPI_VERSION %}/img/logo.png" type="image/png">
 {% endblock %}
 
     <!-- START: block style -->
     {% block style %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}font-awesome/4.3.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}bootstrap/3.3.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}bootstrap/3.3.2/css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}jquery/datetimepicker/2.4.1/min.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}selectize/0.12.0/css/selectize.bootstrap3.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}reportapi/{% REPORTAPI_VERSION %}/css/reportapi.min.css">
+    <link rel="stylesheet" href="{% get_static_prefix %}font-awesome/4.3.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="{% get_static_prefix %}bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% get_static_prefix %}bootstrap/3.3.2/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="{% get_static_prefix %}jquery/datetimepicker/2.4.1/min.css">
+    <link rel="stylesheet" href="{% get_static_prefix %}selectize/0.12.0/css/selectize.bootstrap3.css">
+    <link rel="stylesheet" href="{% get_static_prefix %}reportapi/{% REPORTAPI_VERSION %}/css/reportapi.min.css">
 
     <style type="text/css">
         html {
@@ -51,7 +51,7 @@
             min-height: 100%;
         }
         body {
-            margin-bottom: 60px;
+            margin-bottom: 100px;
         }
         body > .container {
             margin-top: 20px;
@@ -67,17 +67,14 @@
             position: absolute;
             bottom: 0;
             width: 100%;
-            height: 60px;
+            height: 90px;
             background-color: #f5f5f5;
         }
         .footer>div {
             background-color: #f5f5f5;
         }
         .footer-content {
-            padding-top: 20px;
-            padding-bottom: 20px;
-            padding-right: 40px;
-            padding-left: 40px;
+            padding: 35px 0px;
         }
 
     </style>
@@ -158,23 +155,46 @@
     {% block footer %}
     <!-- .footer -->
     <div class="footer">
+
         <div class="container">
+
             <div class="col-xs-12">
-                <div class="footer-content text-center text-muted">
-                    <a href="https://djangoproject.com/" class="text-muted">
-                        Django {% DJANGO_VERSION %}
+
+                <div class="footer-content text-center">
+
+                    <a href="https://djangoproject.com/">
+                        <span> Django <span class="badge">{% DJANGO_VERSION %}</span> </span>
                     </a>
-                    <i class="fa fa-angle-double-right fa-lg"></i>
-                    <a href="https://rosix.ru/projects/10/" class="text-muted">
-                        QuickAPI {% QUICKAPI_VERSION %}
+                    <a class="label" style="background-color: rgb(117, 73, 116);" href="{% get_static_prefix %}licenses/BSD/Django.txt">
+                        <span> BSD License </span>
                     </a>
-                    <i class="fa fa-angle-double-right fa-lg"></i>
-                    <a href="https://rosix.ru/projects/13/" class="text-muted">
-                        ReportAPI {% REPORTAPI_VERSION %}
+
+                    <span>&nbsp;</span>
+
+                    <i class="fa fa-angle-double-right fa-lg text-success"> </i>
+
+                    <a href="https://rosix.ru/projects/django-quickapi/">
+                        <span> QuickAPI <span class="badge">{% QUICKAPI_VERSION %}</span> </span>
                     </a>
+                    <a href="{% get_static_prefix %}licenses/GNU/AGPLv3.txt">
+                        <img height="20" src="{% get_static_prefix %}licenses/GNU/img/agplv3-88x31.png">
+                    </a>
+
+                    <i class="fa fa-angle-double-right fa-lg text-success"> </i>
+
+                    <a href="https://rosix.ru/projects/django-reportapi/">
+                        <span> ReportAPI <span class="badge">{% REPORTAPI_VERSION %}</span> </span>
+                    </a>
+                    <a href="{% get_static_prefix %}licenses/GNU/AGPLv3.txt">
+                        <img height="20" src="{% get_static_prefix %}licenses/GNU/img/agplv3-88x31.png">
+                    </a>
+
                 </div>
+
             </div>
+
         </div>
+
     </div>
     <!-- /.footer -->
     {% endblock %}
@@ -217,14 +237,14 @@
     {% block js %}
     <!-- Bootstrap -->
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="{{ STATIC_URL }}jquery/2.1.3/jquery.min.js"></script>
-    <script src="{{ STATIC_URL }}jquery/django/django-ajax-csrf.min.js"></script>
-    <script src="{{ STATIC_URL }}jquery/json/2.5.1/jquery.json.min.js"></script>
-    <script src="{{ STATIC_URL }}jquery/datetimepicker/2.4.1/min.js"></script>
-    <script src="{{ STATIC_URL }}underscore/1.7.0/underscore.min.js"></script>
-    <script src="{{ STATIC_URL }}bootstrap/3.3.2/js/bootstrap.min.js"></script>
-    <script src="{{ STATIC_URL }}selectize/0.12.0/js/standalone/selectize.min.js"></script>
-    <script src="{{ STATIC_URL }}reportapi/{% REPORTAPI_VERSION %}/js/reportapi.min.js"></script>
+    <script src="{% get_static_prefix %}jquery/2.1.3/jquery.min.js"></script>
+    <script src="{% get_static_prefix %}jquery/django/django-ajax-csrf.min.js"></script>
+    <script src="{% get_static_prefix %}jquery/json/2.5.1/jquery.json.min.js"></script>
+    <script src="{% get_static_prefix %}jquery/datetimepicker/2.4.1/min.js"></script>
+    <script src="{% get_static_prefix %}underscore/1.7.0/underscore.min.js"></script>
+    <script src="{% get_static_prefix %}bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="{% get_static_prefix %}selectize/0.12.0/js/standalone/selectize.min.js"></script>
+    <script src="{% get_static_prefix %}reportapi/{% REPORTAPI_VERSION %}/js/reportapi.min.js"></script>
     {% endblock %}
 
     <!-- START: block extrajs -->
