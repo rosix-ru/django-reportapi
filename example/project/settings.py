@@ -1,45 +1,29 @@
 # -*- coding: utf-8 -*-
-"""
-###############################################################################
-# Copyright 2013 Grigoriy Kramarenko.
-###############################################################################
-# This file is part of ReportAPI.
 #
-#    ReportAPI is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
+#   Copyright 2013-2015 Grigoriy Kramarenko <root@rosix.ru>
 #
-#    ReportAPI is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+#   This file is part of ReportAPI.
 #
-#    You should have received a copy of the GNU General Public License
-#    along with ReportAPI.  If not, see <http://www.gnu.org/licenses/>.
+#   ReportAPI is free software: you can redistribute it and/or
+#   modify it under the terms of the GNU Affero General Public License
+#   as published by the Free Software Foundation, either version 3 of
+#   the License, or (at your option) any later version.
 #
-# Этот файл — часть ReportAPI.
+#   ReportAPI is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Affero General Public License for more details.
 #
-#   ReportAPI - свободная программа: вы можете перераспространять ее и/или
-#   изменять ее на условиях Стандартной общественной лицензии GNU в том виде,
-#   в каком она была опубликована Фондом свободного программного обеспечения;
-#   либо версии 3 лицензии, либо (по вашему выбору) любой более поздней
-#   версии.
-#
-#   ReportAPI распространяется в надежде, что она будет полезной,
-#   но БЕЗО ВСЯКИХ ГАРАНТИЙ; даже без неявной гарантии ТОВАРНОГО ВИДА
-#   или ПРИГОДНОСТИ ДЛЯ ОПРЕДЕЛЕННЫХ ЦЕЛЕЙ. Подробнее см. в Стандартной
-#   общественной лицензии GNU.
-#
-#   Вы должны были получить копию Стандартной общественной лицензии GNU
-#   вместе с этой программой. Если это не так, см.
+#   You should have received a copy of the GNU Affero General Public
+#   License along with ReportAPI. If not, see
 #   <http://www.gnu.org/licenses/>.
-###############################################################################
-"""
-# Django settings for this project.
+#
+
+""" Django settings for this project. """
+
+import os
 
 from django.utils.translation import ugettext_lazy as _
-import os
 
 PROJECT_PATH = os.path.abspath(os.path.dirname(__file__))
 def abspath(*paths):
@@ -58,7 +42,7 @@ try:
     AUTHORS = f.readlines()
     f.close()
 except:
-    AUTHORS = (u'Webmaster Name', u'Manager Name')
+    AUTHORS = ('Webmaster Name', 'Manager Name')
 
 DATABASES = {
     'default': {

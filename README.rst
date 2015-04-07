@@ -1,5 +1,5 @@
-Is an easy way to setup mechanism building and getting reports for
-Django projects.
+ReportAPI is an easy way to setup mechanism building and getting reports
+for Django projects.
 
 For the exchange of data is used JSON.
 

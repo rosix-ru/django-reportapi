@@ -1,4 +1,25 @@
-{# Шаблон Underscore #}{% load i18n l10n %}
+{# Шаблон Underscore #}{% comment %}<!--
+ 
+    Copyright 2013-2015 Grigoriy Kramarenko <root@rosix.ru>
+
+    This file is part of ReportAPI.
+
+    ReportAPI is free software: you can redistribute it and/or
+    modify it under the terms of the GNU Affero General Public License
+    as published by the Free Software Foundation, either version 3 of
+    the License, or (at your option) any later version.
+
+    ReportAPI is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public
+    License along with ReportAPI. If not, see
+    <http://www.gnu.org/licenses/>.
+-->
+{% endcomment %}{% load i18n l10n %}
+
 <div class="alert <%= type %> fade in">
     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
     <h4><% if (type=="alert-danger") { %>{% trans 'Bug!' %}<% } else if (type=="alert-warning") { %>{% trans 'Attention!' %}<% } else { %>{% trans 'Message.' %}<% } %></h4>
