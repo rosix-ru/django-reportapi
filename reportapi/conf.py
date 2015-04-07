@@ -30,8 +30,7 @@ from quickapi import get_version as quickapi_version
 
 from reportapi import get_version as reportapi_version
 
-SITE_ID = settings.SITE_ID
-DEBUG   = settings.DEBUG
+DEBUG = settings.DEBUG
 
 DJANGO_VERSION    = django_version()
 REPORTAPI_VERSION = reportapi_version()

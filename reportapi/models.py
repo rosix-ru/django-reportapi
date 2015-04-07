@@ -36,19 +36,17 @@ from django.utils.crypto import get_random_string
 from django.utils.encoding import force_text, python_2_unicode_compatible
 from django.utils.translation import ugettext_noop, ugettext, ugettext_lazy as _
 
-from jsonfield import JSONField
-
-from reportapi.exceptions import (OversizeError, ValidationError,
-    raise_set_site, raise_set_section)
-from reportapi.managers import RegisterManager, DocumentManager
 from reportapi.conf import (
     settings,
     REPORTAPI_UPLOADCODE_LENGTH,
     REPORTAPI_BRAND_TEXT,
     REPORTAPI_BRAND_COLOR,
     REPORTAPI_MAXSIZE_XML,
-    Header, Footer, Page
-)
+    Header, Footer, Page)
+from reportapi.exceptions import (OversizeError, ValidationError,
+    raise_set_site, raise_set_section)
+from reportapi.fields import JSONField
+from reportapi.managers import RegisterManager, DocumentManager
 from reportapi.utils.deep import to_dict as deep_to_dict
 from reportapi.utils.files import remove_dirs, remove_file, prep_filename
 from reportapi.utils.regexp import validate_name, validate_title
@@ -497,6 +495,19 @@ class Register(models.Model):
     def get_absolute_url(self):
         return ('reportapi:report', [self.section, self.name])
 
+
+def upload_to(instance, filename):
+
+    dic = {
+        'filename':filename,
+        'date': timezone.now().date().isoformat(),
+    }
+
+    dic['code'] = get_random_string(REPORTAPI_UPLOADCODE_LENGTH)
+
+    return force_text('reports/%(date)s/%(code)s/%(filename)s' % dic)
+
+
 @python_2_unicode_compatible
 class Document(models.Model):
     """
@@ -519,9 +530,9 @@ class Document(models.Model):
     start       = models.DateTimeField(_('start create'), auto_now_add=True)
     end         = models.DateTimeField(_('end create'), null=True, blank=True)
 
-    report_file = models.FileField(_('report file'), blank=True, max_length=512, upload_to=lambda x,y: x.upload_to(y))
-    odf_file    = models.FileField(_('report file in ODF'), blank=True, max_length=512, upload_to=lambda x,y: x.upload_to(y))
-    pdf_file    = models.FileField(_('report file in PDF'), blank=True, max_length=512, upload_to=lambda x,y: x.upload_to(y))
+    report_file = models.FileField(_('report file'), blank=True, max_length=512, upload_to=upload_to)
+    odf_file    = models.FileField(_('report file in ODF'), blank=True, max_length=512, upload_to=upload_to)
+    pdf_file    = models.FileField(_('report file in PDF'), blank=True, max_length=512, upload_to=upload_to)
 
     title       = models.CharField(_('title'), max_length=255, blank=True)
     description = models.TextField(_('description'), blank=True)
@@ -541,16 +552,6 @@ class Document(models.Model):
         verbose_name = _('generated report')
         verbose_name_plural = _('generated reports')
         get_latest_by = 'end'
-
-    def upload_to(self, filename):
-        dt = timezone.now()
-        date = dt.date()
-        dic = {
-            'filename':filename,
-            'date': date.isoformat(),
-        }
-        dic['code'] = get_random_string(REPORTAPI_UPLOADCODE_LENGTH)
-        return force_text('reports/%(date)s/%(code)s/%(filename)s' % dic)
 
     @property
     def created(self):

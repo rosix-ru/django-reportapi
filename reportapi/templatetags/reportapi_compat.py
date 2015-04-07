@@ -19,14 +19,23 @@
 #   <http://www.gnu.org/licenses/>.
 #
 
-from __future__ import unicode_literals
+"""
+Compatibility with 1.4 {% url from future %}
+"""
+
 from distutils.version import LooseVersion as V
 
 from django import VERSION
+from django.template import Library
 
-# compatibility from 1.4 to 1.7 and above
-if V('%d.%d' % VERSION[:2]) < V('1.7'):
-    from django.db.models import get_model
+if V('%d.%d' % VERSION[:2]) < V('1.5'):
+    from django.templatetags import future as defaulttags
 else:
-    from django.apps import apps
-    get_model = apps.get_model
+    from django.template import defaulttags
+
+
+register = Library()
+
+@register.tag
+def url(parser, token):
+    return defaulttags.url(parser, token)

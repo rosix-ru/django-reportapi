@@ -19,7 +19,7 @@
 #   <http://www.gnu.org/licenses/>.
 #
 
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.conf.urls.i18n import i18n_patterns
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf import settings
@@ -27,10 +27,10 @@ from django.contrib import admin
 
 admin.autodiscover()
 
-_urlpatterns = patterns('',
+_urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^', include('reportapi.urls', namespace="reportapi"), name='reportapi'),
-)
+]
 
 urlpatterns = i18n_patterns('',
     url(r'^', include(_urlpatterns)),
@@ -39,8 +39,8 @@ urlpatterns = i18n_patterns('',
 # For develop:
 urlpatterns += staticfiles_urlpatterns()
 if settings.DEBUG:
-    urlpatterns += patterns('',
+    urlpatterns += [
         url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': settings.MEDIA_ROOT,
             }),
-    )
+    ]
