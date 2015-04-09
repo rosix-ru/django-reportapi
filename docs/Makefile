@@ -2,10 +2,9 @@
 #
 
 # You can set these variables from the command line.
-PYTHON        ?= python
+PROJECT       ?= reportapi
 SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
-SPHINXINTL    ?= sphinx-intl
 PAPER         ?=
 BUILDDIR      ?= _build
 LANGUAGE      ?= ru
@@ -80,17 +79,17 @@ qthelp:
 	@echo
 	@echo "Build finished; now you can run "qcollectiongenerator" with the" \
 	      ".qhcp project file in $(BUILDDIR)/qthelp/$(LANGUAGE), like this:"
-	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/$(LANGUAGE)/reportapi.qhcp"
+	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/$(LANGUAGE)/$(PROJECT).qhcp"
 	@echo "To view the help file:"
-	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/$(LANGUAGE)/reportapi.qhc"
+	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/$(LANGUAGE)/$(PROJECT).qhc"
 
 devhelp:
 	$(SPHINXBUILD) -b devhelp $(ALLSPHINXOPTS) $(BUILDDIR)/devhelp/$(LANGUAGE)
 	@echo
 	@echo "Build finished."
 	@echo "To view the help file:"
-	@echo "# mkdir -p $$HOME/.local/share/devhelp/reportapi"
-	@echo "# ln -s $(BUILDDIR)/devhelp/$(LANGUAGE) $$HOME/.local/share/devhelp/reportapi"
+	@echo "# mkdir -p $$HOME/.local/share/devhelp/$(LANGUAGE)/$(PROJECT)"
+	@echo "# ln -s $(BUILDDIR)/devhelp/$(LANGUAGE) $$HOME/.local/share/devhelp/$(LANGUAGE)/$(PROJECT)"
 	@echo "# devhelp"
 
 epub:
@@ -138,7 +137,6 @@ gettext:
 	$(SPHINXBUILD) -b gettext $(I18NSPHINXOPTS) $(BUILDDIR)/locale
 	@echo
 	@echo "Build finished. The message catalogs are in $(BUILDDIR)/locale."
-	$(SPHINXINTL) update -p $(BUILDDIR)/locale -l en
 
 changes:
 	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(BUILDDIR)/changes/$(LANGUAGE)
