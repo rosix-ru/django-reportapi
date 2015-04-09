@@ -5,6 +5,13 @@ import json
 import os
 import re
 
+from gettext import textdomain, bindtextdomain, gettext as _
+
+# set domain for gettext locallize this file
+domain = textdomain('ext')
+# set directory with localizations
+bindtextdomain(domain, localedir='locale')
+
 from sphinx import __version__ as sphinx_ver, addnodes
 from sphinx.writers.html import SmartyPantsHTMLTranslator
 
@@ -48,18 +55,10 @@ class ProjectHTMLTranslator(SmartyPantsHTMLTranslator):
             SmartyPantsHTMLTranslator.depart_literal_block(self, node)
             self.no_smarty -= 1
 
-    #
-    # Turn the "new in version" stuff (versionadded/versionchanged) into a
-    # better callout -- the Sphinx default is just a little span,
-    # which is a bit less obvious that I'd like.
-    #
-    # FIXME: these messages are all hardcoded in English. We need to change
-    # that to accommodate other language docs, but I can't work out how to make
-    # that work.
-    #
+
     version_text = {
-        'versionchanged': 'Changed in ReportAPI %s',
-        'versionadded': 'New in ReportAPI %s',
+        'versionchanged': _('Changed in version %s'),
+        'versionadded': _('New in version %s'),
     }
 
     def visit_versionmodified(self, node):
