@@ -1,17 +1,18 @@
+==================
 Пакет templatetags
 ==================
 
 .. currentmodule:: reportapi.templatetags
 
-Модуль :mod:`reportapi.templatetags.reportapi_base`
----------------------------------------------------
+Модуль ``reportapi_base``
+============================
 
-.. module:: reportapi.templatetags.reportapi_base
+.. module:: reportapi_base
     
 
-Модуль :mod:`reportapi.templatetags.reportapi_models`
------------------------------------------------------
+Модуль ``reportapi_models``
+==============================
 
-.. module:: reportapi.templatetags.reportapi_models
+.. module:: reportapi_models
     
 
