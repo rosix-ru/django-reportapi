@@ -30,7 +30,12 @@ from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 
-from quickapi.decorators import login_required, api_required
+from quickapi.decorators import api_required
+try:
+    from quickapi.decorators import auth_required as login_required
+except:
+    from quickapi.decorators import login_required
+
 from quickapi.http import JSONResponse
 from quickapi.views import api as quickapi_index
 from quickapi.utils.doc import (apidoc_lazy, string_lazy,
