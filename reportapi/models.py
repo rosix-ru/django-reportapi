@@ -729,6 +729,7 @@ class Document(models.Model):
             return False
 
         def run(format, newpath):
+            global flag
             if remove_old and os.path.exists(newpath):
                 remove_file(newpath)
 
@@ -755,8 +756,7 @@ class Document(models.Model):
             if run(format, newpath):
                 self.pdf_file = newname
 
-        if flag:
-            self.save()
+        self.save()
 
         return flag
 
