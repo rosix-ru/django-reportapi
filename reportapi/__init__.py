@@ -19,7 +19,7 @@
 #   <http://www.gnu.org/licenses/>.
 #
 
-VERSION = (3, 2, 1)
+VERSION = (3, 2, 2)
 
 def get_version(*args, **kwargs):
     return '%d.%d.%d' % VERSION
