@@ -23,9 +23,10 @@ from __future__ import unicode_literals
 import os
 import hashlib
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, Permission
 from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
+from django.conf import settings
 from django.db import models
 from django.db.models import Q
 from django.template import RequestContext, loader
@@ -47,20 +48,14 @@ from reportapi.exceptions import (OversizeError, ValidationError,
     raise_set_site, raise_set_section)
 from reportapi.fields import JSONField
 from reportapi.managers import RegisterManager, DocumentManager
+from reportapi.utils.compat import get_user_model
 from reportapi.utils.deep import to_dict as deep_to_dict
 from reportapi.utils.files import remove_dirs, remove_file, prep_filename
 from reportapi.utils.regexp import validate_name, validate_title
 from reportapi.utils.uno import (unoconv, REPORTAPI_UNOCONV_TO_ODF,
     REPORTAPI_UNOCONV_TO_PDF)
 
-
-Group = User.groups.field.rel.to
-
-if hasattr(User, 'permissions'):
-    Permission = User.permissions.field.rel.to
-else:
-    Permission = User.user_permissions.field.rel.to
-
+AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 @python_2_unicode_compatible
 class SystemUser(object):
@@ -473,7 +468,7 @@ class Register(models.Model):
     name    = models.CharField(_('name'), max_length=255)
     title = models.CharField(_('title without translation'), max_length=255)
     all_users = models.BooleanField(_('allow all users'), default=False)
-    users = models.ManyToManyField(User, verbose_name=_('allow list users'), blank=True)
+    users = models.ManyToManyField(AUTH_USER_MODEL, verbose_name=_('allow list users'), blank=True)
     groups = models.ManyToManyField(Group, verbose_name=_('allow list groups'), blank=True)
     timeout = models.IntegerField(_('max of timeout'), default=1000)
 
@@ -521,7 +516,7 @@ class Document(models.Model):
     """
 
     register    = models.ForeignKey(Register, verbose_name=_('registered report'))
-    user        = models.ForeignKey(User, null=True, verbose_name=_('user'))
+    user        = models.ForeignKey(AUTH_USER_MODEL, null=True, verbose_name=_('user'))
     restriction = models.IntegerField(_('restriction'), editable=False, null=True, db_index=True)
     code        = models.CharField(_('process key'), blank=True, db_index=True,
                                     max_length=32)
@@ -734,6 +729,7 @@ class Document(models.Model):
             return False
 
         def run(format, newpath):
+            global flag
             if remove_old and os.path.exists(newpath):
                 remove_file(newpath)
 
@@ -760,8 +756,7 @@ class Document(models.Model):
             if run(format, newpath):
                 self.pdf_file = newname
 
-        if flag:
-            self.save()
+        self.save()
 
         return flag
 

@@ -24,9 +24,18 @@ from distutils.version import LooseVersion as V
 
 from django import VERSION
 
+
 # compatibility from 1.4 to 1.7 and above
 if V('%d.%d' % VERSION[:2]) < V('1.7'):
     from django.db.models import get_model
 else:
     from django.apps import apps
     get_model = apps.get_model
+
+
+# compatibility from 1.4 to 1.7 and above
+if V('%d.%d' % VERSION[:2]) < V('1.5'):
+    from django.contrib.auth.models import User
+    get_user_model = lambda: User
+else:
+    from django.contrib.auth import get_user_model
