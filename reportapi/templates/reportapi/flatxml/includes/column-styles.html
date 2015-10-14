@@ -1,0 +1,248 @@
+{% comment %}<!--
+ 
+    Copyright 2013-2015 Grigoriy Kramarenko <root@rosix.ru>
+
+    This file is part of ReportAPI.
+
+    ReportAPI is free software: you can redistribute it and/or
+    modify it under the terms of the GNU Affero General Public License
+    as published by the Free Software Foundation, either version 3 of
+    the License, or (at your option) any later version.
+
+    ReportAPI is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public
+    License along with ReportAPI. If not, see
+    <http://www.gnu.org/licenses/>.
+-->
+{% endcomment %}
+<!-- Auto fill -->
+<style:style style:name="TableColumnAuto" style:family="table-column">
+    <style:table-column-properties/>
+</style:style>
+
+<style:style style:name="TableColumn-0.5" style:family="table-column">
+    <style:table-column-properties style:column-width="0.5cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-0.75" style:family="table-column">
+    <style:table-column-properties style:column-width="0.75cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-1.0" style:family="table-column">
+    <style:table-column-properties style:column-width="1.0cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-1.25" style:family="table-column">
+    <style:table-column-properties style:column-width="1.25cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-1.5" style:family="table-column">
+    <style:table-column-properties style:column-width="1.5cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-1.75" style:family="table-column">
+    <style:table-column-properties style:column-width="1.75cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-2.0" style:family="table-column">
+    <style:table-column-properties style:column-width="2.0cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-2.25" style:family="table-column">
+    <style:table-column-properties style:column-width="2.25cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-2.5" style:family="table-column">
+    <style:table-column-properties style:column-width="2.5cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-2.75" style:family="table-column">
+    <style:table-column-properties style:column-width="2.75cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-3.0" style:family="table-column">
+    <style:table-column-properties style:column-width="3.0cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-3.25" style:family="table-column">
+    <style:table-column-properties style:column-width="3.25cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-3.5" style:family="table-column">
+    <style:table-column-properties style:column-width="3.5cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-3.75" style:family="table-column">
+    <style:table-column-properties style:column-width="3.75cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-4.0" style:family="table-column">
+    <style:table-column-properties style:column-width="4.0cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-4.25" style:family="table-column">
+    <style:table-column-properties style:column-width="4.25cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-4.5" style:family="table-column">
+    <style:table-column-properties style:column-width="4.5cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-4.75" style:family="table-column">
+    <style:table-column-properties style:column-width="4.75cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-5.0" style:family="table-column">
+    <style:table-column-properties style:column-width="5.0cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-5.5" style:family="table-column">
+    <style:table-column-properties style:column-width="5.5cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-6.0" style:family="table-column">
+    <style:table-column-properties style:column-width="6.0cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-6.5" style:family="table-column">
+    <style:table-column-properties style:column-width="6.5cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-7.0" style:family="table-column">
+    <style:table-column-properties style:column-width="7.0cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-7.5" style:family="table-column">
+    <style:table-column-properties style:column-width="7.5cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-8.0" style:family="table-column">
+    <style:table-column-properties style:column-width="8.0cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-8.5" style:family="table-column">
+    <style:table-column-properties style:column-width="8.5cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-9.0" style:family="table-column">
+    <style:table-column-properties style:column-width="9.0cm"/>
+</style:style>
+
+<style:style style:name="TableColumn-9.5" style:family="table-column">
+    <style:table-column-properties style:column-width="9.5cm"/>
+</style:style>
+
+
+<!-- Standard table cell styles
+a - first row
+A - starts columns
+z - ends rows
+Z - end column
+
+|aA|aA|aZ|
+|zA|zA|zZ|
+|zA|zA|zZ|
+
+aA borders: top-left-bottom
+aZ borders: top-left-bottom-right
+zA borders: left-bottom
+zZ borders: left-bottom-right
+
+-->
+
+<style:style style:name="TH.aZ" style:family="table-cell">
+    <style:table-cell-properties
+        fo:background-color="#e6e6e6"
+        fo:padding="0.05cm"
+        fo:border-left="0.05pt solid #000000"
+        fo:border-right="0.05pt solid #000000"
+        fo:border-top="0.05pt solid #000000"
+        fo:border-bottom="0.05pt solid #000000"
+        style:shadow="none">
+    </style:table-cell-properties>
+</style:style>
+
+<style:style style:name="TH.aA" style:family="table-cell">
+    <style:table-cell-properties
+        fo:background-color="#e6e6e6"
+        fo:padding="0.05cm"
+        fo:border-left="0.05pt solid #000000"
+        fo:border-right="none"
+        fo:border-top="0.05pt solid #000000"
+        fo:border-bottom="0.05pt solid #000000"
+        style:shadow="none">
+    </style:table-cell-properties>
+</style:style>
+
+<style:style style:name="TH.zZ" style:family="table-cell">
+    <style:table-cell-properties
+        fo:background-color="#e6e6e6"
+        fo:padding="0.05cm"
+        fo:border-left="0.05pt solid #000000"
+        fo:border-right="0.05pt solid #000000"
+        fo:border-top="none"
+        fo:border-bottom="0.05pt solid #000000"
+        style:shadow="none">
+    </style:table-cell-properties>
+</style:style>
+
+<style:style style:name="TH.zA" style:family="table-cell">
+    <style:table-cell-properties
+        fo:background-color="#e6e6e6"
+        fo:padding="0.05cm"
+        fo:border-left="0.05pt solid #000000"
+        fo:border-right="none"
+        fo:border-top="none"
+        fo:border-bottom="0.05pt solid #000000"
+        style:shadow="none">
+    </style:table-cell-properties>
+</style:style>
+
+<style:style style:name="TD.aZ" style:family="table-cell">
+    <style:table-cell-properties
+        fo:padding="0.05cm"
+        fo:border-left="0.05pt solid #000000"
+        fo:border-right="0.05pt solid #000000"
+        fo:border-top="0.05pt solid #000000"
+        fo:border-bottom="0.05pt solid #000000"
+        style:shadow="none">
+    </style:table-cell-properties>
+</style:style>
+
+<style:style style:name="TD.aA" style:family="table-cell">
+    <style:table-cell-properties
+        fo:padding="0.05cm"
+        fo:border-left="0.05pt solid #000000"
+        fo:border-right="none"
+        fo:border-top="0.05pt solid #000000"
+        fo:border-bottom="0.05pt solid #000000"
+        style:shadow="none">
+    </style:table-cell-properties>
+</style:style>
+
+<style:style style:name="TD.zZ" style:family="table-cell">
+    <style:table-cell-properties
+        fo:padding="0.05cm"
+        fo:border-left="0.05pt solid #000000"
+        fo:border-right="0.05pt solid #000000"
+        fo:border-top="none"
+        fo:border-bottom="0.05pt solid #000000"
+        style:shadow="none">
+    </style:table-cell-properties>
+</style:style>
+
+<style:style style:name="TD.zA" style:family="table-cell">
+    <style:table-cell-properties
+        fo:padding="0.05cm"
+        fo:border-left="0.05pt solid #000000"
+        fo:border-right="none"
+        fo:border-top="none"
+        fo:border-bottom="0.05pt solid #000000"
+        style:shadow="none">
+    </style:table-cell-properties>
+</style:style>
+
