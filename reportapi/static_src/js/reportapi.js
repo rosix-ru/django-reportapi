@@ -25,7 +25,8 @@
 ////////////////////////////////////////////////////////////////////////
 //                   КОНСТАНТЫ И ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ                //
 ////////////////////////////////////////////////////////////////////////
-window.TEMPLATES = {}; // Скомпилированные шаблоны underscore
+var TEMPLATES = {}, // Скомпилированные шаблоны underscore
+    PICKER_LANG = 'ru';
 
 ////////////////////////////////////////////////////////////////////////
 //                               ОБЩИЕ                                //
@@ -402,11 +403,30 @@ function handlerSetSelectizers(filter) {
     return true;
 };
 
+/* Конфигуратор языка для datetimepicker v.2.4.1 */
+function setPickerLanguage() {
+    var list = ['ar', 'ro', 'id', 'bg', 'fa', 'ru', 'uk', 'en', 'el', 
+        'de', 'nl', 'tr', 'fr', 'es', 'th', 'pl', 'pt', 'ch', 'se', 'kr', 
+        'it', 'da', 'no', 'ja', 'vi', 'sl', 'cs', 'hu', 'as', 'bs', 'ca', 
+        'en-GB', 'et', 'eu', 'fi', 'gl', 'hr', 'ko', 'lt', 'lv', 'mk', 
+        'mn', 'pt-BR', 'sk', 'sq', 'sr-YU', 'sr', 'sv', 'zh-TW', 'zh', 
+        'he'],
+        lang = window.LANGUAGE_CODE;
+
+    if (list.indexOf(lang) >= 0) {
+        PICKER_LANG = lang
+    } else if (list.indexOf(lang) < 0) {
+        lang = lang.slice(0,2).toLowerCase();
+        PICKER_LANG = list.indexOf(lang) >= 0 ? lang : 'ru'
+    }
+}
+
+
 /* Обработчик установки datetimepicker для input */
 function handlerSetDatetimePickers(filter) {
     if (!filter || !(filter.type in {'datetime':'','date':'','time':''})) return false;
     var args = {
-            lang: LANGUAGE_CODE,
+            lang: PICKER_LANG,
             format: filter.format,
             timepicker: true,
             datepicker: true,
@@ -747,6 +767,9 @@ function handlerBindinds() {
 
 /* Выполнение чего-либо после загрузки страницы */
 $(document).ready(function($) {
+
+    // Установка языка для datetimepicker v.2.4.1
+    setPickerLanguage();
 
     // Инициализация шаблонов Underscore
     handlerTemplates();
