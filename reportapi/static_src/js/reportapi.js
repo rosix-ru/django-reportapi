@@ -482,6 +482,11 @@ function handlerSetDatetimePickers(filter) {
             $input1 = $('#value-'+ filter.name +'-range1'),
             $input2 = $('#value-'+ filter.name +'-range2');
 
+        if (filter.server_value) {
+            $input1.data('server_value', filter.server_value[0])
+            $input2.data('server_value', filter.server_value[1])
+        }
+
         $.extend(true, args1, args);
         $.extend(true, args2, args);
 
@@ -513,7 +518,7 @@ function handlerCheckRequiredValue() {
             if (item.value === null || item.value === undefined) {
                 completed = false;
             } else if (item.condition == 'range' &&
-                (item.value.length < 2 || item.value[0] === null || item.value[1] === null)) {
+                (item.value.length < 2 || item.value.indexOf(null) >=0 || item.value[0] == item.value[1])) {
                 completed = false;
             };
         }
