@@ -1,5 +1,3 @@
-syntax:glob
-
 *.egg-info
 *.pot
 *.py[co]
@@ -11,4 +9,5 @@ build/
 django_reportapi.egg-info/
 example/media/
 *.sqlite
-.git/
+.hg/
+.hgtags
