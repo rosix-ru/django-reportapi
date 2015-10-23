@@ -6,7 +6,6 @@ MANIFEST
 dist/
 docs/_build/
 build/
-django_reportapi.egg-info/
 example/media/
 *.sqlite
 .hg/
