@@ -1,5 +1,3 @@
-syntax:glob
-
 *.egg-info
 *.pot
 *.py[co]
@@ -10,4 +8,5 @@ docs/_build/
 build/
 example/media/
 *.sqlite
-.git/
+.hg/
+.hgtags

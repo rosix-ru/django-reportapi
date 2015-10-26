@@ -25,7 +25,8 @@
 ////////////////////////////////////////////////////////////////////////
 //                   КОНСТАНТЫ И ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ                //
 ////////////////////////////////////////////////////////////////////////
-window.TEMPLATES = {}; // Скомпилированные шаблоны underscore
+var TEMPLATES = {}, // Скомпилированные шаблоны underscore
+    PICKER_LANG = 'ru';
 
 ////////////////////////////////////////////////////////////////////////
 //                               ОБЩИЕ                                //
@@ -40,24 +41,30 @@ delay = (function(){
     };
 })();
 
-/* Общие функции вывода сообщений */
-function handlerHideAlert() {
-    $('.alert').alert('close');
-    $('#alert-place').css('z-index', '-1000');
-};
+/* Функция вывода сообщений в модальном окне */
+function handlerShowAlert(head, msg, cls, cb) {
 
-function handlerShowAlert(msg, type, callback, timeout) {
-    timeout = timeout || 5000;
-    console.log(msg);
-    if (!type) { type = 'alert-danger'; };
-    html = TEMPLATES.alert({ msg: msg, type: type });
-    $('#alert-place').css('z-index', '1000').html(html);
-    $(window).scrollTop(0);
-    $('.alert').alert();
-    if (callback) { delay(callback, timeout); }
-    else { delay(handlerHideAlert, timeout); };
-    return false;
-};
+    var match;
+
+    $('.modal').modal('hide');
+    clearInterval(window.REPORT.process);
+
+    if (msg.match(/<!DOCTYPE/)) {
+        if (msg.match(/<\!DOCTYPE/)) {
+
+            match = msg.match(/<[title,TITLE]+>(.*)<\/[title,TITLE]+>/);
+            if (match) head = match[1];
+
+            match = msg.match(/<[body,BODY]+>([^+]*)<\/[body,BODY]+>/);
+            if (match) msg = match[1];
+        }
+    }
+
+    $('#modal-alert-title').text(head || DEFAULT_MODAL_ALERT_HEAD);
+    $('#modal-alert .modal-body').html(msg);
+
+    $('#modal-alert').modal('show');
+}
 
 /* Общая функция для работы с django-quickapi */
 function jsonAPI(args, callback, to_console, sync, timeout) {
@@ -83,7 +90,7 @@ function jsonAPI(args, callback, to_console, sync, timeout) {
             // Иначе извещаем пользователя ответом и в консоль
             console.log("ERROR:" + xhr.responseText);
             if (xhr.responseText) {
-                handlerShowAlert(_(xhr.responseText).truncate(255), 'alert-danger');
+                handlerShowAlert(null, xhr.responseText, 'alert-danger');
             };
         };
     })
@@ -104,13 +111,13 @@ function jsonAPI(args, callback, to_console, sync, timeout) {
                 window.location.replace(location);
             }
             if (json.message) {
-                handlerShowAlert(json.message, 'alert-danger', redirect);
+                handlerShowAlert(null, json.message, 'alert-danger', redirect);
             }
             else { redirect() }
         }
         /* При ошибках извещаем пользователя полученным сообщением */
         else if (json.status >=400) {
-            handlerShowAlert(json.message, 'alert-danger');
+            handlerShowAlert(null, json.message, 'alert-danger');
             clearInterval(window.REPORT.process);
             window.REPORT.process = undefined;
             $('.progress .progress-bar').removeClass('progress-bar-striped active');
@@ -402,11 +409,30 @@ function handlerSetSelectizers(filter) {
     return true;
 };
 
+/* Конфигуратор языка для datetimepicker v.2.4.1 */
+function setPickerLanguage() {
+    var list = ['ar', 'ro', 'id', 'bg', 'fa', 'ru', 'uk', 'en', 'el', 
+        'de', 'nl', 'tr', 'fr', 'es', 'th', 'pl', 'pt', 'ch', 'se', 'kr', 
+        'it', 'da', 'no', 'ja', 'vi', 'sl', 'cs', 'hu', 'as', 'bs', 'ca', 
+        'en-GB', 'et', 'eu', 'fi', 'gl', 'hr', 'ko', 'lt', 'lv', 'mk', 
+        'mn', 'pt-BR', 'sk', 'sq', 'sr-YU', 'sr', 'sv', 'zh-TW', 'zh', 
+        'he'],
+        lang = window.LANGUAGE_CODE;
+
+    if (list.indexOf(lang) >= 0) {
+        PICKER_LANG = lang
+    } else if (list.indexOf(lang) < 0) {
+        lang = lang.slice(0,2).toLowerCase();
+        PICKER_LANG = list.indexOf(lang) >= 0 ? lang : 'ru'
+    }
+}
+
+
 /* Обработчик установки datetimepicker для input */
 function handlerSetDatetimePickers(filter) {
     if (!filter || !(filter.type in {'datetime':'','date':'','time':''})) return false;
     var args = {
-            lang: LANGUAGE_CODE,
+            lang: PICKER_LANG,
             format: filter.format,
             timepicker: true,
             datepicker: true,
@@ -456,6 +482,11 @@ function handlerSetDatetimePickers(filter) {
             $input1 = $('#value-'+ filter.name +'-range1'),
             $input2 = $('#value-'+ filter.name +'-range2');
 
+        if (filter.server_value) {
+            $input1.data('server_value', filter.server_value[0])
+            $input2.data('server_value', filter.server_value[1])
+        }
+
         $.extend(true, args1, args);
         $.extend(true, args2, args);
 
@@ -487,7 +518,7 @@ function handlerCheckRequiredValue() {
             if (item.value === null || item.value === undefined) {
                 completed = false;
             } else if (item.condition == 'range' &&
-                (item.value.length < 2 || item.value[0] === null || item.value[1] === null)) {
+                (item.value.length < 2 || item.value.indexOf(null) >=0 || item.value[0] == item.value[1])) {
                 completed = false;
             };
         }
@@ -747,6 +778,9 @@ function handlerBindinds() {
 
 /* Выполнение чего-либо после загрузки страницы */
 $(document).ready(function($) {
+
+    // Установка языка для datetimepicker v.2.4.1
+    setPickerLanguage();
 
     // Инициализация шаблонов Underscore
     handlerTemplates();

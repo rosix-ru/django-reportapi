@@ -1,0 +1,33 @@
+{% load i18n %}
+
+<div class="{% block modal_class %}modal modal-fix-bs332{% endblock %}" id="{% block modal_id %}{% endblock %}" tabindex="-1" role="dialog" aria-labelledby="{% block modal_aria_labelledby %}{% endblock %}" aria-hidden="true">
+
+    <div class="{% block modal_dialog_class %}modal-dialog{% endblock %}">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">{% trans 'Close' %}</span>
+                </button>
+
+                <h4 class="modal-title" id="{% block modal_title_id %}{% endblock %}">{% block modal_title %}{% endblock %}</h4>
+
+            </div>
+
+            <div class="{% block modal_body_class %}modal-body{% endblock %}"> <!-- .tabbable append -->
+                {% block modal_body %}{% endblock %}
+            </div>
+
+            <div class="{% block modal_footer_class %}modal-footer{% endblock %}">
+                {% block modal_footer %}<button type="button" class="btn btn-default" data-dismiss="modal">{% trans 'Close' %}</button>{% endblock %}
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+

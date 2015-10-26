@@ -137,12 +137,6 @@
     <!-- START: block container -->
     {% block container %}
     <div id="container" class="container">
-        <!-- START: block alert_place -->
-        {% block alert_place %}
-        <div class="row"><div id="alert-place" class="container"></div></div>
-        {% endblock %}
-        <!-- END: block alert_place -->
-
         <!-- START: block content -->
         {% block content %}{% endblock %}
         <!-- END: block content -->
@@ -199,6 +193,8 @@
     {% endblock %}
     <!-- END: block footer -->
 
+    <!-- START: block modal_alert -->{% block modal_alert %}{% include "reportapi/modal_alert.html" %}{% endblock %}<!-- END: block modal_alert -->
+
 <!-- START: block jstemplates -->
     {% block jstemplates %}
     {% cache 600 jstemplates LANGUAGE_CODE %}
@@ -227,7 +223,8 @@
             window.USER = "{{ user }}";
             window.DEBUG = {% filter lower %}{% DEBUG_MODE %}{% endfilter %};
             window.LANGUAGE_CODE = "{{ LANGUAGE_CODE }}" || undefined;
-            window.SERVER_TZ_OFFSET = {% SERVER_TZ_OFFSET %};
+            window.SERVER_TZ_OFFSET = {% SERVER_TZ_OFFSET %},
+            window.DEFAULT_MODAL_ALERT_HEAD = "{% trans 'Error' %}";
         </script>
     {% endblock %}
     <!-- END: block jsglobalvars -->
