@@ -27,6 +27,7 @@ setup(
     name='django-reportapi', # this name for PyPI, really project name: ReportAPI
     version=reportapi.__version__,
     description='Easy mechanism building reports in Django projects.',
+    long_description=open('README.rst').read(),
     author='Grigoriy Kramarenko',
     author_email='root@rosix.ru',
     url='https://github.com/rosix-ru/django-reportapi/',
