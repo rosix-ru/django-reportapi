@@ -5,7 +5,7 @@ For the exchange of data is used JSON.
 
 The API is built on the RPC scheme: one address - many methods.
 
-Link for details:
+Read the documentation_ for details.
 
-* Wiki https://bitbucket.org/rosix/django-reportapi/wiki/
+.. _documentation: https://docs.rosix.org/django-reportapi/
 
