@@ -195,7 +195,7 @@ def API_document_create(request, section, name, filters=None, force=False, fake=
     else:
         # Новый отчёт
         document = Document.objects.new(request=request, user=user, code=code, register=register)
-        document.description = report.get_description_from_filters(filters)
+        document.description = report.get_description_from_filters(filters, request=request)
         document.details = report.get_details(document=document, filters=filters, request=request)
         document.save()
 
