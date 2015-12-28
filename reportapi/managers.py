@@ -84,13 +84,13 @@ class DefaultDocumentManager(CompatManager):
         if not user.is_authenticated():
             return self.get_queryset().none()
         if user.is_superuser:
-            return self.get_queryset().all()
-        return self.get_queryset().filter(user=user).all()
+            return self.get_queryset()
+        return self.get_queryset().filter(user=user)
 
 
 if CustomManager:
     if isinstance(CustomManager, six.string_types):
-        from django.utils.importlib import import_module
+        from importlib import import_module
 
         split = CustomManager.split('.')
         module = '.'.join(split[:-1])
