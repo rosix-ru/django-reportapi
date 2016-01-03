@@ -25,8 +25,7 @@ import logging
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
-from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import force_text
 
@@ -50,8 +49,7 @@ def _default_context(request):
 @login_required
 def index(request):
     ctx = _default_context(request)
-    return render_to_response('reportapi/index.html', ctx,
-                            context_instance=RequestContext(request,))
+    return render(request, 'reportapi/index.html', ctx)
 
 @login_required
 def report_list(request, section):
@@ -61,8 +59,7 @@ def report_list(request, section):
             logger = logging.getLogger('reportapi.views.report_list')
             logger.warning(force_text(_('Section (%s) not found.') % section))
 
-        return render_to_response('reportapi/404.html', ctx,
-                            context_instance=RequestContext(request,))
+        return render(request, 'reportapi/404.html', ctx)
 
     ctx['section'] = site.sections[section]
 
@@ -72,8 +69,7 @@ def report_list(request, section):
 
     ctx['reports'] = site.sections[section].get_reports(request)
 
-    return render_to_response('reportapi/report_list.html', ctx,
-                            context_instance=RequestContext(request,))
+    return render(request, 'reportapi/report_list.html', ctx)
 
 @login_required
 def documents(request, section=None, name=None):
@@ -91,8 +87,7 @@ def documents(request, section=None, name=None):
                 logger = logging.getLogger('reportapi.views.documents')
                 logger.error(force_text(_('Section (%s) not found or not allowed.') % section))
 
-            return render_to_response('reportapi/404.html', ctx,
-                            context_instance=RequestContext(request,))
+            return render(request, 'reportapi/404.html', ctx)
         docs = docs.filter(register__section=section)
 
     if section and name:
@@ -102,15 +97,13 @@ def documents(request, section=None, name=None):
                 logger = logging.getLogger('reportapi.views.documents')
                 logger.error(force_text(_('Report or register not found for section (%s).') % section))
 
-            return render_to_response('reportapi/404.html', ctx,
-                            context_instance=RequestContext(request,))
+            return render(request, 'reportapi/404.html', ctx)
         ctx['report'] = report
         docs = docs.filter(register__name=name)
 
     ctx['docs'] = docs[:DOCS_PER_PAGE]
 
-    return render_to_response('reportapi/index.html', ctx,
-                            context_instance=RequestContext(request,))
+    return render(request, 'reportapi/index.html', ctx)
 
 @login_required
 def report(request, section, name):
@@ -123,15 +116,14 @@ def report(request, section, name):
                 _('Report or register not found for section (%(section)s) and name (%(name)s).')
                 % {'section': section, 'name': name}
             ))
-        return render_to_response('reportapi/404.html', ctx,
-                            context_instance=RequestContext(request,))
+        return render(request, 'reportapi/404.html', ctx)
 
     ctx['report_as_json'] = tojson(report.get_scheme(request) or dict())
     ctx['report']  = report
+    ctx['filters_list'] = report.filters_list(request)
     ctx['section'] = site.sections[section]
 
-    return render_to_response('reportapi/report.html', ctx,
-                            context_instance=RequestContext(request,))
+    return render(request, 'reportapi/report.html', ctx)
 
 @login_required
 def view_document(request, pk, format=None):
@@ -144,10 +136,9 @@ def view_document(request, pk, format=None):
             logger.error(force_text(_('Document (%s) not found or not allowed.') % pk))
 
         ctx['remove_nav'] = True
-        return render_to_response('reportapi/404.html', ctx,
-                            context_instance=RequestContext(request,))
+        return render(request, 'reportapi/404.html', ctx)
     if doc.error:
-        return HttpResponse(doc.error, mimetype='text/html')
+        return HttpResponse(doc.error)
 
     if not format:
         for p in REPORTAPI_VIEW_PRIORITY:
@@ -164,8 +155,7 @@ def view_document(request, pk, format=None):
 
     ctx['remove_nav'] = True
 
-    return render_to_response('reportapi/404.html', ctx,
-                            context_instance=RequestContext(request,))
+    return render(request, 'reportapi/404.html', ctx)
 
 @login_required
 def download_document(request, pk, format=None):
@@ -178,10 +168,9 @@ def download_document(request, pk, format=None):
             logger.error(force_text(_('Document (%s) not found or not allowed.') % pk))
 
         ctx['remove_nav'] = True
-        return render_to_response('reportapi/404.html', ctx,
-                            context_instance=RequestContext(request,))
+        return render(request, 'reportapi/404.html', ctx)
     if doc.error:
-        return HttpResponse(doc.error, mimetype='text/html')
+        return HttpResponse(doc.error)
 
     if not format:
         for p in REPORTAPI_DOWNLOAD_PRIORITY:
@@ -198,6 +187,5 @@ def download_document(request, pk, format=None):
 
     ctx['remove_nav'] = True
 
-    return render_to_response('reportapi/404.html', ctx,
-                            context_instance=RequestContext(request,))
+    return render(request, 'reportapi/404.html', ctx)
 

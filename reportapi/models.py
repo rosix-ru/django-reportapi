@@ -260,12 +260,12 @@ class Report(object):
         """
         raise NotImplementedError()
 
-    def get_description_from_filters(self, filters):
+    def get_description_from_filters(self, filters, request=None):
         """
         Получаем описание из фильтров
         """
 
-        filters = self.get_filters_data(filters).values()
+        filters = self.get_filters_data(filters, request=request).values()
         L = []
         for f in filters:
             label = (f['label']).lower()
