@@ -24,17 +24,30 @@ from distutils.version import LooseVersion as V
 
 from django import VERSION
 
+v = V('%d.%d' % VERSION[:2])
+
+# compatibility from 1.4 to 1.8 and above
+if v < V('1.8'):
+    from django.template import RequestContext, loader
+    def render_to_string(template, context, request):
+        return loader.render_to_string(template, context,
+                            context_instance=RequestContext(request,))
+else:
+    from django.template import loader
+    def render_to_string(template, context, request):
+        return loader.render_to_string(template, context, request=request)
+
 
 # compatibility from 1.4 to 1.7 and above
-if V('%d.%d' % VERSION[:2]) < V('1.7'):
+if v < V('1.7'):
     from django.db.models import get_model
 else:
     from django.apps import apps
     get_model = apps.get_model
 
 
-# compatibility from 1.4 to 1.7 and above
-if V('%d.%d' % VERSION[:2]) < V('1.5'):
+# compatibility from 1.4 to 1.5 and above
+if v < V('1.5'):
     from django.contrib.auth.models import User
     get_user_model = lambda: User
 else:

@@ -18,6 +18,7 @@
 #   License along with ReportAPI. If not, see
 #   <http://www.gnu.org/licenses/>.
 #
+from __future__ import unicode_literals
 
 from django.db.models import Q
 from django.template import Library, Node, TemplateSyntaxError
@@ -114,7 +115,6 @@ def get_child_model_objects(parser, token):
         module = __import__('.'.join(model_path[:-1]), fromlist=[''])
         model = getattr(module, model_path[-1])
     except Exception as e:
-        print e
         raise TemplateSyntaxError("second argument to 'get_child_model_objects' tag must be 'path.to.model'")
 
     lookout = bits[3]

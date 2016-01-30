@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-#   Copyright 2014-2015 Grigoriy Kramarenko <root@rosix.ru>
+#   Copyright 2014-2016 Grigoriy Kramarenko <root@rosix.ru>
 #
 #   This file is part of ReportAPI.
 #
@@ -19,6 +19,18 @@
 #   <http://www.gnu.org/licenses/>.
 #
 
+def split_field(field):
+    if not isinstance(field, (list, tuple)):
+        return field.split('.')
+
+    F = []
+    for f in field:
+        if not isinstance(f, (list, tuple)):
+            f = f.split('.')
+        F.extend(f)
+
+    return F
+
 def to_dict(dictionary, field, value, append_to_list=False):
     """
     Рекурсивное обновление поля словаря. Ключ значения может выглядеть как:
@@ -26,7 +38,7 @@ def to_dict(dictionary, field, value, append_to_list=False):
     или
     'field1.field2.field3'
     или
-    ['field1', 'field2', ...]
+    ['field1', 'field2', 'field3.field4', ...]
 
     Заметьте, что (по умолчанию) списки поддерживаются только в
     качестве готовых значений! Если нужно добавить в список, то
@@ -41,15 +53,14 @@ def to_dict(dictionary, field, value, append_to_list=False):
     if not isinstance(D, dict):
         D = {}
 
-    if not isinstance(field, (list, tuple)):
-        field = field.split('.')
+    field = split_field(field)
 
     d = D
     length = len(field)
     dest = length-1
     for i in range(0, length):
         key = field[i]
-        if not d.has_key(key):
+        if not key in d:
             if i == dest:
                 if append_to_list:
                     d[key] = [value]
@@ -76,7 +87,7 @@ def from_dict(dictionary, field, default=None, update=True, delete=False):
     или
     'field1.field2.field3'
     или
-    ['field1', 'field2', ...]
+    ['field1', 'field2', 'field3.field4', ...]
     
     Устанавливает значение по-умолчанию, если ничего не найдено и
     разрешено обновление.
@@ -87,8 +98,7 @@ def from_dict(dictionary, field, default=None, update=True, delete=False):
     if not isinstance(D, dict):
         D = {}
 
-    if not isinstance(field, (list, tuple)):
-        field = field.split('.')
+    field = split_field(field)
 
     d = D
     value = default
@@ -96,9 +106,9 @@ def from_dict(dictionary, field, default=None, update=True, delete=False):
     dest = length-1
     for i in range(0, length):
         key = field[i]
-        if not d.has_key(key):
+        if not key in d:
             if not update or delete:
-                return value
+                break
             elif i == dest:
                 d[key] = value
             else:
@@ -106,11 +116,15 @@ def from_dict(dictionary, field, default=None, update=True, delete=False):
                 d = d[key]
         elif i == dest:
             if delete:
-                return d.pop(key)
+                value = d.pop(key)
+                break
             else:
                 value = d[key] 
         else:
             d = d[key]
 
-    return value
+    if callable(value):
+        return value()
+    else:
+        return value
 

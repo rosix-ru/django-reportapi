@@ -18,6 +18,7 @@
 #   License along with ReportAPI. If not, see
 #   <http://www.gnu.org/licenses/>.
 #
+from __future__ import unicode_literals
 
 from django.template import Library
 from django.utils.translation import ugettext_lazy as _
