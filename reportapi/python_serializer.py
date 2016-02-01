@@ -20,12 +20,12 @@
 #
 
 from __future__ import unicode_literals
-from StringIO import StringIO
 from types import MethodType
 
 from django.db import models
 from django.core.paginator import Page
 from django.core.serializers.python import Serializer as OrignSerializer
+from django.utils import six
 from django.utils.encoding import force_text
 
 
@@ -120,7 +120,7 @@ class SerializerWrapper(object):
         но не запускает в конце метод окончания сериализации
         """
 
-        self.stream = options.pop("stream", StringIO())
+        self.stream = options.pop("stream", six.StringIO())
         self.attrs = options.pop("attrs", [])
         self.unicode_key = options.pop("unicode_key", '__unicode__')
         # Простой список для <select> в HTML: ключ и сроковое представление

@@ -29,7 +29,6 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
-from django.template import RequestContext, loader
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from django.utils import six
@@ -48,7 +47,7 @@ from reportapi.exceptions import (OversizeError, ValidationError,
     raise_set_site, raise_set_section)
 from reportapi.fields import JSONField
 from reportapi.managers import RegisterManager, DocumentManager
-from reportapi.utils.compat import get_user_model
+from reportapi.utils.compat import get_user_model, render_to_string
 from reportapi.utils.deep import to_dict as deep_to_dict
 from reportapi.utils.files import remove_dirs, remove_file, prep_filename
 from reportapi.utils.regexp import validate_name, validate_title
@@ -233,8 +232,13 @@ class Report(object):
             return getattr(request, 'LANGUAGE_CODE', settings.LANGUAGE_CODE)
 
         code = hashlib.new('md5')
-        code.update(self.filters_to_string(filters))
-        code.update(getattr(request, 'LANGUAGE_CODE', settings.LANGUAGE_CODE))
+        s1 = self.filters_to_string(filters)
+        s2 = getattr(request, 'LANGUAGE_CODE', settings.LANGUAGE_CODE)
+        if six.PY3:
+            s1 = s1.encode('utf8')
+            s2 = s2.encode('utf8')
+        code.update(s1)
+        code.update(s2)
         return code.hexdigest()
 
     def get_document_title(self, document):
@@ -321,8 +325,7 @@ class Report(object):
             context['PAGE'] = self.page.checked()
         context['DOCUMENT'] = document
         context['FILTERS'] = document._filters_data.values()
-        content = loader.render_to_string(self.template_name, context,
-                            context_instance=RequestContext(request,))
+        content = render_to_string(self.template_name, context, request)
         _file = ContentFile(content.encode('utf-8') or \
             force_text(_('Unspecified render error in template.')))
         document.report_file.save(self.get_filename(), _file, save=save)
@@ -333,7 +336,7 @@ class Report(object):
         Сериализуем фильтры в строку. 
         """
         if not isinstance(filters, dict):
-            return str(filters)
+            return force_text(filters)
 
         for k,v in filters.items():
             if isinstance(v, (list,tuple)):

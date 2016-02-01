@@ -19,8 +19,9 @@
 #   <http://www.gnu.org/licenses/>.
 #
 
-from __future__ import unicode_literals, print_function
-from django.utils.encoding import smart_text
+from __future__ import unicode_literals
+
+from django.utils.encoding import force_text
 from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 from django.db.models.base import ModelBase
@@ -111,7 +112,7 @@ class Section(object):
 
         if SORTING_REPORTS:
             # Сортировка по локализованному названию
-            REPORTS = sorted(REPORTS, key=lambda x: unicode(x.label))
+            REPORTS = sorted(REPORTS, key=lambda x: force_text(x.label))
 
         return REPORTS
 
@@ -216,7 +217,7 @@ class SiteReportAPI(object):
             section = self.sections[section_name]
             scheme = section.get_scheme(request)
             if scheme:
-                sections_list.append((section_name, smart_text(section.label)))
+                sections_list.append((section_name, force_text(section.label)))
                 SCHEME['sections'][section_name] = scheme
 
         if SORTING_SECTIONS:
@@ -242,7 +243,7 @@ class SiteReportAPI(object):
 
         if SORTING_SECTIONS:
             # Сортировка по локализованному названию
-            SECTIONS = sorted(SECTIONS, key=lambda x: smart_text(x[0].label))
+            SECTIONS = sorted(SECTIONS, key=lambda x: force_text(x[0].label))
 
         return SECTIONS
 
