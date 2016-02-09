@@ -51,7 +51,7 @@
     </style:style>
 
     <style:style style:name="BRAND.text-line" style:family="text">
-        <style:text-properties style:font-name="Arial Black" fo:font-size="7pt" fo:color="#FFFFFF"/>
+        <style:text-properties style:font-name="Arial Black" fo:font-size="7pt" fo:color="{{ BRAND_COLOR|default:'#303030' }}"/>
     </style:style>
 
     <style:style style:name="BRAND.line" style:family="graphic">
@@ -68,6 +68,6 @@
             style:vertical-rel="page"
             style:horizontal-pos="left"
             style:horizontal-rel="page"
-            draw:fill-color="{{ BRAND_COLOR|default:'#303030' }}"
-            svg:stroke-color="{{ BRAND_COLOR|default:'#303030' }}"/>
+            draw:fill-color="#FFFFFF"
+            svg:stroke-color="#FFFFFF"/>
     </style:style>
