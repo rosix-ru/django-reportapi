@@ -22,6 +22,7 @@
 from __future__ import unicode_literals
 import re
 import operator
+from datetime import datetime, timedelta
 
 from django.db import models
 from django.db.models import Q
@@ -691,11 +692,21 @@ def _date_search_in_fields(queryset, fields, query, regexp=date_re):
     match = regexp.match(query)
 
     if match and fields:
-
-        kv = list((k, int(v)) for k, v in match.groupdict().iteritems() if v)
+        date = dict((k, int(v)) for k, v in match.groupdict().iteritems() if v)
+        start = timezone.make_aware(datetime(2000, 1, 1))
+        start = start.replace(**date)
+        if 'day' in date:
+            end = start + timedelta(1)
+        elif 'month' in date:
+            if date['month'] == 12:
+                end = start.replace(year=date['year']+1, month=1)
+            else:
+                end = start.replace(month=date['month']+1)
+        elif 'year' in date:
+            end = start.replace(year=date['year']+1)
+        end = end - timedelta(seconds=0.000001)
 
         for name in fields:
-            for k,v in kv:
-                queryset = queryset.filter(**{"%s__%s" % (name, k): v})
+            queryset = queryset.filter(**{"%s__range" % name: (start, end)})
 
     return queryset

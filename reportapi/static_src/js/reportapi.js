@@ -355,6 +355,24 @@ function handlerSetSelectizers(filter) {
                             'query': query,
                         },
                         success = function(res) {
+                            if (filter.search_on_date) {
+                                $.each(filter.fields_search, function(f,field) {
+                                    $.each(res.data.object_list, function(i,item) {
+                                        var v = item[field], d = new Date(v), s;
+                                        s = d.getFullYear()+'-'
+                                            +('0'+(d.getMonth()+1)).slice(-2)+'-'
+                                            +('0'+d.getDay()).slice(-2)
+                                        if (v.indexOf('Z') > -1) {
+                                            s += ' '
+                                                +('0'+d.getHours()).slice(-2)+':'
+                                                +('0'+d.getMinutes()).slice(-2)+':'
+                                                +('0'+d.getSeconds()).slice(-2)+'.'
+                                                +('00'+d.getMilliseconds()).slice(-3)
+                                        }
+                                        item[field] = s
+                                    })
+                                })
+                            }
                             callback(res.data.object_list);
                         };
                     new jsonAPI(args, success);
