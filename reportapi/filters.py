@@ -568,7 +568,11 @@ class FilterChoice(BaseFilter):
 
     @property
     def options(self):
-        return [ {'value':x,'label':y} for x,y in self._options.items() ]
+        if callable(self._options):
+            o = self._options()
+        else:
+            o = self._options
+        return [ {'value':x,'label':y} for x,y in o.items() ]
 
     def get_value_label(self, condition, value, request=None):
         dic = self._options
