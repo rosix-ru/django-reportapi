@@ -361,7 +361,7 @@ function handlerSetSelectizers(filter) {
                                         var v = item[field], d = new Date(v), s;
                                         s = d.getFullYear()+'-'
                                             +('0'+(d.getMonth()+1)).slice(-2)+'-'
-                                            +('0'+d.getDay()).slice(-2)
+                                            +('0'+d.getDate()).slice(-2)
                                         if (v.indexOf('Z') > -1) {
                                             s += ' '
                                                 +('0'+d.getHours()).slice(-2)+':'
