@@ -697,7 +697,8 @@ def _date_search_in_fields(queryset, fields, query, regexp=date_re):
 
     if match and fields:
         date = dict((k, int(v)) for k, v in match.groupdict().iteritems() if v)
-        start = timezone.make_aware(datetime(2000, 1, 1))
+        tz = timezone.get_current_timezone()
+        start = timezone.make_aware(datetime(2000, 1, 1), tz)
         start = start.replace(**date)
         if 'day' in date:
             end = start + timedelta(1)
