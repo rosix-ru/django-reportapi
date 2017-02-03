@@ -23,7 +23,9 @@ from __future__ import unicode_literals
 import os
 import subprocess
 
-from reportapi.conf import REPORTAPI_UNOCONV_SERVERS, REPORTAPI_UNOCONV_TO_ODF, REPORTAPI_UNOCONV_TO_PDF
+from reportapi.conf import (REPORTAPI_UNOCONV_SERVERS,
+                            REPORTAPI_UNOCONV_TO_ODF,
+                            REPORTAPI_UNOCONV_TO_PDF)
 from reportapi.utils.deep import to_dict as deep_to_dict
 from reportapi.utils.files import remove_file
 
@@ -31,7 +33,8 @@ unoconv_exe = None
 
 if REPORTAPI_UNOCONV_TO_ODF or REPORTAPI_UNOCONV_TO_PDF:
     try:
-        unoconv_exe = subprocess.check_output(["which", "unoconv"]).replace('\n', '')
+        unoconv_exe = subprocess.check_output(["which", "unoconv"]) \
+            .replace('\n', '')
     except:
         REPORTAPI_UNOCONV_TO_ODF = False
         REPORTAPI_UNOCONV_TO_PDF = False
@@ -66,8 +69,6 @@ def unoconv(document, format, oldpath, newpath, remove_log=True):
     if not unoconv_exe:
         raise RuntimeError('Please install unoconv into your system.')
 
-    newname = os.path.basename(newpath)
-
     dwd = os.path.dirname(newpath)
     cwd = os.getcwd()
     os.chdir(dwd)
@@ -76,13 +77,22 @@ def unoconv(document, format, oldpath, newpath, remove_log=True):
     proc.extend(random_unoconv_con(document=document))
     proc.extend(['-f', format, os.path.basename(oldpath)])
 
-    out = os.path.join(dwd, 'convert.out.%s.log' % (format if format == 'pdf' else 'odf',))
-    err = os.path.join(dwd, 'convert.error.%s.log' % (format if format == 'pdf' else 'odf',))
+    out = os.path.join(
+        dwd,
+        'convert.out.%s.log' % (format if format == 'pdf' else 'odf',)
+    )
+    err = os.path.join(
+        dwd,
+        'convert.error.%s.log' % (format if format == 'pdf' else 'odf',)
+    )
 
-    p = subprocess.Popen(proc, shell=False,
-            stdout=open(out, 'w+b'), 
-            stderr=open(err, 'w+b'),
-            cwd=dwd)
+    p = subprocess.Popen(
+        proc,
+        shell=False,
+        stdout=open(out, 'w+b'),
+        stderr=open(err, 'w+b'),
+        cwd=dwd
+    )
     p.wait()
 
     ready = os.path.exists(newpath)
@@ -114,4 +124,3 @@ def unoconv(document, format, oldpath, newpath, remove_log=True):
         return True
     else:
         return False
-

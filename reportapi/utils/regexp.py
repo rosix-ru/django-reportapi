@@ -22,11 +22,14 @@
 from __future__ import unicode_literals
 import re
 
+
 pattern_name = re.compile('^[a-z,A-Z]+$')
+pattern_title = re.compile('^[ ,\-,\w]+$')
+
+
 def validate_name(s):
     return bool(pattern_name.match(s))
 
-pattern_title = re.compile('^[ ,\-,\w]+$')
+
 def validate_title(s):
     return bool(pattern_title.match(s))
-

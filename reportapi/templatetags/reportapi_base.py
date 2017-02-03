@@ -25,31 +25,39 @@ from django.utils.translation import ugettext_lazy as _
 
 from reportapi import conf
 
+
 register = Library()
+
 
 @register.simple_tag
 def DEBUG_MODE():
     return conf.DEBUG
 
+
 @register.simple_tag
 def PROJECT_NAME():
     return conf.PROJECT_NAME or _('Project')
+
 
 @register.simple_tag
 def PROJECT_URL():
     return conf.PROJECT_URL or '/'
 
+
 @register.simple_tag
 def SERVER_TZ_OFFSET():
     return conf.SERVER_TZ_OFFSET
+
 
 @register.simple_tag
 def DJANGO_VERSION():
     return conf.DJANGO_VERSION
 
+
 @register.simple_tag
 def QUICKAPI_VERSION():
     return conf.QUICKAPI_VERSION
+
 
 @register.simple_tag
 def REPORTAPI_VERSION():
@@ -64,6 +72,7 @@ def short_username(user):
         return user.username
     return '%s %s.' % (user.last_name, unicode(user.first_name)[0])
 
+
 @register.simple_tag
 def full_username(user):
     if user.is_anonymous():
@@ -71,6 +80,7 @@ def full_username(user):
     if not user.last_name and not user.first_name:
         return user.username
     return '%s %s' % (user.last_name, user.first_name)
+
 
 @register.filter
 def multiply(obj, digit):
@@ -80,6 +90,7 @@ def multiply(obj, digit):
         return obj * digit
     except:
         return 'filter error'
+
 
 @register.filter
 def divide(obj, digit):

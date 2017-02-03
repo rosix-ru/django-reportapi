@@ -24,33 +24,31 @@ from __future__ import unicode_literals
 from django.utils.encoding import force_text
 from django.utils import six
 from django.utils.translation import ugettext_lazy as _
-from django.db.models.base import ModelBase
-from django.core.exceptions import ImproperlyConfigured
-from django.utils.text import capfirst
 
-from reportapi.models import Report, Register, Document
+from reportapi.models import Report, Register
 from reportapi import conf
-from reportapi.conf import settings
+
 
 SORTING_SECTIONS = getattr(conf, 'REPORTAPI_SORTING_SECTIONS', True)
 SORTING_REPORTS = getattr(conf, 'REPORTAPI_SORTING_REPORTS', True)
-SECTION_LABELS        = getattr(conf, 'SECTION_LABELS',
-    {
-        'admin':            _('Administration'),
-        'auth':             _('Users'),
-        'sites':            _('Sites'),
-        'contenttypes':     _('Content types'),
-    }
-)
+SECTION_LABELS = getattr(conf, 'SECTION_LABELS', {
+    'admin': _('Administration'),
+    'auth': _('Users'),
+    'sites': _('Sites'),
+    'contenttypes': _('Content types'),
+})
+
 
 class AlreadyRegistered(Exception):
     pass
 
+
 class NotRegistered(Exception):
     pass
 
+
 class Section(object):
-    """ Класс раздела для регистрации экземпляров Report """
+    "Класс раздела для регистрации экземпляров Report."
     icon = None
 
     def __init__(self, site, section_name, section_label):
@@ -93,7 +91,7 @@ class Section(object):
         SECTION = {
             'icon': self.icon,
             'label': self.label,
-            'reports_list': [ r.name for r in reports ],
+            'reports_list': [r.name for r in reports],
             'reports': {},
         }
         for report in reports:
@@ -107,14 +105,15 @@ class Section(object):
         """ Возвращает список отчётов, доступных для пользователя """
         unsorted = self.get_available_names(request)
         # По умолчанию сортировка по очереди регистрации
-        names = [ x for x in self.reports_list if x in unsorted ]
-        REPORTS = [ self.reports[name] for name in names ]
+        names = [x for x in self.reports_list if x in unsorted]
+        REPORTS = [self.reports[name] for name in names]
 
         if SORTING_REPORTS:
             # Сортировка по локализованному названию
             REPORTS = sorted(REPORTS, key=lambda x: force_text(x.label))
 
         return REPORTS
+
 
 class SiteReportAPI(object):
     """
@@ -125,8 +124,8 @@ class SiteReportAPI(object):
         self.icon = icon
         self.label = label
 
-        self.sections_list = []   # меню секций
-        self.sections      = {}   # экземпляры Section
+        self.sections_list = []  # меню секций
+        self.sections = {}  # экземпляры Section
 
     def register(self, iterclass, **kwargs):
         """
@@ -135,10 +134,10 @@ class SiteReportAPI(object):
 
         # Don't import the humongous validation code unless required
         # TODO: сделать валидатор
-        #~ if settings.DEBUG:
-            #~ from reportapi.validation import validate
-        #~ else:
-            #~ validate = lambda klass: None
+        # if settings.DEBUG:
+        #     from reportapi.validation import validate
+        # else:
+        #     validate = lambda klass: None
         validate = lambda klass: None
 
         if issubclass(iterclass, Report):
@@ -152,17 +151,21 @@ class SiteReportAPI(object):
             section_name = report.section
             report_name = report.name
 
-            if not section_name in self.sections:
+            if section_name not in self.sections:
                 self.sections[section_name] = Section(
                     site=self,
                     section_name=section_name,
-                    section_label=SECTION_LABELS.get(section_name, report.section_label),
-                    )
+                    section_label=SECTION_LABELS.get(
+                        section_name, report.section_label
+                    ),
+                )
                 self.sections_list.append(section_name)
             section = self.sections[section_name]
 
             if report_name in section.reports:
-                raise AlreadyRegistered('The report %s is already registered' % report.__name__)
+                raise AlreadyRegistered(
+                    'The report %s is already registered' % report.__name__
+                )
 
             section.reports[report_name] = report
             section.reports_list.append(report_name)
@@ -179,11 +182,13 @@ class SiteReportAPI(object):
             free_report = section.reports.pop(report_name)
 
             if report_name in section.reports_list:
-                del section.reports_list[section.reports_list.index(report_name)]
+                i = section.reports_list.index(report_name)
+                del section.reports_list[i]
 
             if not section.report.keys():
                 del self.sections[section_name]
-                del self.sections_list[self.sections_list.index(section_name)]
+                i = self.sections_list.index(section_name)
+                del self.sections_list[i]
 
             return free_report
 
@@ -193,15 +198,16 @@ class SiteReportAPI(object):
     def has_permission(self, request):
         """
         Возвращает True, если данный HttpRequest имеет разрешение по
-        крайней мере в одном экземпляре Report
+        крайней мере в одном экземпляре Report.
         """
         return request.user.is_active and request.user.is_staff and \
             bool(self.get_registered(request).count())
 
     def get_scheme(self, request):
-        """ Возвращает схему приложения, доступную для пользователя и 
-            состоящую из простых объектов Python, готовых к
-            сериализации в любую структуру
+        """
+        Возвращает схему приложения, доступную для пользователя и
+        состоящую из простых объектов Python, готовых к
+        сериализации в любую структуру.
         """
 
         SCHEME = {
@@ -224,13 +230,12 @@ class SiteReportAPI(object):
             # Сортировка по локализованному названию
             sections_list = sorted(sections_list, key=lambda x: x[1])
 
-        SCHEME['sections_list'] = [ x[0] for x in sections_list ]
+        SCHEME['sections_list'] = [x[0] for x in sections_list]
 
         return SCHEME
 
     def get_sections(self, request):
-        """ Возвращает список разделов, доступных для пользователя
-        """
+        "Возвращает список разделов, доступных для пользователя."
 
         SECTIONS = []
 
@@ -265,6 +270,8 @@ class SiteReportAPI(object):
                     return report, register
         return None, None
 
-# This global object represents the default ReportAPI site, for the common case.
-# You can instantiate SiteReportAPI in your own code to create a custom ReportAPI site.
+
+# This global object represents the default ReportAPI site, for the common
+# case. You can instantiate SiteReportAPI in your own code to create a custom
+# ReportAPI site.
 site = SiteReportAPI()

@@ -23,10 +23,14 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 
+
 DEFAULT = 'default'
 
-if not 'default' in settings.DATABASES.keys():
-    DEFAULT = [ x for x in settings.DATABASES.keys() if x.startswith('master') ][0]
+
+if 'default' not in settings.DATABASES.keys():
+    DEFAULT = [x for x in settings.DATABASES.keys() if
+               x.startswith('master')][0]
+
 
 class Router(object):
     """
@@ -44,9 +48,9 @@ class Router(object):
         return None
 
     def allow_relation(self, obj1, obj2, **hints):
-        if obj1._meta.app_label == 'reportapi' or \
-           obj2._meta.app_label == 'reportapi':
-           return True
+        if (obj1._meta.app_label == 'reportapi' or
+                obj2._meta.app_label == 'reportapi'):
+            return True
         return None
 
     def allow_migrate(self, db, model):

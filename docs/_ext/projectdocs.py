@@ -1,9 +1,6 @@
 """
 Sphinx plugins for Project documentation.
 """
-import json
-import os
-import re
 
 from sphinx import __version__ as sphinx_ver, addnodes
 from sphinx.writers.html import SmartyPantsHTMLTranslator
@@ -14,6 +11,7 @@ from gettext import textdomain, bindtextdomain, gettext
 domain = textdomain('ext')
 # set directory with localizations
 bindtextdomain(domain, localedir='locale')
+
 
 def _(message):
     v = gettext(message)
@@ -44,8 +42,9 @@ class ProjectHTMLTranslator(SmartyPantsHTMLTranslator):
         self.first_param = 1
         self.optional_param_level = 0
         self.param_separator = node.child_text_separator
-        self.required_params_left = sum([isinstance(c, addnodes.desc_parameter)
-                                         for c in node.children])
+        self.required_params_left = sum(
+            [isinstance(c, addnodes.desc_parameter) for c in node.children]
+        )
 
     def depart_desc_parameterlist(self, node):
         self.body.append(')')
@@ -54,6 +53,7 @@ class ProjectHTMLTranslator(SmartyPantsHTMLTranslator):
         #
         # Don't apply smartypants to literal blocks
         #
+
         def visit_literal_block(self, node):
             self.no_smarty += 1
             SmartyPantsHTMLTranslator.visit_literal_block(self, node)
@@ -61,7 +61,6 @@ class ProjectHTMLTranslator(SmartyPantsHTMLTranslator):
         def depart_literal_block(self, node):
             SmartyPantsHTMLTranslator.depart_literal_block(self, node)
             self.no_smarty -= 1
-
 
     version_text = {
         'versionchanged': _('Changed in version %s'),
@@ -90,4 +89,3 @@ class ProjectHTMLTranslator(SmartyPantsHTMLTranslator):
         node['ids'].extend(old_ids)
         SmartyPantsHTMLTranslator.visit_section(self, node)
         node['ids'] = old_ids
-

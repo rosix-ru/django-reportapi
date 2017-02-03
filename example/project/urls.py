@@ -29,10 +29,12 @@ admin.autodiscover()
 
 _urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^', include('reportapi.urls', namespace="reportapi"), name='reportapi'),
+    url(r'^', include('reportapi.urls', namespace="reportapi"),
+        name='reportapi'),
 ]
 
-urlpatterns = i18n_patterns('',
+urlpatterns = i18n_patterns(
+    '',
     url(r'^', include(_urlpatterns)),
 )
 
@@ -40,7 +42,8 @@ urlpatterns = i18n_patterns('',
 urlpatterns += staticfiles_urlpatterns()
 if settings.DEBUG:
     urlpatterns += [
-        url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {
-            'document_root': settings.MEDIA_ROOT,
-            }),
+        url(
+            r'^media/(?P<path>.*)$', 'django.views.static.serve',
+            {'document_root': settings.MEDIA_ROOT}
+        ),
     ]

@@ -21,8 +21,8 @@
 
 from __future__ import unicode_literals
 from django.contrib import admin
-from django.utils.translation import ugettext_lazy as _
-from .models import *
+from .models import Register, Document
+
 
 class RegisterAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'section', 'name', 'timeout', 'id')
@@ -30,7 +30,10 @@ class RegisterAdmin(admin.ModelAdmin):
     list_filter = ('section',)
     filter_horizontal = ('users', 'groups')
     ordering = ['title']
+
+
 admin.site.register(Register, RegisterAdmin)
+
 
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ('register', 'user', 'start', 'end', 'restriction', 'id')
@@ -38,4 +41,6 @@ class DocumentAdmin(admin.ModelAdmin):
     list_filter = ('register__section', 'register__title')
     raw_id_fields = ('user',)
     ordering = ['-end', 'start']
+
+
 admin.site.register(Document, DocumentAdmin)

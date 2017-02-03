@@ -19,36 +19,33 @@
 #   <http://www.gnu.org/licenses/>.
 #
 
-import os, sys
+import os
+import sys
 
-# Set name directory of environ
-ENV = ''#'env-django1.8'
+
+# Set name directory of environ, like '.virtualenvs/django1.8'
+ENV = ''
+
 
 def getenv():
-    if ENV:
-        thispath = os.path.abspath(os.path.dirname(__file__))
-        while thispath:
-            if thispath == '/' and not os.path.exists(os.path.join(thispath, ENV)):
-                raise Exception('Environ not found')
-            if os.path.exists(os.path.join(thispath, ENV)):
-                return os.path.join(thispath, ENV)
-            else:
-                thispath = os.path.dirname(thispath)
-    else:
-        return None
+    path = os.path.abspath(os.path.dirname(__file__))
+    while path:
+        env = os.path.join(path, ENV)
+        found = os.path.exists(env)
+        if path == '/' and not found:
+            raise EnvironmentError('Path `%s` not found' % ENV)
+        elif found:
+            return env
+        else:
+            path = os.path.dirname(path)
+
 
 if __name__ == "__main__":
-    env = getenv()
-    if env:
-        python = 'python%s.%s' % sys.version_info[:2]
-        packages = os.path.join(env, 'lib', python, 'site-packages')
-        sys.path.insert(0, packages)
 
-    # additional local develop folder:
-    cwd = os.path.abspath(os.path.dirname(__file__))
-    develop_dir = os.path.dirname(cwd)
-    if os.path.exists(develop_dir):
-        sys.path.insert(0, develop_dir)
+    if ENV:
+        env = getenv()
+        activate_this = os.path.join(env, 'bin/activate_this.py')
+        execfile(activate_this, dict(__file__=activate_this))
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project.settings")
 

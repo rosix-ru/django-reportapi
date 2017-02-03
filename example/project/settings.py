@@ -25,9 +25,14 @@ import os
 
 from django.utils.translation import ugettext_lazy as _
 
+
 PROJECT_PATH = os.path.abspath(os.path.dirname(__file__))
+
+
 def abspath(*paths):
-    return os.path.abspath(os.path.join(PROJECT_PATH, *paths)).replace('\\','/')
+    return os.path.abspath(os.path.join(PROJECT_PATH, *paths)) \
+        .replace('\\', '/')
+
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -46,12 +51,8 @@ except:
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': abspath('example.sqlite'),                      # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': abspath('example.sqlite'),
     }
 }
 
@@ -66,100 +67,16 @@ ALLOWED_HOSTS = []
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'Asia/Vladivostok' #'Europe/Moscow'
+TIME_ZONE = 'Asia/Vladivostok'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'ru-ru'
 
-
 LANGUAGES = (
     ('ru', _('Russian')),
     ('en', _('English')),
 )
-
-"""
-LANGUAGES = (
-    ('af',      _('Afrikaans')),
-    ('ar',      _('Arabic')),
-    ('az',      _('Azerbaijani')),
-    ('bg',      _('Bulgarian')),
-    ('be',      _('Belarusian')),
-    ('bn',      _('Bengali')),
-    ('br',      _('Breton')),
-    ('bs',      _('Bosnian')),
-    ('ca',      _('Catalan')),
-    ('cs',      _('Czech')),
-    ('cy',      _('Welsh')),
-    ('da',      _('Danish')),
-    ('de',      _('German')),
-    ('el',      _('Greek')),
-    ('en',      _('English')),
-    ('en-gb',   _('British English')),
-    ('eo',      _('Esperanto')),
-    ('es',      _('Spanish')),
-    ('es-ar',   _('Argentinian Spanish')),
-    ('es-mx',   _('Mexican Spanish')),
-    ('es-ni',   _('Nicaraguan Spanish')),
-    ('es-ve',   _('Venezuelan Spanish')),
-    ('et',      _('Estonian')),
-    ('eu',      _('Basque')),
-    ('fa',      _('Persian')),
-    ('fi',      _('Finnish')),
-    ('fr',      _('French')),
-    ('fy-nl',   _('Frisian')),
-    ('ga',      _('Irish')),
-    ('gl',      _('Galician')),
-    ('he',      _('Hebrew')),
-    ('hi',      _('Hindi')),
-    ('hr',      _('Croatian')),
-    ('hu',      _('Hungarian')),
-    ('ia',      _('Interlingua')),
-    ('id',      _('Indonesian')),
-    ('is',      _('Icelandic')),
-    ('it',      _('Italian')),
-    ('ja',      _('Japanese')),
-    ('ka',      _('Georgian')),
-    ('kk',      _('Kazakh')),
-    ('km',      _('Khmer')),
-    ('kn',      _('Kannada')),
-    ('ko',      _('Korean')),
-    ('lb',      _('Luxembourgish')),
-    ('lt',      _('Lithuanian')),
-    ('lv',      _('Latvian')),
-    ('mk',      _('Macedonian')),
-    ('ml',      _('Malayalam')),
-    ('mn',      _('Mongolian')),
-    ('nb',      _('Norwegian Bokmal')),
-    ('ne',      _('Nepali')),
-    ('nl',      _('Dutch')),
-    ('nn',      _('Norwegian Nynorsk')),
-    ('pa',      _('Punjabi')),
-    ('pl',      _('Polish')),
-    ('pt',      _('Portuguese')),
-    ('pt-br',   _('Brazilian Portuguese')),
-    ('ro',      _('Romanian')),
-    ('ru',      _('Russian')),
-    ('sk',      _('Slovak')),
-    ('sl',      _('Slovenian')),
-    ('sq',      _('Albanian')),
-    ('sr',      _('Serbian')),
-    ('sr-latn', _('Serbian Latin')),
-    ('sv',      _('Swedish')),
-    ('sw',      _('Swahili')),
-    ('ta',      _('Tamil')),
-    ('te',      _('Telugu')),
-    ('th',      _('Thai')),
-    ('tr',      _('Turkish')),
-    ('tt',      _('Tatar')),
-    ('udm',     _('Udmurt')),
-    ('uk',      _('Ukrainian')),
-    ('ur',      _('Urdu')),
-    ('vi',      _('Vietnamese')),
-    ('zh-cn',   _('Simplified Chinese')),
-    ('zh-tw',   _('Traditional Chinese')),
-)
-"""
 
 LOCALE_PATHS = (
     abspath('locale'),
@@ -209,7 +126,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -219,7 +136,7 @@ SECRET_KEY = 'generate-this-unique-key!!!'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    # 'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -239,7 +156,8 @@ ROOT_URLCONF = 'project.urls'
 WSGI_APPLICATION = 'project.wsgi.application'
 
 TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+    # Put strings here, like "/home/html/django_templates"
+    # or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     abspath("templates"),
@@ -258,7 +176,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 INSTALLED_APPS = (
-    ### Обязательные
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -274,16 +191,8 @@ INSTALLED_APPS = (
     'project.test',
 )
 
-
-########################################################################
-#                     SETTINGS FOR APPLICATIONS                        #
-########################################################################
 SESSION_COOKIE_NAME = 'reportapisessionid'
 LOGIN_URL = '/admin/'
-
-########################################################################
-#                   END SETTINGS FOR APPLICATIONS                      #
-########################################################################
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -316,18 +225,16 @@ LOGGING = {
 
 CACHES = {
     'default': {
-        #'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'KEY_PREFIX': '_%s_' % 'ReportAPI',
-        #'LOCATION': [ '127.0.0.1:11211' ]
     }
 }
 
-# This import re-definition current top settings, 
+# This import re-definition current top settings,
 # e.g. DATABASES, SECRET_KEY, etc.
 # Default path: ../securesettings.py
-# outer from project paths and unavailable in Mercurial repository. 
+# outer from project paths and unavailable in Mercurial repository.
 try:
-    from securesettings import *
-except:
+    from securesettings import *  # NOQA
+except ImportError:
     pass

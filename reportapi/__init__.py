@@ -21,11 +21,14 @@
 
 VERSION = (3, 3, 6)
 
+
 def get_version(*args, **kwargs):
     return '%d.%d.%d' % VERSION
 
+
 def get_docs_version(*args, **kwargs):
     return '%d.%d' % VERSION[:2]
+
 
 __version__ = get_version()
 

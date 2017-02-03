@@ -41,7 +41,7 @@ class SerializerWrapper(object):
     def handle_property(self, obj, name):
         if hasattr(obj, name):
             value = getattr(obj, name)
-        elif '__' in name and not name.startswith('_'): 
+        elif '__' in name and not name.startswith('_'):
             names = name.split('__')
             o = obj
             for n in names:
@@ -67,7 +67,7 @@ class SerializerWrapper(object):
         if obj.pk:
             related = getattr(obj, field.name)
             if related:
-                #~ value = (related.pk, force_text(related))
+                # value = (related.pk, force_text(related))
                 app, model = force_text(related._meta).split('.')
                 value = {
                     self.unicode_key: force_text(related),
@@ -82,7 +82,7 @@ class SerializerWrapper(object):
             rel_model = field.rel.to
             try:
                 related = rel_model._default_manager.get(pk=value)
-                #~ value = (related.pk, force_text(related))
+                # value = (related.pk, force_text(related))
                 app, model = force_text(related._meta).split('.')
                 value = {
                     self.unicode_key: force_text(related),
@@ -99,8 +99,9 @@ class SerializerWrapper(object):
     def handle_m2m_field(self, obj, field):
         value = []
         if obj.pk and field.rel.through._meta.auto_created:
-            #~ m2m_value = lambda value: (value.pk, force_text(value))
+            # m2m_value = lambda value: (value.pk, force_text(value))
             app, model = force_text(field.rel.through._meta).split('.')
+
             def m2m_value(related):
                 return {
                     self.unicode_key: force_text(related),
@@ -108,8 +109,9 @@ class SerializerWrapper(object):
                     'app': app,
                     'model': model,
                 }
-            value = [m2m_value(related)
-                            for related in getattr(obj, field.name).iterator()]
+
+            value = [m2m_value(related) for related in
+                     getattr(obj, field.name).iterator()]
 
         self._current[field.name] = value
         return value
@@ -154,7 +156,7 @@ class SerializerWrapper(object):
                 elif attr in many_to_many:
                     field = opts.many_to_many[many_to_many.index(attr)]
                     self.handle_m2m_field(obj, field)
-                elif not attr in ('pk', '__unicode__', '__str__'):
+                elif attr not in ('pk', '__unicode__', '__str__'):
                     self.handle_property(obj, attr)
 
             self.end_object(obj)
@@ -167,8 +169,9 @@ class SerializerWrapper(object):
         """
         if isinstance(objects, Page):
             result = {}
-            wanted = ("end_index", "has_next", "has_other_pages", "has_previous",
-                    "next_page_number", "number", "start_index", "previous_page_number")
+            wanted = ("end_index", "has_next", "has_other_pages",
+                      "has_previous", "next_page_number", "number",
+                      "start_index", "previous_page_number")
             for attr in wanted:
                 v = getattr(objects, attr)
                 if isinstance(v, MethodType):
@@ -178,15 +181,16 @@ class SerializerWrapper(object):
                         result[attr] = None
                 elif isinstance(v, (str, int)):
                     result[attr] = v
-            result['count']       = objects.paginator.count
-            result['num_pages']   = objects.paginator.num_pages
-            result['per_page']    = objects.paginator.per_page
-            result['object_list'] = self.serialize_objects(objects.object_list, **options)
+            result['count'] = objects.paginator.count
+            result['num_pages'] = objects.paginator.num_pages
+            result['per_page'] = objects.paginator.per_page
+            result['object_list'] = self.serialize_objects(objects.object_list,
+                                                           **options)
             self.objects = result
         else:
             self.serialize_objects(objects, **options)
 
-        self.end_serialization() # Окончательно сериализуем
+        self.end_serialization()  # Окончательно сериализуем
         value = self.getvalue()
 
         if isinstance(objects, models.Model):
@@ -212,11 +216,13 @@ class SerializerWrapper(object):
         self.objects.append(self._current)
         self._current = None
 
+
 class Serializer(SerializerWrapper, OrignSerializer):
     """
     Serializes a QuerySet or page of Paginator to basic Python objects.
     """
     pass
+
 
 def serialize(queryset, **options):
     """

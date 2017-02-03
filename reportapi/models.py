@@ -28,33 +28,35 @@ from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.db import models
-from django.db.models import Q
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from django.utils import six
 from django.utils.crypto import get_random_string
 from django.utils.encoding import force_text, python_2_unicode_compatible
-from django.utils.translation import ugettext_noop, ugettext, ugettext_lazy as _
+from django.utils.translation import (ugettext_noop, ugettext,
+                                      ugettext_lazy as _)
 
 from reportapi.conf import (
-    settings,
     REPORTAPI_UPLOADCODE_LENGTH,
     REPORTAPI_BRAND_TEXT,
     REPORTAPI_BRAND_COLOR,
     REPORTAPI_MAXSIZE_XML,
-    Header, Footer, Page)
+    Page
+)
 from reportapi.exceptions import (OversizeError, ValidationError,
-    raise_set_site, raise_set_section)
+                                  raise_set_site)
 from reportapi.fields import JSONField
 from reportapi.managers import RegisterManager, DocumentManager
-from reportapi.utils.compat import get_user_model, render_to_string
+from reportapi.utils.compat import render_to_string
 from reportapi.utils.deep import to_dict as deep_to_dict
 from reportapi.utils.files import remove_dirs, remove_file, prep_filename
 from reportapi.utils.regexp import validate_name, validate_title
 from reportapi.utils.uno import (unoconv, REPORTAPI_UNOCONV_TO_ODF,
-    REPORTAPI_UNOCONV_TO_PDF)
+                                 REPORTAPI_UNOCONV_TO_PDF)
+
 
 AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+
 
 @python_2_unicode_compatible
 class SystemUser(object):
@@ -118,80 +120,93 @@ class SystemUser(object):
 
 class Report(object):
     """ Модель отчёта """
-    enable_threads  = True
-    create_force    = True
-    expiration_time = 86400 # 1 day
-    mimetype        = 'application/vnd.oasis.opendocument.text'
-    format          = 'fodt'
-    icon            = None
-    template_name   = 'reportapi/flatxml/standard_text.html'
-    filters         = None
-    site            = None
-    name            = None
-    title           = None
-    verbose_name    = None # do not change
-    section         = ugettext_noop('main')
-    section_label   = None # do not change
-    page            = Page()
-    convert_to_pdf  = True
-    convert_to_odf  = True
-    maxsize         = None # unlimited if REPORTAPI_MAXSIZE_XML is None also
+    enable_threads = True
+    create_force = True
+    expiration_time = 86400  # 1 day
+    mimetype = 'application/vnd.oasis.opendocument.text'
+    format = 'fodt'
+    icon = None
+    template_name = 'reportapi/flatxml/standard_text.html'
+    filters = None
+    site = None
+    name = None
+    title = None
+    verbose_name = None  # do not change
+    section = ugettext_noop('main')
+    section_label = None  # do not change
+    page = Page()
+    convert_to_pdf = True
+    convert_to_odf = True
+    # unlimited if REPORTAPI_MAXSIZE_XML is None also
+    maxsize = None
 
-    def __init__(self, site=None, section=None, section_label=None, \
-        filters=None, title=None, name=None, **kwargs):
-        """
-        Установка или замена значений по-умолчанию
-        """
+    def __init__(self, site=None, section=None, section_label=None,
+                 filters=None, title=None, name=None, **kwargs):
+        "Установка или замена значений по-умолчанию."
 
         class_name = self.__class__.__name__
 
-        self.site = site or getattr(self, 'site', None) or raise_set_site(class_name)
+        self.site = (
+            site or
+            getattr(self, 'site', None) or
+            raise_set_site(class_name)
+        )
 
         self.section = section or getattr(self, 'section')
-        if not isinstance(self.section, six.string_types) or not validate_name(self.section):
-            raise ValueError(force_text(_('Attribute `%s` most be string in '
-                'English without digits, spaces and hyphens.') % 'section'))
-        self.section_label = section_label or getattr(self, 'section_label', None) or _(self.section)
+        if (not isinstance(self.section, six.string_types) or
+                not validate_name(self.section)):
+            raise ValueError(force_text(
+                _('Attribute `%s` most be string in '
+                  'English without digits, spaces and hyphens.') % 'section'
+            ))
+        self.section_label = (
+            section_label or
+            getattr(self, 'section_label', None) or
+            _(self.section)
+        )
 
         self.name = name or getattr(self, 'name', None) or class_name.lower()
-        if not isinstance(self.name, six.string_types) or not validate_name(self.name):
-            raise ValueError(force_text(_('Attribute `%s` most be string in '
-                'English without digits, spaces and hyphens.') % 'name'))
+        if (not isinstance(self.name, six.string_types) or
+                not validate_name(self.name)):
+            raise ValueError(force_text(
+                _('Attribute `%s` most be string in English without digits, '
+                  'spaces and hyphens.') % 'name'
+            ))
 
         if self.filters is None:
             self.filters = filters or ()
 
         if not isinstance(self.filters, (list, tuple)):
-            raise ValueError(force_text(_('Attribute `filters` most be list or tuple.')))
+            raise ValueError(
+                force_text(_('Attribute `filters` most be list or tuple.'))
+            )
 
-        self._filters = dict([ (f.name, f) for f in self.filters ])
+        self._filters = dict([(f.name, f) for f in self.filters])
         # unique
-        self.filters = [ f for f in self.filters if f in self._filters.values() ]
+        self.filters = [f for f in self.filters if f in self._filters.values()]
 
         self.title = title or getattr(self, 'title')
-        if not isinstance(self.title, six.string_types) or not validate_title(self.title):
-            raise ValueError(force_text(_('Attribute `title` most be string in '
-                'English without translation.')))
+        if (not isinstance(self.title, six.string_types) or
+                not validate_title(self.title)):
+            raise ValueError(force_text(
+                _('Attribute `title` most be string in English without '
+                  'translation.')
+            ))
         self.verbose_name = _(self.title)
 
     def slugify(self, name):
-        """
-        Преобразовывает имя фильтра или отчёта в унифицированное
-        """ 
+        "Преобразовывает имя фильтра или отчёта в унифицированное."
         return slugify(name)
 
     @property
     def label(self):
-        """
-        Псевдоним свойства `verbose_name`
-        """
+        "Псевдоним свойства `verbose_name`."
         return self.verbose_name
 
     def create_register(self):
-        """
-        Создаёт в базе данных объект регистрации отчёта
-        """
-        registers = Register.objects.filter(section=self.section, name=self.name)
+        "Создаёт в базе данных объект регистрации отчёта."
+        registers = Register.objects.filter(section=self.section,
+                                            name=self.name)
         if registers:
             register = registers[0]
             if register.title != self.title:
@@ -200,7 +215,8 @@ class Report(object):
             return register
         # Если данный отчёт не зарегистрирован, то создаём его
         return Register.objects.create(
-            section=self.section, name=self.name, title=self.title)
+            section=self.section, name=self.name, title=self.title
+        )
 
     def permitted_register(self, request):
         """
@@ -216,7 +232,7 @@ class Report(object):
         if registers:
             return registers[0]
         return None
-    
+
     def has_permission(self, request):
         """
         Возвращает истинность наличия прав доступа к данному отчёту
@@ -225,7 +241,7 @@ class Report(object):
 
     def get_code(self, filters, request=None):
         """
-        Этот метод может быть переопределён для тех отчётов, где 
+        Этот метод может быть переопределён для тех отчётов, где
         уникальный код следует генерировать иначе.
         """
         if not filters:
@@ -279,10 +295,10 @@ class Report(object):
                 cond = _('empty') if f['value'] else _('no empty')
                 s = '%s: %s' % (label, cond)
             elif f['condition'] == 'in':
-                cond = ', '.join([ force_text(x) for x in f['value_label']])
+                cond = ', '.join([force_text(x) for x in f['value_label']])
                 s = '%s: %s [%s]' % (label, clabel, cond)
             elif f['condition'] == 'range':
-                cond = [ force_text(x) for x in f['value_label']]
+                cond = [force_text(x) for x in f['value_label']]
                 s = _('%(label)s: from %(cond0)s to %(cond1)s') % {
                     'label': label, 'cond0': cond[0], 'cond1': cond[1]
                 }
@@ -303,10 +319,11 @@ class Report(object):
         """
         Формирование файла отчёта.
         """
-        context = self.get_context(document=document, filters=filters, request=request)
-        if not 'BRAND_TEXT' in context:
+        context = self.get_context(document=document, filters=filters,
+                                   request=request)
+        if 'BRAND_TEXT' not in context:
             context['BRAND_TEXT'] = REPORTAPI_BRAND_TEXT
-        if not 'BRAND_COLOR' in context:
+        if 'BRAND_COLOR' not in context:
             context['BRAND_COLOR'] = REPORTAPI_BRAND_COLOR
         if not request:
             context['user'] = SystemUser()
@@ -314,11 +331,11 @@ class Report(object):
         # set temporary properties for document
         document.convert_to_pdf = self.convert_to_pdf
         document.convert_to_odf = self.convert_to_odf
-        document.mimetype       = self.mimetype
-        document.details        = deep_to_dict(document.details, 'filters', filters)
-        
+        document.mimetype = self.mimetype
+        document.details = deep_to_dict(document.details, 'filters', filters)
         # create title
-        document._filters_data = self.get_filters_data(filters, request=request)
+        document._filters_data = self.get_filters_data(filters,
+                                                       request=request)
         document.title = self.get_document_title(document)
 
         if self.page:
@@ -326,20 +343,20 @@ class Report(object):
         context['DOCUMENT'] = document
         context['FILTERS'] = document._filters_data.values()
         content = render_to_string(self.template_name, context, request)
-        _file = ContentFile(content.encode('utf-8') or \
-            force_text(_('Unspecified render error in template.')))
+        _file = ContentFile(
+            content.encode('utf-8') or
+            force_text(_('Unspecified render error in template.'))
+        )
         document.report_file.save(self.get_filename(), _file, save=save)
         return document
 
     def filters_to_string(self, filters):
-        """
-        Сериализуем фильтры в строку. 
-        """
+        "Сериализуем фильтры в строку."
         if not isinstance(filters, dict):
             return force_text(filters)
 
-        for k,v in filters.items():
-            if isinstance(v, (list,tuple)):
+        for k, v in filters.items():
+            if isinstance(v, (list, tuple)):
                 filters[k] = list(set(v))
         return force_text(filters)
 
@@ -347,7 +364,7 @@ class Report(object):
         """
         Возвращает список сериализованных фильтров
         """
-        return [ x.serialize(request=request) for x in self.filters ]
+        return [x.serialize(request=request) for x in self.filters]
 
     def prepare_filters(self, filters, request=None):
         """
@@ -360,7 +377,7 @@ class Report(object):
         Raise Exception from filter if not valid
         """
         try:
-            data = self.get_filters_data(filters, request=request)
+            self.get_filters_data(filters, request=request)
         except Exception as e:
             raise ValidationError(_('The filters contain errors: (%s)') % e)
         return True
@@ -370,7 +387,7 @@ class Report(object):
         Возвращает словарь с данными всех фильтров
         """
         D = {}
-        for key,dic in filters.items():
+        for key, dic in filters.items():
             f = self.get_filter(key)
             if f:
                 D[key] = f.data(request=request, **dic)
@@ -418,7 +435,7 @@ class Report(object):
         }
         filters_list = self.filters_list(request=request)
         SCHEME['filters'] = dict(filters_list)
-        SCHEME['filters_list'] = [ x[0] for x in filters_list ]
+        SCHEME['filters_list'] = [x[0] for x in filters_list]
 
         return SCHEME
 
@@ -439,23 +456,28 @@ class Report(object):
 
         maxsize = self.maxsize or REPORTAPI_MAXSIZE_XML
 
-        if not maxsize is None:
+        if maxsize is not None:
             size = os.path.getsize(document.report_file.path)
             if size > maxsize:
-                raise OversizeError(_('Exceeded the maximum (%(max)s) file size: %(size)s byte.') % {'size': size, 'max': maxsize})
+                raise OversizeError(
+                    _('Exceeded the maximum '
+                      '(%(max)s) file size: %(size)s byte.') % {
+                        'size': size,
+                        'max': maxsize
+                    })
 
         return True
 
 
 class Spreadsheet(Report):
-    mimetype      = "application/vnd.oasis.opendocument.spreadsheet"
-    format        = 'fods'
+    mimetype = "application/vnd.oasis.opendocument.spreadsheet"
+    format = 'fods'
     template_name = 'reportapi/flatxml/standard_spreadsheet.html'
 
 
 class HtmlReport(Report):
-    mimetype      = "text/html"
-    format        = 'html'
+    mimetype = "text/html"
+    format = 'html'
     template_name = 'reportapi/html/standard.html'
     convert_to_pdf = False
     convert_to_odf = False
@@ -468,11 +490,13 @@ class Register(models.Model):
     Модель служит для определения прав доступа к отчётам.
     """
     section = models.CharField(_('section'), max_length=255)
-    name    = models.CharField(_('name'), max_length=255)
+    name = models.CharField(_('name'), max_length=255)
     title = models.CharField(_('title without translation'), max_length=255)
     all_users = models.BooleanField(_('allow all users'), default=False)
-    users = models.ManyToManyField(AUTH_USER_MODEL, verbose_name=_('allow list users'), blank=True)
-    groups = models.ManyToManyField(Group, verbose_name=_('allow list groups'), blank=True)
+    users = models.ManyToManyField(AUTH_USER_MODEL, blank=True,
+                                   verbose_name=_('allow list users'))
+    groups = models.ManyToManyField(Group, blank=True,
+                                    verbose_name=_('allow list groups'))
     timeout = models.IntegerField(_('max of timeout'), default=1000)
 
     objects = RegisterManager()
@@ -497,7 +521,7 @@ class Register(models.Model):
 def upload_to(instance, filename):
 
     dic = {
-        'filename':filename,
+        'filename': filename,
         'date': timezone.now().date().isoformat(),
     }
 
@@ -518,23 +542,29 @@ class Document(models.Model):
 
     """
 
-    register    = models.ForeignKey(Register, verbose_name=_('registered report'))
-    user        = models.ForeignKey(AUTH_USER_MODEL, null=True, verbose_name=_('user'))
-    restriction = models.IntegerField(_('restriction'), editable=False, null=True, db_index=True)
-    code        = models.CharField(_('process key'), blank=True, db_index=True,
-                                    max_length=32)
+    register = models.ForeignKey(Register,
+                                 verbose_name=_('registered report'))
+    user = models.ForeignKey(AUTH_USER_MODEL, null=True,
+                             verbose_name=_('user'))
+    restriction = models.IntegerField(_('restriction'), editable=False,
+                                      null=True, db_index=True)
+    code = models.CharField(_('process key'), blank=True, db_index=True,
+                            max_length=32)
 
-    error       = models.TextField(_('error message'), blank=True)
-    start       = models.DateTimeField(_('start create'), auto_now_add=True)
-    end         = models.DateTimeField(_('end create'), null=True, blank=True)
+    error = models.TextField(_('error message'), blank=True)
+    start = models.DateTimeField(_('start create'), auto_now_add=True)
+    end = models.DateTimeField(_('end create'), null=True, blank=True)
 
-    report_file = models.FileField(_('report file'), blank=True, max_length=512, upload_to=upload_to)
-    odf_file    = models.FileField(_('report file in ODF'), blank=True, max_length=512, upload_to=upload_to)
-    pdf_file    = models.FileField(_('report file in PDF'), blank=True, max_length=512, upload_to=upload_to)
+    report_file = models.FileField(_('report file'), blank=True,
+                                   max_length=512, upload_to=upload_to)
+    odf_file = models.FileField(_('report file in ODF'), blank=True,
+                                max_length=512, upload_to=upload_to)
+    pdf_file = models.FileField(_('report file in PDF'), blank=True,
+                                max_length=512, upload_to=upload_to)
 
-    title       = models.CharField(_('title'), max_length=255, blank=True)
+    title = models.CharField(_('title'), max_length=255, blank=True)
     description = models.TextField(_('description'), blank=True)
-    details     = JSONField(_('details'), null=True, blank=True)
+    details = JSONField(_('details'), null=True, blank=True)
 
     objects = DocumentManager()
 
@@ -559,7 +589,7 @@ class Document(models.Model):
         if self.report_file:
             return self.report_file.url
         return None
-    xml_url  = property(_xml_url)
+    xml_url = property(_xml_url)
     html_url = property(_xml_url)
 
     @property
@@ -578,7 +608,7 @@ class Document(models.Model):
     def has_view_html(self):
         if self.report_file:
             basename, ext = os.path.splitext(self.report_file.name)
-            return ext.lower()  == '.html'
+            return ext.lower() == '.html'
         return False
 
     @property
@@ -590,7 +620,6 @@ class Document(models.Model):
     @property
     def has_view(self):
         return self.has_view_html or self.has_view_pdf
-
 
     def get_view_url(self):
         if not self.has_view and not self.error:
@@ -628,8 +657,9 @@ class Document(models.Model):
 
     @property
     def has_download(self):
-        return self.has_download_pdf or self.has_download_odf or self.has_download_xml
-
+        return (self.has_download_pdf or
+                self.has_download_odf or
+                self.has_download_xml)
 
     def get_download_url(self):
         if not self.has_download:
@@ -651,7 +681,6 @@ class Document(models.Model):
             return
         return reverse('reportapi:download_document', args=[self.pk, 'pdf'])
 
-
     def get_filename_xml(self):
         if self.report_file:
             basename, ext = os.path.splitext(self.report_file.name)
@@ -666,7 +695,6 @@ class Document(models.Model):
     def get_filename_pdf(self):
         if self.has_download_pdf:
             return '%s.%s' % (self.title, 'pdf')
-
 
     @property
     def xml_format(self):
@@ -715,8 +743,8 @@ class Document(models.Model):
 
         """
 
-        if  not (self.convert_to_odf and REPORTAPI_UNOCONV_TO_ODF) \
-        and not (self.convert_to_pdf and REPORTAPI_UNOCONV_TO_PDF):
+        if (not (self.convert_to_odf and REPORTAPI_UNOCONV_TO_ODF) and
+                not (self.convert_to_pdf and REPORTAPI_UNOCONV_TO_PDF)):
             return False
 
         flag = False
@@ -726,9 +754,10 @@ class Document(models.Model):
         basename, ext = os.path.splitext(oldname)
         ext = ext.lower()
 
-        ExtODF = {'.fodt': '.odt', '.fods': '.ods', '.fodp': '.odp', '.html': '.odt'}
+        ExtODF = {'.fodt': '.odt', '.fods': '.ods', '.fodp': '.odp',
+                  '.html': '.odt'}
 
-        if ext != '.pdf' and not ext in ExtODF:
+        if ext != '.pdf' and ext not in ExtODF:
             return False
 
         def run(format, newpath):
@@ -783,7 +812,3 @@ class Document(models.Model):
         if self.report_file:
             remove_dirs(os.path.dirname(self.report_file.path), withfiles=True)
         super(Document, self).delete()
-
-
-
-

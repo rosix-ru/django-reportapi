@@ -19,6 +19,7 @@
 #   <http://www.gnu.org/licenses/>.
 #
 
+
 def split_field(field):
     if not isinstance(field, (list, tuple)):
         return field.split('.')
@@ -30,6 +31,7 @@ def split_field(field):
         F.extend(f)
 
     return F
+
 
 def to_dict(dictionary, field, value, append_to_list=False):
     """
@@ -57,10 +59,10 @@ def to_dict(dictionary, field, value, append_to_list=False):
 
     d = D
     length = len(field)
-    dest = length-1
+    dest = length - 1
     for i in range(0, length):
         key = field[i]
-        if not key in d:
+        if key not in d:
             if i == dest:
                 if append_to_list:
                     d[key] = [value]
@@ -76,7 +78,6 @@ def to_dict(dictionary, field, value, append_to_list=False):
                 d[key] = value
         else:
             d = d[key]
-
     return D
 
 
@@ -88,7 +89,7 @@ def from_dict(dictionary, field, default=None, update=True, delete=False):
     'field1.field2.field3'
     или
     ['field1', 'field2', 'field3.field4', ...]
-    
+
     Устанавливает значение по-умолчанию, если ничего не найдено и
     разрешено обновление.
     Если задано удаление, то удаляет этот ключ.
@@ -103,10 +104,10 @@ def from_dict(dictionary, field, default=None, update=True, delete=False):
     d = D
     value = default
     length = len(field)
-    dest = length-1
+    dest = length - 1
     for i in range(0, length):
         key = field[i]
-        if not key in d:
+        if key not in d:
             if not update or delete:
                 break
             elif i == dest:
@@ -119,7 +120,7 @@ def from_dict(dictionary, field, default=None, update=True, delete=False):
                 value = d.pop(key)
                 break
             else:
-                value = d[key] 
+                value = d[key]
         else:
             d = d[key]
 
@@ -127,4 +128,3 @@ def from_dict(dictionary, field, default=None, update=True, delete=False):
         return value()
     else:
         return value
-

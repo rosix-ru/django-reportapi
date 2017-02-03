@@ -26,7 +26,7 @@ from datetime import datetime, timedelta
 
 from django.db import models
 from django.db.models import Q
-from django.core.paginator import Paginator, Page, PageNotAnInteger, EmptyPage
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.template.defaultfilters import slugify
 from django.utils.encoding import force_text, python_2_unicode_compatible
 from django.utils import six, timezone
@@ -41,33 +41,49 @@ from reportapi.python_serializer import serialize
 from reportapi.utils import periods
 from reportapi.utils.compat import get_model
 
-DEFAULT_SEARCH_FIELDS = getattr(conf, 'DEFAULT_SEARCH_FIELDS',
-    (# Основные классы, от которых наследуются другие
-        models.CharField,
-        models.TextField,
-    )
-)
-DEFAULT_SEARCH_DATE_FIELDS = getattr(conf, 'DEFAULT_SEARCH_DATE_FIELDS',
-    (# Основные классы, от которых наследуются другие
-        models.DateTimeField,
-        models.DateField,
-    )
+
+DEFAULT_SEARCH_FIELDS = getattr(conf, 'DEFAULT_SEARCH_FIELDS', (
+    # Основные классы, от которых наследуются другие
+    models.CharField,
+    models.TextField,
+))
+DEFAULT_SEARCH_DATE_FIELDS = getattr(conf, 'DEFAULT_SEARCH_DATE_FIELDS', (
+    # Основные классы, от которых наследуются другие
+    models.DateTimeField,
+    models.DateField,
+))
+
+__conditions__ = (
+    ugettext_noop('isnull'),
+    ugettext_noop('empty'),
+    # ugettext_noop('bool'),
+    ugettext_noop('exact'),
+    ugettext_noop('iexact'),
+    ugettext_noop('gt'),
+    ugettext_noop('gte'),
+    ugettext_noop('lt'),
+    ugettext_noop('lte'),
+    ugettext_noop('range'),
+    ugettext_noop('in'),
+    ugettext_noop('contains'),
+    ugettext_noop('icontains'),
+    ugettext_noop('startswith'),
+    ugettext_noop('istartswith'),
+    ugettext_noop('endswith'),
+    ugettext_noop('iendswith')
 )
 
-__conditions__ = (ugettext_noop('isnull'), ugettext_noop('empty'),# ugettext_noop('bool'),
-    ugettext_noop('exact'), ugettext_noop('iexact'), 
-    ugettext_noop('gt'), ugettext_noop('gte'),
-    ugettext_noop('lt'), ugettext_noop('lte'),
-    ugettext_noop('range'), ugettext_noop('in'),
-    ugettext_noop('contains'), ugettext_noop('icontains'), 
-    ugettext_noop('startswith'), ugettext_noop('istartswith'),
-    ugettext_noop('endswith'), ugettext_noop('iendswith')
-)
 
 DB_OPERATORS = {
-        'exact': '=', 'gt': '>', 'gte': '>=', 'lt': '<', 'lte': '<=',
-        'isnull': 'IS NULL', 'range': 'BETWEEN %s AND %s'
-    }
+    'exact': '=',
+    'gt': '>',
+    'gte': '>=',
+    'lt': '<',
+    'lte': '<=',
+    'isnull': 'IS NULL',
+    'range': 'BETWEEN %s AND %s'
+}
+
 
 @python_2_unicode_compatible
 class BaseFilter(object):
@@ -84,7 +100,7 @@ class BaseFilter(object):
         return '%s:%s' % (self.__class__.__name__, self.name)
 
     def __init__(self, name, required=False, conditions=None,
-        verbose_name=None, placeholder=None, **kwargs):
+                 verbose_name=None, placeholder=None, **kwargs):
 
         if self.required is None:
             self.required = required
@@ -103,16 +119,17 @@ class BaseFilter(object):
                 self.default_value = default_value
 
             if not hasattr(self, 'default_condition'):
-                self.default_condition = self.conditions[0] if self.conditions else 'truth'
+                self.default_condition = (self.conditions[0] if
+                                          self.conditions else 'truth')
 
         self.name = slugify(name)
 
-        if not verbose_name is None:
+        if verbose_name is not None:
             self.verbose_name = verbose_name
         else:
             self.verbose_name = self.verbose_name or _(name)
 
-        if not placeholder is None:
+        if placeholder is not None:
             self.placeholder = placeholder
 
     def get_value(self, condition, value, request=None):
@@ -120,8 +137,10 @@ class BaseFilter(object):
 
     def get_value_range_label(self, condition, value, request=None):
         if condition == 'range':
-            value = list(self.get_value_label(condition, value, request=request))
-            return value[0], value[-1] 
+            value = list(
+                self.get_value_label(condition, value, request=request)
+            )
+            return value[0], value[-1]
         return None
 
     def get_value_label(self, condition, value, request=None):
@@ -131,7 +150,8 @@ class BaseFilter(object):
             return self.boolean_labels.get(str(bool(value)).upper())
         return self.get_value(condition, value, request=request)
 
-    def data(self, condition=ugettext_noop('truth'), value=None, inverse=False, request=None, **options):
+    def data(self, condition=ugettext_noop('truth'), value=None,
+             inverse=False, request=None, **options):
         """
         Метод получения информации об установленном фильтре.
         """
@@ -142,9 +162,11 @@ class BaseFilter(object):
         options['condition'] = condition
         options['condition_label'] = _(condition)
         options['value'] = self.get_value(condition, value, request=request)
-        options['value_label'] = self.get_value_label(condition, value, request=request)
+        options['value_label'] = self.get_value_label(condition, value,
+                                                      request=request)
         if condition == 'range':
-            options['value_range_label'] = self.get_value_range_label(condition, value, request=request)
+            options['value_range_label'] = self.get_value_range_label(
+                condition, value, request=request)
 
         return options
 
@@ -225,6 +247,7 @@ class BaseFilter(object):
 
         return self.name, D
 
+
 class FilterObject(BaseFilter):
     _type = 'object'
     conditions = ('isnull', 'exact', 'in', 'range')
@@ -237,7 +260,8 @@ class FilterObject(BaseFilter):
     unicode_key = '__unicode__'
     secret_fields = ['password', 'settings', 'details']
 
-    def __init__(self, name, model=None, manager=None, fields_search=None, **kwargs):
+    def __init__(self, name, model=None, manager=None, fields_search=None,
+                 **kwargs):
         """
         Параметр manager приоритетнее параметра model и может быть как
         полной строкой, включающей название приложения, модели и
@@ -259,7 +283,8 @@ class FilterObject(BaseFilter):
             self.set_manager(None)
         self.opts = self.model._meta
 
-        self.set_fields_search(fields_search or getattr(self, 'fields_search', None))
+        self.set_fields_search(fields_search or
+                               getattr(self, 'fields_search', None))
         self.max_options = kwargs.pop('max_options', self.max_options)
 
     def set_model(self, model):
@@ -271,7 +296,10 @@ class FilterObject(BaseFilter):
             if not self.model:
                 raise AttributeError('Model `%s.%s` not found.' % (app, model))
         else:
-            raise AttributeError('Model must be subclass of models.Model or string: `app.model`.')
+            raise AttributeError(
+                'Model must be subclass of models.Model or string: '
+                '`app.model`.'
+            )
 
     def set_manager(self, manager):
         if isinstance(manager, models.Manager):
@@ -299,13 +327,14 @@ class FilterObject(BaseFilter):
         if not fields_search:
             all_fields = self.opts.get_fields_with_model()
             if self.search_on_date:
-                fields_search = [ x[0].name for x in all_fields \
-                            if isinstance(x[0], DEFAULT_SEARCH_DATE_FIELDS) ]
+                fields_search = [x[0].name for x in all_fields if
+                                 isinstance(x[0], DEFAULT_SEARCH_DATE_FIELDS)]
             else:
-                fields_search = [ x[0].name for x in all_fields \
-                            if isinstance(x[0], DEFAULT_SEARCH_FIELDS) ]
+                fields_search = [x[0].name for x in all_fields if
+                                 isinstance(x[0], DEFAULT_SEARCH_FIELDS)]
 
-        self.fields_search = [ x for x in fields_search if not x in self.secret_fields ]
+        self.fields_search = [x for x in fields_search if
+                              x not in self.secret_fields]
 
     @property
     def objects(self):
@@ -316,7 +345,8 @@ class FilterObject(BaseFilter):
 
     def options(self, request=None, **kwargs):
         qs = self.get_queryset(request=request, **kwargs)[:self.max_options]
-        return serialize(qs, attrs=self.fields_search, unicode_key=self.unicode_key)
+        return serialize(qs, attrs=self.fields_search,
+                         unicode_key=self.unicode_key)
 
     def get_queryset(self, request=None, **kwargs):
         """
@@ -327,11 +357,11 @@ class FilterObject(BaseFilter):
         return self.objects
 
     def get_paginator(self, queryset, per_page=25, orphans=0,
-        allow_empty_first_page=True, **kwargs):
+                      allow_empty_first_page=True, **kwargs):
         return Paginator(
-                queryset, per_page=per_page, orphans=orphans,
-                allow_empty_first_page=allow_empty_first_page
-            )
+            queryset, per_page=per_page, orphans=orphans,
+            allow_empty_first_page=allow_empty_first_page
+        )
 
     def get_page_queryset(self, queryset, page=1, **kwargs):
         """
@@ -343,14 +373,15 @@ class FilterObject(BaseFilter):
         try:
             page = int(page)
         except:
-            page=1
+            page = 1
         try:
             page_queryset = paginator.page(page)
         except PageNotAnInteger:
             # If page is not an integer, deliver first page.
             page_queryset = paginator.page(1)
         except EmptyPage:
-            # If page is out of range (e.g. 9999), deliver last page of results.
+            # If page is out of range (e.g. 9999), deliver last page of
+            # results.
             page_queryset = paginator.page(paginator.num_pages)
         return page_queryset
 
@@ -365,7 +396,7 @@ class FilterObject(BaseFilter):
             qs = _search_in_fields(qs, self.fields_search, query)
         page_queryset = self.get_page_queryset(qs, page=page)
         return serialize(page_queryset, attrs=self.fields_search,
-            unicode_key=self.unicode_key)
+                         unicode_key=self.unicode_key)
 
     def get_value(self, condition, value, request=None):
         qs = self.get_queryset(request=request)
@@ -387,21 +418,26 @@ class FilterObject(BaseFilter):
                 raise ObjectFoundError()
             return qs
 
+
 class FilterText(BaseFilter):
     _type = 'text'
-    conditions = ('exact', 'iexact', 'contains', 'icontains', 
-        'startswith', 'istartswith', 'endswith', 'iendswith', 'empty')
+    conditions = ('exact', 'iexact', 'contains', 'icontains',
+                  'startswith', 'istartswith', 'endswith', 'iendswith',
+                  'empty')
+
 
 class FilterNumber(BaseFilter):
     _type = 'number'
     conditions = ('exact', 'gt', 'gte', 'lt', 'lte')
 
+
 # Translated date and time formats
-DATE_FORMAT         = _('Y-m-d')
-TIME_FORMAT         = _('H:i')
-TIME_FORMAT_SEC     = _('H:i:s')
-DATETIME_FORMAT     = _('Y-m-d H:i')
+DATE_FORMAT = _('Y-m-d')
+TIME_FORMAT = _('H:i')
+TIME_FORMAT_SEC = _('H:i:s')
+DATETIME_FORMAT = _('Y-m-d H:i')
 DATETIME_FORMAT_SEC = _('Y-m-d H:i:s')
+
 
 class BaseDateTime(BaseFilter):
     use_mask = True
@@ -455,6 +491,7 @@ class BaseDateTime(BaseFilter):
                 return value
         return value
 
+
 class FilterDateTime(BaseDateTime):
     _type = 'datetime'
     withseconds = False
@@ -480,16 +517,20 @@ class FilterDateTime(BaseDateTime):
         if isinstance(value, six.string_types):
             value = parse_datetime(value)
         elif isinstance(value, (list, tuple)):
-            _value = list(set([ parse_datetime(v) for v in value ]))
+            _value = list(set([parse_datetime(v) for v in value]))
             if len(_value) == len(value):
                 value = _value
             else:
                 value = None
         if value is None:
-            raise ValueError('One or more values not valid in `%s` filter.' % force_text(self))
+            raise ValueError(
+                'One or more values not valid in `%s` filter.' %
+                force_text(self)
+            )
         if condition == 'range':
             value = [min(value), max(value)]
         return value
+
 
 class FilterDate(BaseDateTime):
     _type = 'date'
@@ -500,16 +541,20 @@ class FilterDate(BaseDateTime):
         if isinstance(value, six.string_types):
             value = parse_date(value)
         elif isinstance(value, (list, tuple)):
-            _value = list(set([ parse_date(v) for v in value ]))
+            _value = list(set([parse_date(v) for v in value]))
             if len(_value) == len(value):
                 value = _value
             else:
                 value = None
         if value is None:
-            raise ValueError('One or more values not valid in `%s` filter.' % force_text(self))
+            raise ValueError(
+                'One or more values not valid in `%s` filter.' %
+                force_text(self)
+            )
         if condition == 'range':
             value = [min(value), max(value)]
         return value
+
 
 class FilterTime(BaseDateTime):
     _type = 'time'
@@ -526,16 +571,20 @@ class FilterTime(BaseDateTime):
         if isinstance(value, six.string_types):
             value = parse_time(value)
         elif isinstance(value, (list, tuple)):
-            _value = list(set([ parse_time(v) for v in value ]))
+            _value = list(set([parse_time(v) for v in value]))
             if len(_value) == len(value):
                 value = _value
             else:
                 value = None
         if value is None:
-            raise ValueError('One or more values not valid in `%s` filter.' % force_text(self))
+            raise ValueError(
+                'One or more values not valid in `%s` filter.' %
+                force_text(self)
+            )
         if condition == 'range':
             value = [min(value), max(value)]
         return value
+
 
 class FilterBoolean(BaseFilter):
     _type = 'boolean'
@@ -547,10 +596,11 @@ class FilterBoolean(BaseFilter):
     def __init__(self, name, usenone=None, **kwargs):
         super(FilterBoolean, self).__init__(name=name, **kwargs)
 
-        if not usenone is None:
+        if usenone is not None:
             self.usenone = usenone
             if self.default_value is None:
                 self.required = True
+
 
 class FilterChoice(BaseFilter):
     _type = 'choice'
@@ -572,75 +622,85 @@ class FilterChoice(BaseFilter):
             o = self._options()
         else:
             o = self._options
-        return [ {'value':x,'label':y} for x,y in o.items() ]
+        return [{'value': x, 'label': y} for x, y in o.items()]
 
     def get_value_label(self, condition, value, request=None):
         dic = self._options
         if condition in ('range', 'in'):
-            return [ dic[self.keytype(x)] for x in set(list(value)) if self.keytype(x) in dic ]
+            return [dic[self.keytype(x)] for x in set(list(value)) if
+                    self.keytype(x) in dic]
         else:
             return dic.get(self.keytype(value), None)
 
     def get_value(self, condition, value, request=None):
         dic = self._options
         if condition in ('range', 'in'):
-            value = [ self.keytype(x) for x in set(list(value)) if self.keytype(x) in dic ]
+            value = [self.keytype(x) for x in set(list(value)) if
+                     self.keytype(x) in dic]
             if condition == 'range':
                 value = [min(value), max(value)]
             return value
         else:
             return self.keytype(value)
 
+
 class FilterChoiceStr(FilterChoice):
     keytype = six.text_type
+
 
 class FilterWeekDay(FilterChoice):
     _type = 'weekday'
     placeholder = _('Select weekday')
     _options = WEEKDAYS
 
+
 class FilterMonth(FilterChoice):
     _type = 'month'
     placeholder = _('Select month')
     _options = MONTHS
 
+
 PERIODS = {
-        'today': _('Today'),
-        'tomorrow': _('Tomorrow'),
-        'tomorrow2': _('Day after tomorrow'),
-        'yesterday': _('Yesterday'),
-        'yesterday2': _('Two days ago'),
+    'today': _('Today'),
+    'tomorrow': _('Tomorrow'),
+    'tomorrow2': _('Day after tomorrow'),
+    'yesterday': _('Yesterday'),
+    'yesterday2': _('Two days ago'),
 
-        'next2days': _('Next two days'),
-        'next3days': _('Next three days'),
-        'last2days': _('Last two days'),
-        'last3days': _('Last three days'),
+    'next2days': _('Next two days'),
+    'next3days': _('Next three days'),
+    'last2days': _('Last two days'),
+    'last3days': _('Last three days'),
 
-        'week': _('Current week'),
-        'next_week': _('Next week'),
-        'previous_week': _('Previous week'),
+    'week': _('Current week'),
+    'next_week': _('Next week'),
+    'previous_week': _('Previous week'),
 
-        'month': _('Current month'),
-        'next_month': _('Next month'),
-        'previous_month': _('Previous month'),
+    'month': _('Current month'),
+    'next_month': _('Next month'),
+    'previous_month': _('Previous month'),
 
-        'quarter1': _('First quarter'),
-        'quarter2': _('Second quarter'),
-        'quarter3': _('Third quarter'),
-        'quarter4': _('Fourth quarter'),
+    'quarter1': _('First quarter'),
+    'quarter2': _('Second quarter'),
+    'quarter3': _('Third quarter'),
+    'quarter4': _('Fourth quarter'),
 
-        'halfyear1': _('First half year'),
-        'halfyear2': _('Second half year'),
+    'halfyear1': _('First half year'),
+    'halfyear2': _('Second half year'),
 
-        'year': _('Current year'),
-        'next_year': _('Next year'),
-        'previous_year': _('Previous year'),
-    }
+    'year': _('Current year'),
+    'next_year': _('Next year'),
+    'previous_year': _('Previous year'),
+}
+
 
 # test
 for x in PERIODS.keys():
     if not hasattr(periods, x):
-        raise PeriodsError(_('Function `%s` not found in reportapi.utils.periods') % x)
+        raise PeriodsError(
+            _('Function `%s` not found in reportapi.utils.periods') % x
+        )
+
 
 class FilterPeriod(FilterChoice):
     _type = 'period'
@@ -664,6 +724,7 @@ class FilterPeriod(FilterChoice):
             return f(withtime=self.withtime)
         return value
 
+
 def _search_in_fields(queryset, fields, query):
     """ Фильтрация """
     if fields:
@@ -678,7 +739,7 @@ def _search_in_fields(queryset, fields, query):
                 return "%s__icontains" % field_name
         orm_lookups = [construct_search(force_text(search_field))
                        for search_field in fields]
-        if not query in ('', None, False, True):
+        if query not in ('', None, False, True):
             for bit in query.split():
                 or_queries = [Q(**{orm_lookup: bit})
                               for orm_lookup in orm_lookups]
@@ -686,9 +747,11 @@ def _search_in_fields(queryset, fields, query):
 
     return queryset
 
+
 date_re = re.compile(
     r'(?P<year>\d{4})-?(?P<month>\d{2})?-?(?P<day>\d{2})?$'
 )
+
 
 def _date_search_in_fields(queryset, fields, query, regexp=date_re):
     """ Фильтрация по дате"""
@@ -704,11 +767,11 @@ def _date_search_in_fields(queryset, fields, query, regexp=date_re):
             end = start + timedelta(1)
         elif 'month' in date:
             if date['month'] == 12:
-                end = start.replace(year=date['year']+1, month=1)
+                end = start.replace(year=date['year'] + 1, month=1)
             else:
-                end = start.replace(month=date['month']+1)
+                end = start.replace(month=date['month'] + 1)
         elif 'year' in date:
-            end = start.replace(year=date['year']+1)
+            end = start.replace(year=date['year'] + 1)
         end = end - timedelta(seconds=0.000001)
 
         for name in fields:

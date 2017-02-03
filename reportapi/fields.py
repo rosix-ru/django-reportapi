@@ -40,7 +40,9 @@ class JSONFormField(CharField):
             try:
                 return json.loads(value, **self.load_kwargs)
             except ValueError:
-                raise ValidationError(self.error_messages['invalid'], code='invalid')
+                raise ValidationError(
+                    self.error_messages['invalid'], code='invalid'
+                )
         return value
 
     def clean(self, value):
@@ -52,7 +54,9 @@ class JSONFormField(CharField):
         try:
             return super(JSONFormField, self).clean(value)
         except TypeError:
-            raise ValidationError(self.error_messages['invalid'], code='invalid')
+            raise ValidationError(
+                self.error_messages['invalid'], code='invalid'
+            )
 
 
 class JSONField(TextField):
@@ -84,11 +88,12 @@ class JSONField(TextField):
 
     def from_db_value(self, value, expression, connection, context):
         """
-        When the data is loaded from the database, including in 
-        aggregates and values() calls. 
+        When the data is loaded from the database, including in
+        aggregates and values() calls.
         """
 
-        if value is None: return value
+        if value is None:
+            return value
 
         if isinstance(value, six.string_types):
             return self._json_loads(value)
@@ -153,7 +158,7 @@ class JSONField(TextField):
 
     def dumps_for_display(self, value):
 
-        kwargs = { "indent": 2, 'ensure_ascii': False }
+        kwargs = {"indent": 2, 'ensure_ascii': False}
 
         kwargs.update(self.dump_kwargs)
 
@@ -208,5 +213,3 @@ class JSONField(TextField):
                 return 'json'
 
         return 'text'
-
-

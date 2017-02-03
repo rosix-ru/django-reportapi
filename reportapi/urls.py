@@ -20,9 +20,10 @@
 #
 
 from __future__ import unicode_literals
-from django.conf.urls import include, url
+from django.conf.urls import url
 
 from reportapi import views, api
+
 
 def autodiscover():
     """
@@ -39,17 +40,23 @@ def autodiscover():
         if os.path.exists(testpath):
             import_module('%s.reports' % app)
 
+
 autodiscover()
+
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^list/(?P<section>\w+)/$', views.report_list, name='report_list'),
-    url(r'^doc/(?P<pk>\d+)/view/+(?P<format>[html,pdf]+)?$', views.view_document, name='view_document'),
-    url(r'^doc/(?P<pk>\d+)/download/+(?P<format>[xml,odf,pdf]+)?$', views.download_document, name='download_document'),
+    url(r'^doc/(?P<pk>\d+)/view/+(?P<format>[html,pdf]+)?$',
+        views.view_document, name='view_document'),
+    url(r'^doc/(?P<pk>\d+)/download/+(?P<format>[xml,odf,pdf]+)?$',
+        views.download_document, name='download_document'),
     url(r'^docs/$', views.documents, name='documents'),
-    url(r'^docs/(?P<section>\w+)/$', views.documents, name='documents_section'),
-    url(r'^docs/(?P<section>\w+)/(?P<name>\w+)/$', views.documents, name='documents_section_name'),
-    url(r'^report/(?P<section>\w+)/(?P<name>\w+)/$', views.report, name='report'),
+    url(r'^docs/(?P<section>\w+)/$',
+        views.documents, name='documents_section'),
+    url(r'^docs/(?P<section>\w+)/(?P<name>\w+)/$',
+        views.documents, name='documents_section_name'),
+    url(r'^report/(?P<section>\w+)/(?P<name>\w+)/$',
+        views.report, name='report'),
     url(r'^api/', api.api, name='api')
 ]
-

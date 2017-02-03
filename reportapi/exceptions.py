@@ -20,19 +20,19 @@
 #
 
 from __future__ import unicode_literals, print_function
-import os, sys, traceback
+import os
 
-from django.utils.translation import get_language, ugettext_lazy as _
-from django.utils.encoding import smart_text, force_text
+from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import force_text
 from django.template import Template, Context
 from django.views.debug import ExceptionReporter
-from django.utils import timezone
+
 
 class AbstractError(Exception):
     message = _('Abstract error')
 
     def __init__(self, message=None, value=None):
-        self.value   = value
+        self.value = value
         self.message = message or self.message
 
     def message_str(self):
@@ -47,20 +47,26 @@ class AbstractError(Exception):
 
         return repr(self.message_str(), self.value)
 
+
 class ValidationError(AbstractError):
     message = _('Validation error')
+
 
 class PermissionError(AbstractError):
     message = _('Access denied')
 
+
 class ObjectFoundError(AbstractError):
     message = _('One ore more objects not found')
+
 
 class PeriodsError(AbstractError):
     pass
 
+
 class OversizeError(AbstractError):
     pass
+
 
 class ExceptionReporterExt(ExceptionReporter):
     """
@@ -81,13 +87,16 @@ class ExceptionReporterExt(ExceptionReporter):
 def raise_set_site(class_name):
     raise NotImplementedError('Set the "site" in %s.' % class_name)
 
+
 def raise_set_section(class_name):
     raise NotImplementedError('Set the "section" in %s.' % class_name)
+
 
 #
 # Templates are embedded in the file so that we know the error handler will
 # always work even if the template loader is broken.
 #
+
 
 TECHNICAL_500_TEMPLATE = """
 <!DOCTYPE html>

@@ -26,20 +26,25 @@ from reportapi.conf import REPORTAPI_FILES_UNIDECODE
 
 if REPORTAPI_FILES_UNIDECODE:
     from unidecode import unidecode
-    prep_filename = lambda x: unidecode(x).replace(' ', '_').replace("'", "")
+
+    def prep_filename(x):
+        return unidecode(x).replace(' ', '_').replace("'", "")
 else:
-    prep_filename = lambda x: x
+    def prep_filename(x):
+        return x
+
 
 def remove_file(filename):
-    """ Замалчивание ошибки удаления файла """
+    "Замалчивание ошибки удаления файла."
     try:
         os.remove(filename)
         return True
     except:
         return False
 
+
 def remove_dirs(dirname, withfiles=False):
-    """ Замалчивание ошибки удаления каталога """
+    "Замалчивание ошибки удаления каталога."
     if withfiles and os.path.exists(dirname):
         for f in os.listdir(dirname):
             remove_file(os.path.join(dirname, f))
@@ -48,6 +53,3 @@ def remove_dirs(dirname, withfiles=False):
         return True
     except:
         return False
-
-
-

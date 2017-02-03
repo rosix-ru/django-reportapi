@@ -21,7 +21,6 @@
 
 from __future__ import unicode_literals
 
-from django.utils.translation import ugettext_lazy as _
 from django.utils import six
 from django.db import models
 from django.db.models import Q
@@ -43,7 +42,7 @@ class CompatManager(models.Manager):
 
 class RegisterManager(CompatManager):
     use_for_related_fields = True
-    
+
     def permitted(self, request):
         user = request.user
         if not user.is_authenticated():
@@ -51,9 +50,9 @@ class RegisterManager(CompatManager):
         if user.is_superuser:
             return self.get_queryset()
         return self.get_queryset().filter(
-            Q(all_users=True)
-            | Q(users=user)
-            | Q(groups__in=user.groups.all())
+            Q(all_users=True) |
+            Q(users=user) |
+            Q(groups__in=user.groups.all())
         )
 
 
@@ -74,9 +73,9 @@ class DefaultDocumentManager(CompatManager):
         if user.is_superuser:
             return self.get_queryset()
         return self.get_queryset().filter(
-            Q(register__all_users=True)
-            | Q(register__users=user)
-            | Q(register__groups__in=user.groups.all())
+            Q(register__all_users=True) |
+            Q(register__users=user) |
+            Q(register__groups__in=user.groups.all())
         )
 
     def del_permitted(self, request):
@@ -94,7 +93,7 @@ if CustomManager:
 
         split = CustomManager.split('.')
         module = '.'.join(split[:-1])
-        klass  = split[-1]
+        klass = split[-1]
 
         m = import_module(module)
 
