@@ -325,13 +325,13 @@ class FilterObject(BaseFilter):
         Также производит исключение полей self.secret_fields
         """
         if not fields_search:
-            all_fields = self.opts.get_fields_with_model()
+            all_fields = self.opts.get_fields()
             if self.search_on_date:
-                fields_search = [x[0].name for x in all_fields if
-                                 isinstance(x[0], DEFAULT_SEARCH_DATE_FIELDS)]
+                fields_search = [x.name for x in all_fields if
+                                 isinstance(x, DEFAULT_SEARCH_DATE_FIELDS)]
             else:
-                fields_search = [x[0].name for x in all_fields if
-                                 isinstance(x[0], DEFAULT_SEARCH_FIELDS)]
+                fields_search = [x.name for x in all_fields if
+                                 isinstance(x, DEFAULT_SEARCH_FIELDS)]
 
         self.fields_search = [x for x in fields_search if
                               x not in self.secret_fields]
