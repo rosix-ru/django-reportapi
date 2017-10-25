@@ -191,12 +191,12 @@ def quarter3(withtime=True, **kwargs):
         n = now()
         start = n.replace(month=7, day=1, hour=0, minute=0, second=0,
                           microsecond=0)
-        end = n.replace(month=9, day=31, hour=23, minute=59, second=59,
+        end = n.replace(month=9, day=30, hour=23, minute=59, second=59,
                         microsecond=999999)
     else:
         n = now().date()
         start = n.replace(month=7, day=1)
-        end = n.replace(month=9, day=31)
+        end = n.replace(month=9, day=30)
 
     return (start, end)
 
