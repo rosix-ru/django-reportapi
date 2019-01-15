@@ -21,11 +21,28 @@
 
 from __future__ import unicode_literals
 from django.contrib import admin
+from django.utils.translation import ugettext_lazy as _
 from .models import Register, Document
 
 
+def list_groups(obj):
+    return ', '.join([x.name for x in obj.groups.all()])
+
+
+list_groups.short_description = _('Groups')
+
+
+def list_users(obj):
+    return ', '.join([x.username for x in obj.users.all()])
+
+
+list_users.short_description = _('Users')
+
+
 class RegisterAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'section', 'name', 'timeout', 'id')
+    list_display = (
+        '__str__', 'section', 'name', list_groups, list_users, 'timeout', 'id',
+    )
     search_fields = ['title', 'id']
     list_filter = ('section',)
     filter_horizontal = ('users', 'groups')
@@ -41,6 +58,7 @@ class DocumentAdmin(admin.ModelAdmin):
     list_filter = ('register__section', 'register__title')
     raw_id_fields = ('user',)
     ordering = ['-end', 'start']
+
 
 
 admin.site.register(Document, DocumentAdmin)
